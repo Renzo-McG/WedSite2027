@@ -1,0 +1,27 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  noindex?: boolean;
+  className?: string;
+}
+
+const { title, description, noindex = false, className = "" } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <title>{title}</title>
+  </head>
+  <body class={className}>
+    <slot />
+  </body>
+</html>
