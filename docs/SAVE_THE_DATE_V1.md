@@ -140,6 +140,16 @@ system leaks into the other.
 It is expected and accepted that the lab's preview now looks _behind_ the public page.
 Updating the lab to consume the approved production system is a separate, later task.
 
+## Screenshots
+
+Captured from the deployed site, not from mockups, in `screenshots/save-the-date-v1/`:
+`mobile-closed-390x844`, `mobile-open-390x844`, `mobile-calendar-390x844`,
+`mobile-open-320x568`, `desktop-closed-1440x900`, `desktop-open-1440x900`,
+`desktop-calendar-1440x900`, `tablet-open-768x1024`, `reduced-motion-open`.
+
+Also verified at 768 × 1024, 1024 × 768, 1280 × 720 and 1440 × 900 during the build, plus
+no-JavaScript state, return visit, direct refresh, and the Pages base path.
+
 ## Still open for Emily and Lawrence
 
 1. Confirm the ceremony time so the countdown and calendar entry stop assuming midnight.
