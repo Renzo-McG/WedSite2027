@@ -21,7 +21,12 @@ body {
   min-height: 100vh;
   color: #171712;
   background: #f7f3eb;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 button,

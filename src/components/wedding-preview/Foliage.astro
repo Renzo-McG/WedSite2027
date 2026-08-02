@@ -1,0 +1,46 @@
+---
+const layers = ["background", "midground", "foreground"] as const;
+---
+
+<div class="foliage" aria-hidden="true">
+  {
+    layers.map((layer) => (
+      <div class={`foliage__layer foliage__layer--${layer}`} data-foliage-layer={layer}>
+        <div class="frond frond--north-west">
+          <>
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+          </>
+        </div>
+        <div class="frond frond--south-east">
+          <>
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+          </>
+        </div>
+        <div class="leaf-cluster leaf-cluster--north-east">
+          <>
+            <i />
+            <i />
+            <i />
+          </>
+        </div>
+        <div class="leaf-cluster leaf-cluster--south-west">
+          <>
+            <i />
+            <i />
+            <i />
+          </>
+        </div>
+      </div>
+    ))
+  }
+</div>

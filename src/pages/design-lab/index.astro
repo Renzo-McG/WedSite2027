@@ -1,0 +1,838 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { builtInPresets } from "../../design-system/presets";
+import { continuityProfiles, motionModes, phases } from "../../design-system/motion-presets";
+import { canonicalTokens, fontChoices } from "../../design-system/tokens";
+import "../../styles/design-lab.css";
+
+const previewUrl = `${import.meta.env.BASE_URL}design-lab/preview/`;
+const sections = [
+  ["overview", "Overview"],
+  ["opening", "Opening Experience"],
+  ["motion", "Motion System"],
+  ["foliage", "Foliage"],
+  ["typography", "Typography"],
+  ["colour", "Colour"],
+  ["composition", "Composition"],
+  ["components", "Components"],
+  ["calendar", "Calendar Sheet"],
+  ["accessibility", "Accessibility"],
+  ["compare", "Compare"],
+  ["presets", "Presets"],
+  ["export", "Export"],
+] as const;
+
+const colourControls = [
+  ["paper", "Paper", canonicalTokens.colour.paper],
+  ["paperDeep", "Paper deep", canonicalTokens.colour.paperDeep],
+  ["ink", "Ink", canonicalTokens.colour.ink],
+  ["inkSoft", "Ink soft", canonicalTokens.colour.inkSoft],
+  ["sage", "Sage", canonicalTokens.colour.sage],
+  ["sageDeep", "Sage deep", canonicalTokens.colour.sageDeep],
+  ["sagePale", "Sage pale", canonicalTokens.colour.sagePale],
+  ["champagne", "Champagne", canonicalTokens.colour.champagne],
+  ["focus", "Focus", canonicalTokens.colour.focus],
+] as const;
+
+const motionControls = [
+  ["localDuration", "Local interaction", 120, 400, 10],
+  ["controlFadeDuration", "Opening-control fade", 120, 1000, 20],
+  ["seamPauseDuration", "Pause before seam", 0, 1200, 20],
+  ["seamDuration", "Seam activation", 160, 1600, 20],
+  ["curtainDuration", "Curtain", 800, 4000, 50],
+  ["contentDuration", "Content reveal", 160, 1600, 20],
+  ["revealStagger", "Reveal stagger", 0, 400, 10],
+  ["sheetDuration", "Sheet", 180, 1400, 20],
+  ["scrimDuration", "Scrim", 120, 1000, 20],
+  ["providerDuration", "Provider selection", 120, 500, 10],
+] as const;
+
+const foliageControls = [
+  ["density", "Density", 0, 1, 0.05],
+  ["foregroundOpacity", "Foreground opacity", 0, 1, 0.05],
+  ["midgroundOpacity", "Midground opacity", 0, 1, 0.05],
+  ["backgroundOpacity", "Background opacity", 0, 1, 0.05],
+  ["scale", "Overall scale", 0.5, 1.8, 0.05],
+  ["windSpeed", "Wind speed", 0.25, 2.5, 0.05],
+  ["swayAmplitude", "Base sway", 0, 2, 0.05],
+  ["gustFrequency", "Gust frequency", 0, 1, 0.05],
+  ["gustStrength", "Gust strength", 0, 1.5, 0.05],
+  ["depthSeparation", "Depth separation", 0, 2, 0.05],
+] as const;
+
+const compositionControls = [
+  ["pagePadding", "Page padding", 12, 96, 1, "px"],
+  ["contentMax", "Content maximum", 680, 1680, 20, "px"],
+  ["safeEdge", "Safe-edge spacing", 8, 72, 1, "px"],
+  ["splitRatio", "Left / right ratio", 0.35, 0.7, 0.01, ""],
+  ["nameScale", "Name scale", 0.65, 1.6, 0.05, "×"],
+  ["saveDateScale", "Save The Date scale", 0.7, 1.5, 0.05, "×"],
+  ["detailScale", "Detail scale", 0.75, 1.35, 0.05, "×"],
+  ["countdownScale", "Countdown scale", 0.7, 1.5, 0.05, "×"],
+  ["primaryGap", "Primary group gap", 12, 72, 1, "px"],
+  ["secondaryGap", "Secondary group gap", 8, 48, 1, "px"],
+  ["verticalBalance", "Vertical balance", -20, 20, 1, "px"],
+  ["foliageInset", "Foliage framing inset", -80, 120, 5, "px"],
+] as const;
+
+const componentSamples = [
+  ["Opening control", "Invites the single signature action without becoming theatrical."],
+  ["Primary CTA", "Carries one clear action and resolves through the shared line grammar."],
+  ["Text link", "Shows direction without adding a second button surface."],
+  ["Provider row", "Keeps familiar provider identity within the neutral enclosure."],
+  ["Navigation item", "Orients the lab through an unmistakable selected rule."],
+  ["Form field", "Supports practical editing with visible focus and error states."],
+] as const;
+---
+
+<BaseLayout
+  title="Wedding Design Lab — Emily & Lawrence"
+  description="Interactive creative-direction environment for Emily and Lawrence's wedding design system."
+  noindex
+  className="lab-page"
+>
+  <header class="lab-masthead">
+    <div>
+      <p class="lab-kicker">Emily &amp; Lawrence · Internal studio</p>
+      <h1>Wedding Design Lab</h1>
+    </div>
+    <div class="lab-status" aria-live="polite">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span data-lab-status>Connecting to preview</span>
+    </div>
+  </header>
+
+  <div class="mobile-mode-switch" role="group" aria-label="Mobile workspace mode">
+    <button type="button" data-mobile-mode="controls" aria-pressed="true">Controls</button>
+    <button type="button" data-mobile-mode="preview" aria-pressed="false">Preview</button>
+  </div>
+
+  <main class="lab-workspace" data-mobile-view="controls">
+    <aside class="control-rail" aria-label="Design Lab controls">
+      <nav class="section-nav" aria-label="Design Lab sections">
+        {
+          sections.map(([id, label], index) => (
+            <button
+              type="button"
+              data-section-button={id}
+              aria-current={index === 0 ? "page" : undefined}
+            >
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              {label}
+            </button>
+          ))
+        }
+      </nav>
+
+      <div class="control-sections">
+        <section class="control-section" data-section="overview">
+          <p class="section-index">01 · Overview</p>
+          <h2>One system, made visible.</h2>
+          <p class="section-intro">
+            Shape the invitation as a connected experience. Every decision updates the isolated
+            preview immediately and remains available for export.
+          </p>
+          <div class="overview-principles">
+            <p><span>North star A</span>I have never seen a wedding website like this.</p>
+            <p><span>North star B</span>This is beautifully understated.</p>
+          </div>
+          <dl class="system-summary">
+            <div><dt>System</dt><dd>v0.1</dd></div>
+            <div><dt>Schema</dt><dd>1</dd></div>
+            <div><dt>Target</dt><dd>24 Oct 2027</dd></div>
+            <div><dt>Timezone</dt><dd>Asia/Manila</dd></div>
+          </dl>
+        </section>
+
+        <section class="control-section" data-section="opening" hidden>
+          <p class="section-index">02 · Opening Experience</p>
+          <h2>Inspect the invitation sequence.</h2>
+          <p class="section-intro">
+            The control resolves before the seam activates; the panels remain flat and stable.
+          </p>
+          <div class="button-row">
+            <button
+              class="studio-button studio-button--primary"
+              type="button"
+              data-motion-action="REPLAY">Replay</button
+            >
+            <button class="studio-button" type="button" data-motion-action="PAUSE">Pause</button>
+            <button class="studio-button" type="button" data-motion-action="RESUME">Resume</button>
+          </div>
+          <div class="button-row">
+            <button class="studio-button" type="button" data-motion-action="STEP_BACK"
+              >Step back</button
+            >
+            <button class="studio-button" type="button" data-motion-action="STEP_FORWARD"
+              >Step forward</button
+            >
+          </div>
+          <fieldset class="studio-fieldset">
+            <legend>Countdown treatment</legend>
+            <div class="segmented">
+              <label
+                ><input
+                  type="radio"
+                  name="countdown-style"
+                  value="editorial"
+                  data-token="countdownStyle"
+                />Editorial line</label
+              >
+              <label
+                ><input
+                  type="radio"
+                  name="countdown-style"
+                  value="structured"
+                  data-token="countdownStyle"
+                />Structured time</label
+              >
+            </div>
+          </fieldset>
+          <label class="switch-row"
+            ><span
+              ><strong>Show seconds</strong><small>Off by default to preserve calm.</small></span
+            ><input type="checkbox" data-token="countdownSeconds" /></label
+          >
+          <label class="studio-field">
+            <span>Jump to phase</span>
+            <select data-phase-jump>
+              {phases.map((phase) => <option value={phase}>{phase}</option>)}
+            </select>
+          </label>
+          <fieldset class="studio-fieldset">
+            <legend>Playback speed</legend>
+            <div class="segmented">
+              {
+                [0.5, 1, 1.5].map((value) => (
+                  <button
+                    type="button"
+                    data-speed={value}
+                    aria-pressed={value === 1 ? "true" : "false"}
+                  >
+                    {value}×
+                  </button>
+                ))
+              }
+            </div>
+          </fieldset>
+          <div class="timeline" aria-label="Opening event timeline">
+            {
+              phases.map((phase, index) => (
+                <button type="button" data-timeline-phase={phase}>
+                  <span>{index + 1}</span>
+                  {phase}
+                </button>
+              ))
+            }
+          </div>
+          <p class="timeline-readout">
+            <span data-current-phase>closed</span><span data-elapsed>0 ms</span>
+          </p>
+        </section>
+
+        <section class="control-section" data-section="motion" hidden>
+          <p class="section-index">03 · Motion System</p>
+          <h2>Invitation Continuity</h2>
+          <p class="section-intro">
+            Choose the grammar that hands each explicit action into the next physical state.
+          </p>
+          <fieldset class="direction-picker">
+            <legend class="sr-only">Continuity direction</legend>
+            {
+              continuityProfiles.map((profile) => (
+                <label class="direction-card">
+                  <input
+                    type="radio"
+                    name="continuity"
+                    value={profile.id}
+                    data-token="motion.direction"
+                  />
+                  <span class="direction-number">
+                    {String(continuityProfiles.indexOf(profile) + 1).padStart(2, "0")}
+                  </span>
+                  <strong>{profile.name}</strong>
+                  <span>{profile.rationale}</span>
+                  <small>
+                    <b>Strongest:</b> {profile.strongest}
+                  </small>
+                  <small>
+                    <b>Risk:</b> {profile.risk}
+                  </small>
+                </label>
+              ))
+            }
+          </fieldset>
+          <div class="range-stack">
+            {
+              motionControls.map(([key, label, min, max, step]) => (
+                <label class="range-control">
+                  <span>
+                    {label}
+                    <output data-output={`motion.${key}`} />
+                  </span>
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step}
+                    data-token={`motion.${key}`}
+                  />
+                </label>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="control-section" data-section="foliage" hidden>
+          <p class="section-index">04 · Foliage</p>
+          <h2>Coastal air, held in layers.</h2>
+          <label class="switch-row"
+            ><span
+              ><strong>Ambient movement</strong><small>Pause all continuous foliage motion.</small
+              ></span
+            ><input type="checkbox" data-token="foliage.enabled" /></label
+          >
+          <fieldset class="studio-fieldset">
+            <legend>Layer visibility</legend>
+            <div class="checkbox-list">
+              <label
+                ><input type="checkbox" data-token="foliage.foregroundVisible" /> Foreground</label
+              >
+              <label
+                ><input type="checkbox" data-token="foliage.midgroundVisible" /> Midground</label
+              >
+              <label
+                ><input type="checkbox" data-token="foliage.backgroundVisible" /> Background</label
+              >
+            </div>
+          </fieldset>
+          <div class="range-stack">
+            {
+              foliageControls.map(([key, label, min, max, step]) => (
+                <label class="range-control">
+                  <>
+                    <span>
+                      {label}
+                      <output data-output={`foliage.${key}`} />
+                    </span>
+                    <input
+                      type="range"
+                      min={min}
+                      max={max}
+                      step={step}
+                      data-token={`foliage.${key}`}
+                    />
+                  </>
+                </label>
+              ))
+            }
+          </div>
+          <label class="studio-field"
+            ><span>Deterministic motion seed</span><input
+              type="number"
+              min="1"
+              max="99999999"
+              data-token="foliage.seed"
+            /></label
+          >
+        </section>
+
+        <section class="control-section" data-section="typography" hidden>
+          <p class="section-index">05 · Typography</p>
+          <h2>Editorial hierarchy first.</h2>
+          <fieldset class="font-picker">
+            <legend>Display family</legend>
+            {
+              Object.entries(fontChoices.display).map(([label, value]) => (
+                <label style={`--specimen-font:${value}`}>
+                  <>
+                    <input
+                      type="radio"
+                      name="display-font"
+                      value={value}
+                      data-token="typography.displayFamily"
+                    />
+                    <strong>
+                      Emily
+                      <br />
+                      Lawrence
+                    </strong>
+                    <span>{label}</span>
+                  </>
+                </label>
+              ))
+            }
+          </fieldset>
+          <fieldset class="font-picker font-picker--script">
+            <legend>Script family</legend>
+            {
+              Object.entries(fontChoices.script).map(([label, value]) => (
+                <label style={`--specimen-font:${value}`}>
+                  <>
+                    <input
+                      type="radio"
+                      name="script-font"
+                      value={value}
+                      data-token="typography.scriptFamily"
+                    />
+                    <strong>and</strong>
+                    <span>{label}</span>
+                  </>
+                </label>
+              ))
+            }
+          </fieldset>
+          <label class="switch-row"
+            ><span
+              ><strong>Script usage</strong><small>Never used for essential instruction.</small
+              ></span
+            ><input type="checkbox" data-token="typography.scriptEnabled" /></label
+          >
+          <label class="switch-row"
+            ><span
+              ><strong>Uppercase treatment</strong><small>Applies to supporting details only.</small
+              ></span
+            ><input type="checkbox" data-token="typography.uppercase" /></label
+          >
+          <div class="range-stack">
+            {
+              [
+                ["displayScale", "Display scale", 0.7, 1.5, 0.05],
+                ["headingScale", "Heading scale", 0.7, 1.5, 0.05],
+                ["detailsScale", "Details scale", 0.75, 1.35, 0.05],
+                ["bodyScale", "Body scale", 0.8, 1.3, 0.05],
+                ["countdownScale", "Countdown scale", 0.7, 1.5, 0.05],
+                ["tracking", "Tracking", -0.08, 0.2, 0.005],
+                ["lineHeight", "Line height", 0.8, 1.8, 0.05],
+              ].map(([key, label, min, max, step]) => (
+                <label class="range-control">
+                  <>
+                    <span>
+                      {label}
+                      <output data-output={`typography.${key}`} />
+                    </span>
+                    <input
+                      type="range"
+                      min={min}
+                      max={max}
+                      step={step}
+                      data-token={`typography.${key}`}
+                    />
+                  </>
+                </label>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="control-section" data-section="colour" hidden>
+          <p class="section-index">06 · Colour</p>
+          <h2>Warm paper, botanical restraint.</h2>
+          <div class="colour-list">
+            {
+              colourControls.map(([key, label, value]) => (
+                <div class="colour-control">
+                  <>
+                    <label>
+                      <>
+                        <input
+                          type="color"
+                          value={value}
+                          data-colour-picker={`colour.${key}`}
+                          aria-label={`${label} colour picker`}
+                        />
+                        <span>
+                          <>
+                            <strong>{label}</strong>
+                            <small>
+                              --{key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}
+                            </small>
+                          </>
+                        </span>
+                      </>
+                    </label>
+                    <input
+                      type="text"
+                      value={value}
+                      pattern="#[0-9A-Fa-f]{6}"
+                      maxlength="7"
+                      data-token={`colour.${key}`}
+                      aria-label={`${label} hexadecimal value`}
+                    />
+                    <button
+                      type="button"
+                      data-reset-token={`colour.${key}`}
+                      aria-label={`Reset ${label}`}
+                    >
+                      ↺
+                    </button>
+                  </>
+                </div>
+              ))
+            }
+          </div>
+          <div class="range-stack">
+            {
+              [
+                ["lineOpacity", "Standard line opacity", 0.04, 0.7, 0.01],
+                ["lineStrongOpacity", "Strong line opacity", 0.08, 0.9, 0.01],
+                ["scrimOpacity", "Scrim opacity", 0.1, 0.8, 0.01],
+              ].map(([key, label, min, max, step]) => (
+                <label class="range-control">
+                  <>
+                    <span>
+                      {label}
+                      <output data-output={`colour.${key}`} />
+                    </span>
+                    <input
+                      type="range"
+                      min={min}
+                      max={max}
+                      step={step}
+                      data-token={`colour.${key}`}
+                    />
+                  </>
+                </label>
+              ))
+            }
+          </div>
+          <div class="contrast-report" data-contrast-report aria-live="polite"></div>
+        </section>
+
+        <section class="control-section" data-section="composition" hidden>
+          <p class="section-index">07 · Composition</p>
+          <h2>Three art-directed structures.</h2>
+          <fieldset class="composition-picker">
+            <legend class="sr-only">Composition direction</legend>
+            <label
+              ><input
+                type="radio"
+                name="composition"
+                value="invitation"
+                data-token="composition.name"
+              /><span class="composition-thumb composition-thumb--invitation"
+                ><i></i><i></i><i></i></span
+              ><strong>Invitation Reference</strong></label
+            >
+            <label
+              ><input
+                type="radio"
+                name="composition"
+                value="editorial"
+                data-token="composition.name"
+              /><span class="composition-thumb composition-thumb--editorial"
+                ><i></i><i></i><i></i></span
+              ><strong>Editorial Split</strong></label
+            >
+            <label
+              ><input
+                type="radio"
+                name="composition"
+                value="centre"
+                data-token="composition.name"
+              /><span class="composition-thumb composition-thumb--centre"
+                ><i></i><i></i><i></i></span
+              ><strong>Restrained Centre</strong></label
+            >
+          </fieldset>
+          <fieldset class="studio-fieldset">
+            <legend>Name orientation</legend><div class="segmented">
+              <label
+                ><input
+                  type="radio"
+                  name="name-orientation"
+                  value="vertical"
+                  data-token="composition.nameOrientation"
+                />Vertical</label
+              ><label
+                ><input
+                  type="radio"
+                  name="name-orientation"
+                  value="horizontal"
+                  data-token="composition.nameOrientation"
+                />Horizontal</label
+              >
+            </div>
+          </fieldset>
+          <div class="range-stack">
+            {
+              compositionControls.map(([key, label, min, max, step, unit]) => (
+                <label class="range-control">
+                  <>
+                    <span>
+                      {label}
+                      <output data-output={`composition.${key}`} data-unit={unit} />
+                    </span>
+                    <input
+                      type="range"
+                      min={min}
+                      max={max}
+                      step={step}
+                      data-token={`composition.${key}`}
+                    />
+                  </>
+                </label>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="control-section" data-section="components" hidden>
+          <p class="section-index">08 · Components</p>
+          <h2>One shared response grammar.</h2>
+          <fieldset class="studio-fieldset">
+            <legend>Preview state</legend><div class="segmented segmented--wrap">
+              {
+                [
+                  "rest",
+                  "hover",
+                  "focus",
+                  "pressed",
+                  "selected",
+                  "disabled",
+                  "confirmation",
+                  "error",
+                ].map((state) => (
+                  <button
+                    type="button"
+                    data-component-state={state}
+                    aria-pressed={state === "rest" ? "true" : "false"}
+                  >
+                    {state}
+                  </button>
+                ))
+              }
+            </div>
+          </fieldset>
+          <div class="component-gallery" data-gallery-state="rest">
+            {
+              componentSamples.map(([name, rationale], index) => (
+                <article>
+                  <>
+                    <span class={`component-sample component-sample--${index}`}>
+                      {index === 5 ? (
+                        <input aria-label="Sample form field" value="Guest detail" readonly />
+                      ) : (
+                        name
+                      )}
+                      <i aria-hidden="true" />
+                    </span>
+                    <h3>{name}</h3>
+                    <p>{rationale}</p>
+                  </>
+                </article>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="control-section" data-section="calendar" hidden>
+          <p class="section-index">09 · Calendar Sheet</p>
+          <h2>An enclosure, not a modal.</h2>
+          <p class="section-intro">
+            The initiating action resolves before the sheet rises. Its top edge inherits the chosen
+            continuity direction.
+          </p>
+          <button
+            class="studio-button studio-button--primary"
+            type="button"
+            data-motion-action="OPEN_SHEET">Open calendar sheet</button
+          >
+          <dl class="motion-notes">
+            <div>
+              <dt>Semantics</dt><dd>Labelled modal dialog with focus trap and restoration.</dd>
+            </div><div><dt>Calendar date</dt><dd>All-day, 24–25 October boundary.</dd></div><div>
+              <dt>Providers</dt><dd>Google URL; Apple and Outlook ICS download.</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="control-section" data-section="accessibility" hidden>
+          <p class="section-index">10 · Accessibility</p>
+          <h2>Review every meaning without travel.</h2>
+          <fieldset class="motion-mode-picker">
+            <legend>Forced preview mode</legend>{
+              motionModes.map(({ id, label }) => (
+                <label>
+                  <>
+                    <input type="radio" name="motion-mode" value={id} data-motion-mode />
+                    <strong>{label}</strong>
+                    <span>
+                      {id === "normal"
+                        ? "Authored sequence and ambient foliage."
+                        : id === "reduced"
+                          ? "Resolved states with no ambient movement."
+                          : "Composed document as meaningful static fallback."}
+                    </span>
+                  </>
+                </label>
+              ))
+            }
+          </fieldset>
+          <ul class="access-checklist">
+            <li>Keyboard-operable opening and sheet</li><li>Visible focus and 44px targets</li><li>
+              No essential content waits for motion
+            </li><li>Countdown is quiet for screen readers</li><li>
+              Status never relies on colour alone
+            </li>
+          </ul>
+        </section>
+
+        <section class="control-section" data-section="compare" hidden>
+          <p class="section-index">11 · Compare</p>
+          <h2>Current versus Experiment.</h2>
+          <label class="switch-row"
+            ><span
+              ><strong>Side-by-side preview</strong><small
+                >Deterministic foliage keeps movement comparable.</small
+              ></span
+            ><input type="checkbox" data-compare-toggle /></label
+          >
+          <fieldset class="studio-fieldset">
+            <legend>Edit target</legend><div class="segmented">
+              <button type="button" data-edit-target="current" aria-pressed="true">Current</button
+              ><button type="button" data-edit-target="experiment" aria-pressed="false"
+                >Experiment</button
+              >
+            </div>
+          </fieldset>
+          <label class="switch-row"
+            ><span
+              ><strong>Synchronised playback</strong><small
+                >Send opening commands to both previews.</small
+              ></span
+            ><input type="checkbox" data-sync-playback checked /></label
+          >
+          <div class="button-stack">
+            <button class="studio-button" type="button" data-copy-experiment
+              >Copy Current to Experiment</button
+            ><button
+              class="studio-button studio-button--primary"
+              type="button"
+              data-accept-experiment>Accept Experiment</button
+            ><button class="studio-button" type="button" data-discard-experiment
+              >Discard Experiment</button
+            >
+          </div>
+        </section>
+
+        <section class="control-section" data-section="presets" hidden>
+          <p class="section-index">12 · Presets</p>
+          <h2>Curated starting points.</h2>
+          <div class="preset-list">
+            {
+              builtInPresets.map((preset) => (
+                <button type="button" data-preset={preset.id}>
+                  <>
+                    <span>
+                      <>
+                        <strong>{preset.name}</strong>
+                        <small>{preset.description}</small>
+                      </>
+                    </span>
+                    <span>Apply</span>
+                  </>
+                </button>
+              ))
+            }
+          </div>
+          <div class="button-row">
+            <button class="studio-button" type="button" data-save-preset>Save named preset</button
+            ><button class="studio-button" type="button" data-reset-canonical
+              >Reset to Canonical</button
+            >
+          </div>
+          <div class="custom-preset-list" data-custom-presets></div>
+          <button class="danger-link" type="button" data-clear-state>Clear Local State</button>
+        </section>
+
+        <section class="control-section" data-section="export" hidden>
+          <p class="section-index">13 · Export</p>
+          <h2>Carry the approved system forward.</h2>
+          <p class="section-intro">
+            Generated files always reflect the visible Current state—not whichever side is being
+            edited.
+          </p>
+          <div class="export-list">
+            {
+              [
+                "design-tokens.css",
+                "tokens.json",
+                "motion-system.json",
+                "design-system-summary.md",
+              ].map((filename) => (
+                <div>
+                  <>
+                    <span>
+                      <>
+                        <strong>{filename}</strong>
+                        <small data-export-size={filename}>Ready</small>
+                      </>
+                    </span>
+                    <button type="button" data-copy-export={filename}>
+                      Copy
+                    </button>
+                    <button type="button" data-download-export={filename}>
+                      Download
+                    </button>
+                  </>
+                </div>
+              ))
+            }
+          </div>
+          <pre class="export-preview" data-export-preview tabindex="0"></pre>
+        </section>
+      </div>
+    </aside>
+
+    <section class="preview-studio" aria-label="Live wedding preview">
+      <div class="preview-toolbar">
+        <div class="toolbar-group">
+          <label
+            ><span class="sr-only">Viewport preset</span><select data-viewport-preset
+              ><option value="responsive">Responsive</option><option value="320x568"
+                >320 × 568</option
+              ><option value="390x844">390 × 844</option><option value="430x932">430 × 932</option
+              ><option value="768x1024">768 × 1024</option><option value="1024x768"
+                >1024 × 768</option
+              ><option value="1440x900">1440 × 900</option><option value="custom">Custom</option
+              ></select
+            ></label
+          >
+          <button type="button" data-rotate aria-label="Rotate viewport">↻</button>
+          <button type="button" data-fit-mode="fit" aria-pressed="true">Fit</button>
+          <button type="button" data-fit-mode="actual" aria-pressed="false">Actual</button>
+        </div>
+        <div class="toolbar-group custom-dimensions" data-custom-dimensions hidden>
+          <label>W <input type="number" min="280" max="1920" value="390" data-custom-width /></label
+          ><label
+            >H <input type="number" min="480" max="1400" value="844" data-custom-height /></label
+          >
+        </div>
+        <p class="viewport-readout">
+          <span data-viewport-dimensions>Responsive</span><span data-viewport-scale>100%</span>
+        </p>
+      </div>
+      <div class="preview-canvas" data-preview-canvas>
+        <div class="compare-labels" hidden data-compare-labels>
+          <span>Current</span><span>Experiment</span>
+        </div>
+        <div class="frames" data-frames>
+          <div class="frame-shell" data-frame-shell="current">
+            <iframe
+              title="Current wedding design preview"
+              src={previewUrl}
+              data-preview-frame="current"></iframe>
+          </div>
+          <div class="frame-shell" data-frame-shell="experiment" hidden>
+            <iframe
+              title="Experimental wedding design preview"
+              src={previewUrl}
+              data-preview-frame="experiment"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="../../scripts/design-lab-client.ts"></script>
+</BaseLayout>

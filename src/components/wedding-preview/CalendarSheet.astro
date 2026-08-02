@@ -1,0 +1,54 @@
+---
+const base = import.meta.env.BASE_URL;
+const googleUrl = new URL("https://calendar.google.com/calendar/render");
+googleUrl.searchParams.set("action", "TEMPLATE");
+googleUrl.searchParams.set("text", "Emily & Lawrence — Wedding");
+googleUrl.searchParams.set("dates", "20271024/20271025");
+googleUrl.searchParams.set("location", "Shangri-La Mactan, Cebu, Philippines");
+googleUrl.searchParams.set(
+  "details",
+  "Emily and Lawrence's wedding — Sunday, 24 October 2027. Formal invitation to follow.",
+);
+---
+
+<div class="sheet-layer" data-sheet-layer aria-hidden="true">
+  <button class="sheet-scrim" data-sheet-close aria-label="Close Save The Date sheet"></button>
+  <section
+    class="calendar-sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="calendar-sheet-title"
+    tabindex="-1"
+    data-calendar-sheet
+  >
+    <div class="sheet-edge" aria-hidden="true"></div>
+    <header class="sheet-header">
+      <h2 id="calendar-sheet-title">Save The Date</h2>
+      <button
+        class="sheet-close"
+        type="button"
+        data-sheet-close
+        aria-label="Close calendar options"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </header>
+    <div class="provider-list">
+      <a class="provider-row" href={googleUrl.toString()} target="_blank" rel="noreferrer">
+        <img src={`${base}provider-assets/google-calendar.svg`} alt="" width="28" height="28" />
+        <span>Google Calendar</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+      <a class="provider-row" href={`${base}emily-lawrence-wedding.ics`} download>
+        <img src={`${base}provider-assets/apple.svg`} alt="" width="25" height="30" />
+        <span>Apple Calendar</span>
+        <span aria-hidden="true">↓</span>
+      </a>
+      <a class="provider-row" href={`${base}emily-lawrence-wedding.ics`} download>
+        <img src={`${base}provider-assets/outlook.svg`} alt="" width="30" height="30" />
+        <span>Microsoft Outlook</span>
+        <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+</div>

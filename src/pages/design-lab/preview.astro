@@ -1,0 +1,38 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import OpeningExperience from "../../components/wedding-preview/OpeningExperience.astro";
+import "../../styles/wedding-preview.css";
+---
+
+<BaseLayout
+  title="Opening Experience Preview — Emily & Lawrence"
+  description="Isolated preview for the Emily and Lawrence Wedding Design Lab."
+  noindex
+  className="preview-page"
+>
+  <OpeningExperience />
+  <noscript>
+    <style>
+      .no-script-note {
+        position: fixed;
+        z-index: 40;
+        right: 1rem;
+        bottom: 4rem;
+        max-width: 20rem;
+        padding: 0.8rem 1rem;
+        color: #171712;
+        background: #f7f3eb;
+        border: 1px solid rgb(23 23 18 / 28%);
+        font:
+          0.75rem/1.4 system-ui,
+          sans-serif;
+      }
+    </style>
+    <p class="no-script-note">
+      The invitation is shown in its composed state. Calendar downloads remain available through the
+      Save The Date sheet when scripting is enabled, or directly at
+      <a href={`${import.meta.env.BASE_URL}emily-lawrence-wedding.ics`}>this calendar file</a>.
+    </p>
+  </noscript>
+  <script src="../../scripts/preview-client.ts"></script>
+</BaseLayout>

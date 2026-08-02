@@ -1,0 +1,65 @@
+---
+import Foliage from "./Foliage.astro";
+import CalendarSheet from "./CalendarSheet.astro";
+---
+
+<main class="invitation" data-invitation-root data-phase="closed">
+  <Foliage />
+
+  <div class="invitation__content" data-content>
+    <section class="names" aria-label="Emily and Lawrence">
+      <span class="name name--emily">Emily</span>
+      <span class="name-connector">and</span>
+      <span class="name name--lawrence">Lawrence</span>
+    </section>
+
+    <section class="date-field" aria-labelledby="save-date-title">
+      <p class="kicker">Formal invitation to follow</p>
+      <h1 id="save-date-title">Save The Date</h1>
+      <div class="continuity-rule" aria-hidden="true"></div>
+      <p class="date">Sunday, 24 October 2027</p>
+      <p class="place">Shangri-La Mactan</p>
+      <p class="location">Cebu, Philippines</p>
+    </section>
+
+    <section class="countdown-field" aria-label="Countdown to the wedding">
+      <p class="countdown countdown--editorial" data-countdown aria-hidden="true">
+        <span data-days>000</span> days · <span data-hours>00</span> hours ·
+        <span data-minutes>00</span> minutes <span data-seconds-wrap hidden
+          >· <span data-seconds>00</span> seconds</span
+        >
+      </p>
+      <div class="countdown countdown--structured" data-countdown-structured aria-hidden="true">
+        <span><strong data-days>000</strong><small>days</small></span>
+        <span><strong data-hours>00</strong><small>hours</small></span>
+        <span><strong data-minutes>00</strong><small>minutes</small></span>
+        <span data-seconds-wrap hidden><strong data-seconds>00</strong><small>seconds</small></span>
+      </div>
+      <p class="sr-only">Countdown to Sunday, 24 October 2027.</p>
+      <button class="save-date-button" type="button" data-sheet-open>
+        <span>Save The Date</span><span aria-hidden="true">↘</span>
+      </button>
+    </section>
+
+    <p class="future-note">More details will unfold soon</p>
+    <button class="replay-button" type="button" data-replay>Replay entrance</button>
+  </div>
+
+  <div class="invitation__panels" aria-hidden="true">
+    <div class="panel panel--left"></div>
+    <div class="panel panel--right"></div>
+    <div class="seam"></div>
+  </div>
+
+  <button
+    class="open-control"
+    type="button"
+    data-open-control
+    aria-label="Open Emily and Lawrence's invitation"
+  >
+    <span class="open-control__monogram">E&amp;L</span>
+    <span class="open-control__label">Open <b aria-hidden="true">↓</b></span>
+  </button>
+
+  <CalendarSheet />
+</main>
