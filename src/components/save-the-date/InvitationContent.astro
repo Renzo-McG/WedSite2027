@@ -1,0 +1,36 @@
+---
+import { wedding } from "../../config/wedding";
+import Countdown from "./Countdown.astro";
+---
+
+<div class="invitation__content">
+  <header class="invitation__header">
+    <p class="label">{wedding.cue}</p>
+  </header>
+
+  <main class="invitation__main">
+    <h1 class="names">
+      <span class="names__line">{wedding.couple.first}</span>
+      <span class="names__amp">&amp;</span>
+      <span class="names__line">{wedding.couple.second}</span>
+    </h1>
+    <div class="details">
+      <p class="details__date">{wedding.date.display}</p>
+      <p class="details__place">
+        {wedding.venue}<br />{wedding.location}
+      </p>
+    </div>
+  </main>
+
+  <footer class="invitation__footer">
+    <Countdown />
+    <a class="cta" href="#calendar-enclosure" data-sheet-open>
+      <span>Save to Calendar</span>
+      <span class="cta__mark" aria-hidden="true"></span>
+    </a>
+    <div class="footer__tail">
+      <p class="note">{wedding.note}</p>
+      <button class="replay" type="button" data-replay hidden>Replay opening</button>
+    </div>
+  </footer>
+</div>

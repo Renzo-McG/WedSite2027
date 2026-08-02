@@ -1,0 +1,29 @@
+---
+import { wedding } from "../../config/wedding";
+import { countdownParts, countdownUnits } from "../../lib/countdown";
+
+/**
+ * Rendered at build time so the countdown is meaningful without JavaScript,
+ * then kept live by the client script.
+ */
+const target = new Date(wedding.date.countdownTarget).getTime();
+const parts = countdownParts(target, Date.now());
+const units = parts ? countdownUnits(parts) : [];
+---
+
+<p class="countdown" data-countdown data-target={target} data-resolved={wedding.date.resolved}>
+  {
+    units.length > 0
+      ? units.map((unit, index) => (
+          <>
+            {index > 0 && (
+              <span class="countdown__sep" aria-hidden="true">
+                ·
+              </span>
+            )}
+            <span class="countdown__unit">{unit}</span>
+          </>
+        ))
+      : wedding.date.resolved
+  }
+</p>

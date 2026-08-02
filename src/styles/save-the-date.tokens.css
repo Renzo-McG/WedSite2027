@@ -1,0 +1,68 @@
+/*
+ * Production tokens for the public Save the Date.
+ * Scoped to the page so nothing leaks into the Design Lab, which keeps its own system.
+ */
+
+.std {
+  --stage-deep: #0d1512;
+  --stage-mid: #16221c;
+  --stage-soft: #27362c;
+
+  --paper: #f2efe7;
+  --paper-deep: #e6e2d7;
+  --paper-highlight: #fbf9f3;
+
+  --ink: #171c18;
+  --ink-soft: #5d655f;
+  --ink-faint: #8a918a;
+
+  --sage: #91a191;
+  --sage-soft: #bcc7bb;
+  --sage-deep: #4e6157;
+
+  --champagne: #bca47d;
+
+  --glass-fill: rgba(11, 19, 15, 0.88);
+  --glass-edge: rgba(238, 244, 236, 0.16);
+  --glass-sheen: rgba(238, 244, 236, 0.05);
+
+  /* Painted at 200% width by each cover half so the two meet exactly on the seam. */
+  --cover-atmos:
+    radial-gradient(30% 26% at 50% 26%, rgba(104, 132, 111, 0.3) 0%, transparent 74%),
+    radial-gradient(30% 24% at 18% 90%, rgba(58, 80, 65, 0.26) 0%, transparent 76%),
+    radial-gradient(64% 54% at 50% 44%, transparent 42%, rgba(4, 9, 7, 0.5) 100%),
+    linear-gradient(178deg, rgba(32, 47, 38, 0.5) 0%, rgba(7, 13, 10, 0.58) 100%);
+
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Manrope", "Helvetica Neue", system-ui, sans-serif;
+
+  --label-size: 0.75rem;
+  --label-tracking: 0.22em;
+  --names-size: clamp(4.25rem, 21.5vw, 6rem);
+  --names-leading: 0.9;
+  --date-size: clamp(1.5rem, 6vw, 1.875rem);
+  --place-size: clamp(1rem, 4vw, 1.125rem);
+  --meta-size: 0.8125rem;
+
+  --edge: clamp(1.25rem, 6vw, 1.75rem);
+  --gap-header-names: clamp(2.25rem, 7vw, 3.25rem);
+  --gap-names-details: clamp(1.75rem, 5.5vw, 2.5rem);
+  --gap-date-place: 0.625rem;
+  --gap-countdown-cta: 1.25rem;
+  --gap-cta-note: 1.5rem;
+
+  --invitation-radius: 1.5rem;
+  --invitation-pad-x: 3rem;
+  --invitation-pad-y: 3.25rem;
+  --control-radius: 999px;
+
+  --ease-material: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-local: cubic-bezier(0.2, 0.75, 0.25, 1);
+  --dur-local: 200ms;
+  --dur-control: 260ms;
+  --dur-seam: 320ms;
+  --dur-cover: 860ms;
+  --dur-content: 700ms;
+  --dur-sheet: 520ms;
+  --stagger: 80ms;
+}
