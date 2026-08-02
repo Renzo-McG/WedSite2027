@@ -1,0 +1,17 @@
+/* Self-hosted, latin-subset only. Licences sit beside the files in src/assets/fonts. */
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/instrument-serif-400-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/manrope-400-600-latin.woff2") format("woff2");
+}

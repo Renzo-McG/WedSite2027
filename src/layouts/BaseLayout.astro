@@ -4,9 +4,10 @@ interface Props {
   description: string;
   noindex?: boolean;
   className?: string;
+  themeColor?: string;
 }
 
-const { title, description, noindex = false, className = "" } = Astro.props;
+const { title, description, noindex = false, className = "", themeColor } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -17,9 +18,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {themeColor && <meta name="theme-color" content={themeColor} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
     <title>{title}</title>
+    <slot name="head" />
   </head>
   <body class={className}>
     <slot />

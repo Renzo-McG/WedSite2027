@@ -1,0 +1,16 @@
+---
+import { wedding } from "../../config/wedding";
+
+const mark = `${wedding.couple.first.charAt(0)}&${wedding.couple.second.charAt(0)}`;
+---
+
+<div class="cover" aria-hidden="true">
+  <span class="cover__half cover__half--left"></span>
+  <span class="cover__half cover__half--right"></span>
+  <span class="cover__seam"></span>
+</div>
+
+<button class="opener" type="button" data-opener>
+  <span class="opener__ring"><span class="opener__mark">{mark}</span></span>
+  <span class="opener__label">Open invitation</span>
+</button>

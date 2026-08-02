@@ -1,56 +1,27 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import "../styles/global.css";
+import SaveTheDateExperience from "../components/save-the-date/SaveTheDateExperience.astro";
+import { wedding } from "../config/wedding";
+import serifFont from "../assets/fonts/instrument-serif-400-latin.woff2?url";
+import sansFont from "../assets/fonts/manrope-400-600-latin.woff2?url";
+import "../styles/fonts.css";
+import "../styles/save-the-date.tokens.css";
+import "../styles/save-the-date.css";
+
+const title = `${wedding.couple.first} & ${wedding.couple.second} — Save the Date`;
+const description = `${wedding.date.display} · ${wedding.venue}, ${wedding.location}`;
 ---
 
 <BaseLayout
-  title="Emily & Lawrence"
-  description="Emily and Lawrence — Sunday, 24 October 2027, Cebu, Philippines."
+  title={title}
+  description={description}
+  noindex
+  themeColor="#0d1512"
+  className="std-page"
 >
-  <main class="holding-page">
-    <p class="eyebrow">Emily &amp; Lawrence</p>
-    <h1>Sunday, 24 October 2027</h1>
-    <p>Shangri-La Mactan · Cebu, Philippines</p>
-    <span aria-hidden="true"></span>
-    <p class="note">Formal invitation to follow</p>
-  </main>
+  <Fragment slot="head">
+    <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={sansFont} as="font" type="font/woff2" crossorigin />
+  </Fragment>
+  <SaveTheDateExperience />
 </BaseLayout>
-
-<style>
-  .holding-page {
-    display: grid;
-    align-content: center;
-    min-height: 100svh;
-    padding: clamp(2rem, 8vw, 8rem);
-    overflow: hidden;
-  }
-
-  .eyebrow,
-  .note {
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-  }
-
-  h1 {
-    max-width: 12ch;
-    margin: 1rem 0 0.5rem;
-    font-family: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
-    font-size: clamp(3.8rem, 11vw, 10rem);
-    font-weight: 400;
-    line-height: 0.85;
-    letter-spacing: -0.04em;
-  }
-
-  p {
-    margin: 0;
-    color: #4a473f;
-  }
-
-  span {
-    width: min(26rem, 70vw);
-    height: 1px;
-    margin: 2.5rem 0;
-    background: rgba(23, 23, 18, 0.24);
-  }
-</style>

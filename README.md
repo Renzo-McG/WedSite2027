@@ -1,8 +1,19 @@
-# Emily & Lawrence Wedding Design Lab
+# Emily & Lawrence Wedding Site
 
-The Design Lab is an interactive creative-direction environment for shaping, comparing, documenting, and exporting the visual and motion system behind Emily and Lawrence's wedding website. It is not the finished wedding site and it is intentionally absent from the public homepage navigation.
+The repository holds two things:
 
-The current vertical slice centres on the Opening Experience and **Invitation Continuity**: the shared behaviour connecting the opening control, invitation seam or paper edge, composed page, Save The Date action, and calendar enclosure.
+1. **The public Save the Date** at `/` — the production page guests see. See [docs/SAVE_THE_DATE_V1.md](docs/SAVE_THE_DATE_V1.md).
+2. **The Design Lab** at `/design-lab/` — an internal creative-direction environment for shaping, comparing, documenting, and exporting a visual and motion system. It is not the wedding site and is intentionally absent from public navigation.
+
+The Save the Date is now the reference for the production system. The Design Lab's own preview deliberately still shows the earlier exploration; realigning it to the production system is a later task.
+
+## Save the Date
+
+On mobile the invitation is the screen. On desktop the same invitation language becomes a portrait 5 : 7 object presented on a dark atmospheric stage. A dark smoked cover splits on a central seam to reveal a light paper invitation, then the composition settles.
+
+All wedding content and calendar data live in `src/config/wedding.ts`. Production tokens live in `src/styles/save-the-date.tokens.css`, scoped to `.std` so nothing leaks between the page and the lab.
+
+The page is fully readable without JavaScript: the markup ships open and an inline script moves it to the closed state before first paint.
 
 ## Technology
 
@@ -116,7 +127,13 @@ DTSTART;VALUE=DATE:20271024
 DTEND;VALUE=DATE:20271025
 ```
 
-The countdown assumes midnight at the start of the wedding date in Cebu (`Asia/Manila`, UTC+08:00), equivalent to `2027-10-23T16:00:00Z`. Days, hours, and minutes are shown by default. Seconds can be enabled in the lab.
+The ICS is generated from `src/config/wedding.ts` by `src/lib/calendar.ts` and emitted as a static file at build time by `src/pages/emily-lawrence-wedding.ics.ts`, so `/WedSite2027/emily-lawrence-wedding.ics` works without JavaScript and there is no hand-maintained copy to drift.
+
+The countdown assumes midnight at the start of the wedding date in Cebu (`Asia/Manila`, UTC+08:00), equivalent to `2027-10-23T16:00:00Z`, because no ceremony time is confirmed. Days, hours, and minutes are shown by default. Seconds can be enabled in the lab.
+
+## Typefaces
+
+The Save the Date self-hosts Instrument Serif (display) and Manrope (interface), both SIL OFL 1.1, as latin-subset `.woff2` in `src/assets/fonts/` with their licences alongside. There is no remote font dependency. The Design Lab keeps its own temporary pairing.
 
 ## Persistence and reset
 
