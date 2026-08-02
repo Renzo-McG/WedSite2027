@@ -1,4 +1,9 @@
-import { countdownParts, countdownUnits } from "../lib/countdown";
+import {
+  countdownLabel,
+  countdownParts,
+  countdownUnits,
+  countdownUnitsCompact,
+} from "../lib/countdown";
 
 type Phase =
   | "closed"
@@ -7,7 +12,10 @@ type Phase =
   | "seam-active"
   | "cover-opening"
   | "content-revealing"
-  | "composed";
+  | "composed"
+  | "content-resolving"
+  | "cover-closing"
+  | "seam-restoring";
 
 interface Step {
   phase: Phase;
@@ -23,14 +31,25 @@ const OPEN_SEQUENCE: Step[] = [
   { phase: "composed", after: 860 },
 ];
 
-const REDUCED_SEQUENCE: Step[] = [
+/** Shorter and intentional rather than a frame-perfect reverse. */
+const CLOSE_SEQUENCE: Step[] = [
+  { phase: "content-resolving", after: 0 },
+  { phase: "cover-closing", after: 200 },
+  { phase: "seam-restoring", after: 520 },
+  { phase: "closed", after: 260 },
+];
+
+const REDUCED_OPEN: Step[] = [
   { phase: "content-revealing", after: 0 },
   { phase: "composed", after: 160 },
 ];
 
+const REDUCED_CLOSE: Step[] = [{ phase: "closed", after: 0 }];
+
 const STORAGE_KEY = "eandl.save-the-date.v1";
 const OPENED = "opened";
-const COUNTDOWN_INTERVAL = 20000;
+/** Below this width the countdown uses `04h · 12m · 09s` instead of full words. */
+const COMPACT_COUNTDOWN = "(max-width: 26rem)";
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -55,7 +74,8 @@ function writeOpened(): void {
 function setUpExperience(root: HTMLElement): void {
   const page = root.closest<HTMLElement>("[data-std]");
   const opener = root.querySelector<HTMLButtonElement>("[data-opener]");
-  const replay = root.querySelector<HTMLButtonElement>("[data-replay]");
+  /* The back control sits on the stage, outside the invitation. */
+  const back = (page ?? document).querySelector<HTMLButtonElement>("[data-replay]");
   const layer = root.querySelector<HTMLElement>("[data-sheet-layer]");
   const sheet = root.querySelector<HTMLElement>("[data-sheet]");
   const trigger = root.querySelector<HTMLAnchorElement>("[data-sheet-open]");
@@ -71,37 +91,42 @@ function setUpExperience(root: HTMLElement): void {
     timers = [];
   }
 
-  function play(sequence: Step[]): void {
+  function play(sequence: Step[], done?: () => void): void {
     clearTimers();
     let elapsed = 0;
-    for (const step of sequence) {
+    sequence.forEach((step, index) => {
       elapsed += step.after;
       timers.push(
         window.setTimeout(() => {
           root.setAttribute("data-phase", step.phase);
+          if (index === sequence.length - 1) done?.();
         }, elapsed),
       );
-    }
+    });
+  }
+
+  function showBack(visible: boolean): void {
+    if (back) back.hidden = !visible;
   }
 
   function open(): void {
-    play(prefersReducedMotion() ? REDUCED_SEQUENCE : OPEN_SEQUENCE);
+    play(prefersReducedMotion() ? REDUCED_OPEN : OPEN_SEQUENCE);
     writeOpened();
-    if (replay) replay.hidden = false;
+    showBack(true);
   }
 
-  function replayOpening(): void {
-    clearTimers();
-    root.setAttribute("data-phase", "closed");
-    if (replay) replay.hidden = true;
-    window.setTimeout(() => opener?.focus({ preventScroll: true }), 60);
+  function close(): void {
+    showBack(false);
+    play(prefersReducedMotion() ? REDUCED_CLOSE : CLOSE_SEQUENCE, () => {
+      opener?.focus({ preventScroll: true });
+    });
   }
 
   root.setAttribute("data-phase", readOpened() ? "composed" : "closed");
-  if (replay) replay.hidden = root.getAttribute("data-phase") !== "composed";
+  showBack(root.getAttribute("data-phase") === "composed");
 
   opener?.addEventListener("click", open);
-  replay?.addEventListener("click", replayOpening);
+  back?.addEventListener("click", close);
 
   /* ------------------------------------------------------------- sheet */
 
@@ -173,16 +198,24 @@ function setUpExperience(root: HTMLElement): void {
   if (countdown) {
     const target = Number(countdown.dataset.target);
     const resolved = countdown.dataset.resolved ?? "";
+    const compact = window.matchMedia(COMPACT_COUNTDOWN);
+    let tick: number | undefined;
 
     const render = (): void => {
       const parts = countdownParts(target, Date.now());
+
+      /* The accessible name changes only once a day, so assistive technology is
+         never interrupted by the seconds. */
+      countdown.setAttribute("aria-label", countdownLabel(parts, resolved));
+
       if (!parts) {
         countdown.textContent = resolved;
         return;
       }
 
+      const units = compact.matches ? countdownUnitsCompact(parts) : countdownUnits(parts);
       countdown.replaceChildren(
-        ...countdownUnits(parts).flatMap((unit, index) => {
+        ...units.flatMap((unit, index) => {
           const value = document.createElement("span");
           value.className = "countdown__unit";
           value.textContent = unit;
@@ -197,9 +230,37 @@ function setUpExperience(root: HTMLElement): void {
       );
     };
 
+    const stop = (): void => {
+      if (tick !== undefined) window.clearTimeout(tick);
+      tick = undefined;
+    };
+
+    /* Aligned to the next whole second rather than a free-running interval, so
+       the display never drifts or skips a number. */
+    const schedule = (): void => {
+      tick = window.setTimeout(
+        () => {
+          render();
+          schedule();
+        },
+        1000 - (Date.now() % 1000),
+      );
+    };
+
     if (Number.isFinite(target)) {
       render();
-      window.setInterval(render, COUNTDOWN_INTERVAL);
+      schedule();
+      compact.addEventListener("change", render);
+
+      document.addEventListener("visibilitychange", () => {
+        stop();
+        if (!document.hidden) {
+          render();
+          schedule();
+        }
+      });
+
+      window.addEventListener("pagehide", stop);
     }
   }
 

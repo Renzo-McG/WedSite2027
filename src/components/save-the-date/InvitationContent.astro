@@ -22,15 +22,18 @@ import Countdown from "./Countdown.astro";
     </div>
   </main>
 
+  {
+    /* Bounded breathing space: the only flexible row, so the composition can
+      never open an accidental void. */
+  }
+  <div class="invitation__breath" aria-hidden="true"></div>
+
   <footer class="invitation__footer">
     <Countdown />
     <a class="cta" href="#calendar-enclosure" data-sheet-open>
       <span>Save to Calendar</span>
       <span class="cta__mark" aria-hidden="true"></span>
     </a>
-    <div class="footer__tail">
-      <p class="note">{wedding.note}</p>
-      <button class="replay" type="button" data-replay hidden>Replay opening</button>
-    </div>
+    <p class="note">{wedding.note}</p>
   </footer>
 </div>
