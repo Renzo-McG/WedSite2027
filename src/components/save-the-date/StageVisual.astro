@@ -1,6 +1,16 @@
-<div class="std__stage" aria-hidden="true">
-  <span class="std__glow"></span>
-  <span class="std__glow std__glow--low"></span>
-  <span class="std__botanical std__botanical--a"></span>
-  <span class="std__botanical std__botanical--b"></span>
+---
+import { wedding } from "../../config/wedding";
+
+/**
+ * The stage is painted as a background rather than an <img>, so a missing or
+ * failed asset degrades to the gradient stage silently instead of leaving a
+ * broken-image icon on the page.
+ */
+const stageImage = `${import.meta.env.BASE_URL}${wedding.stage.image}`;
+---
+
+<div class="stage" aria-hidden="true">
+  <div class="stage__image" style={`background-image: url("${stageImage}")`}></div>
+  <span class="stage__wash"></span>
+  <span class="stage__glow"></span>
 </div>

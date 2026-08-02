@@ -10,6 +10,7 @@ import "../styles/save-the-date.css";
 
 const title = `${wedding.couple.first} & ${wedding.couple.second} — Save the Date`;
 const description = `${wedding.date.display} · ${wedding.venue}, ${wedding.location}`;
+const stageImage = `${import.meta.env.BASE_URL}${wedding.stage.image}`;
 ---
 
 <BaseLayout
@@ -22,6 +23,7 @@ const description = `${wedding.date.display} · ${wedding.venue}, ${wedding.loca
   <Fragment slot="head">
     <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={sansFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={stageImage} as="image" type="image/webp" />
   </Fragment>
   <SaveTheDateExperience />
 </BaseLayout>

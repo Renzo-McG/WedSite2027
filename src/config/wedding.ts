@@ -31,6 +31,16 @@ export const wedding = {
     uid: "20271024-wedding@emilyandlawrence.com",
     stamp: "20260802T120000Z",
   },
+  stage: {
+    /**
+     * Temporary AI-generated concept imagery. It is NOT a photograph of
+     * Shangri-La Mactan and must never be presented as one. To replace it, drop
+     * an approved or licensed destination photograph at this path — no code
+     * change is needed. If the file is missing the gradient stage still renders.
+     */
+    image: "assets/stage/philippines-concept.webp",
+    temporary: true,
+  },
 } as const;
 
 export type Wedding = typeof wedding;

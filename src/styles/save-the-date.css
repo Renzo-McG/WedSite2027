@@ -1,8 +1,10 @@
 /*
- * Save the Date v1 — public root route.
+ * Save the Date v1.1 — public root route.
  *
  * Structural model: on mobile the invitation is the screen; on desktop the same
- * invitation language becomes a portrait object presented on a dark stage.
+ * invitation language becomes a portrait object presented on a destination
+ * stage. The invitation is a warm frosted material, so the stage stays
+ * perceptible through it at every size.
  */
 
 *,
@@ -29,7 +31,7 @@ html[data-sheet-open] {
 }
 
 .std-page :focus-visible {
-  outline: 2px solid #bcc7bb;
+  outline: 2px solid #f0efe6;
   outline-offset: 3px;
 }
 
@@ -47,74 +49,60 @@ html[data-sheet-open] {
 
 /* ---------------------------------------------------------------- stage */
 
-.std__stage {
+.stage {
   position: absolute;
   inset: 0;
+  background: radial-gradient(70% 60% at 50% 34%, var(--stage-soft) 0%, var(--stage-deep) 78%);
   pointer-events: none;
 }
 
-.std__glow {
+.stage__image {
   position: absolute;
   inset: 0;
-  background: radial-gradient(50% 44% at 50% 28%, rgba(126, 154, 132, 0.2) 0%, transparent 72%);
-}
-
-.std__glow--low {
-  background: radial-gradient(44% 42% at 14% 104%, rgba(66, 92, 74, 0.3) 0%, transparent 74%);
-}
-
-.std__botanical {
-  position: absolute;
-  background-image: url("../assets/botanicals/frond.svg");
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  opacity: 0.5;
-  filter: blur(9px);
-  will-change: transform;
+  background-position: var(--stage-position-mobile);
+  background-size: cover;
+  filter: saturate(var(--stage-image-saturation)) contrast(var(--stage-image-contrast));
+  transform-origin: 58% 46%;
+  animation: stage-breathe 54s ease-in-out infinite alternate;
 }
 
-.std__botanical--a {
-  top: -14%;
-  left: -12%;
-  width: 46vmax;
-  height: 46vmax;
-  transform: rotate(14deg);
-  animation: std-drift-a 46s ease-in-out infinite alternate;
+/* Directional wash: darker at the edges, open through the middle, so the
+   location stays legible instead of sitting under a flat black veil. */
+
+.stage__wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    var(--stage-overlay-start) 0%,
+    var(--stage-overlay-mid) 46%,
+    var(--stage-overlay-end) 100%
+  );
 }
 
-.std__botanical--b {
-  right: -16%;
-  bottom: -18%;
-  width: 54vmax;
-  height: 54vmax;
-  transform: rotate(-158deg);
-  opacity: 0.26;
-  animation: std-drift-b 61s ease-in-out infinite alternate;
+.stage__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(48% 42% at 66% 32%, rgba(236, 206, 158, 0.2) 0%, transparent 70%),
+    radial-gradient(92% 78% at 50% 52%, transparent 48%, rgba(6, 12, 9, 0.4) 100%);
 }
 
-@keyframes std-drift-a {
+@keyframes stage-breathe {
   from {
-    transform: rotate(14deg) translate3d(0, 0, 0);
+    transform: scale(1);
   }
   to {
-    transform: rotate(19deg) translate3d(1.4%, 1.8%, 0);
-  }
-}
-
-@keyframes std-drift-b {
-  from {
-    transform: rotate(-158deg) translate3d(0, 0, 0);
-  }
-  to {
-    transform: rotate(-153deg) translate3d(-1.6%, -1.2%, 0);
+    transform: scale(1.02);
   }
 }
 
 /* ----------------------------------------------------------- invitation */
 
 /* `clip` rather than `hidden`: the card must never become a scroll container,
-   or focusing the sheet would shift the whole composition inside it. */
+   or focusing the sheet would shift the whole composition inside it.
+   No `isolation` here — the frosted surface needs the stage in its backdrop. */
 
 .invitation {
   position: relative;
@@ -124,17 +112,24 @@ html[data-sheet-open] {
   min-height: 100vh;
   min-height: 100svh;
   overflow: clip;
-  isolation: isolate;
 }
 
 .invitation__surface {
   position: relative;
   display: grid;
   grid-template-rows: 1fr;
-  background-color: var(--paper);
-  background-image:
-    radial-gradient(72% 46% at 22% 8%, var(--paper-highlight) 0%, transparent 70%),
-    linear-gradient(172deg, var(--paper) 0%, var(--paper) 42%, var(--paper-deep) 100%);
+  background-color: rgba(var(--invitation-tint), var(--invitation-alpha));
+  /* Highlight falls from the upper right so the material shares the stage's
+     light direction instead of contradicting it. */
+  background-image: linear-gradient(
+    214deg,
+    rgba(255, 253, 247, 0.2) 0%,
+    transparent 42%,
+    rgba(208, 202, 186, 0.2) 100%
+  );
+  backdrop-filter: blur(var(--invitation-blur)) saturate(0.9);
+  -webkit-backdrop-filter: blur(var(--invitation-blur)) saturate(0.9);
+  transition: background-color var(--dur-cover) var(--ease-material);
 }
 
 .invitation__grain {
@@ -142,41 +137,31 @@ html[data-sheet-open] {
   inset: 0;
   background-image: url("../assets/materials/grain.svg");
   background-size: 180px 180px;
-  opacity: 0.4;
+  opacity: 0.3;
   mix-blend-mode: multiply;
   pointer-events: none;
 }
 
-/* Printed surface cue: a heavily cropped frond that sits in the pause between
-   the details and the footer. Part of the material, never an illustration. */
-
-.invitation__leaf {
-  position: absolute;
-  right: -30%;
-  bottom: 15%;
-  width: 82%;
-  max-width: 28rem;
-  aspect-ratio: 1;
-  background-image: url("../assets/botanicals/frond.svg");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  opacity: 0.045;
-  filter: blur(1.5px);
-  transform: rotate(-26deg);
-  pointer-events: none;
-}
+/* The breathing row needs no drawn ornament: the stage's own planting reads
+   through the frosted material, which is the botanical treatment. */
 
 /* ------------------------------------------------------------- content */
+
+/* Four rows: label, names and details, one bounded breathing row, then the
+   action group. Only row three flexes, and it is clamped at both ends. */
+
+/* The breathing row is bounded at both ends, so it can never balloon. Any space
+   left over after that is shared evenly above and below the whole block rather
+   than collecting in one accidental void. */
 
 .invitation__content {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: var(--gap-header-names);
+  grid-template-rows: auto auto minmax(var(--breath-min), var(--breath-max)) auto;
+  align-content: center;
   padding-inline: var(--edge);
-  padding-top: max(2rem, env(safe-area-inset-top));
+  padding-top: max(3.25rem, calc(env(safe-area-inset-top) + 2.25rem));
   padding-bottom: max(1.75rem, env(safe-area-inset-bottom));
 }
 
@@ -197,14 +182,11 @@ html[data-sheet-open] {
   text-transform: uppercase;
 }
 
-/* Content is anchored to the top of its row so the single flexible pause falls
-   between the details and the footer group, where it reads as composed
-   breathing space rather than as slack distributed at random. */
-
 .invitation__main {
   display: grid;
   align-content: start;
   gap: var(--gap-names-details);
+  margin-top: var(--gap-header-names);
 }
 
 .names {
@@ -225,7 +207,7 @@ html[data-sheet-open] {
   margin-left: 0.1em;
   color: var(--sage-deep);
   font-size: 0.36em;
-  line-height: 1.9;
+  line-height: 1.85;
 }
 
 .details {
@@ -256,9 +238,9 @@ html[data-sheet-open] {
 .countdown {
   margin: 0;
   color: var(--ink-soft);
-  font-size: var(--meta-size);
+  font-size: var(--countdown-size);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--countdown-tracking);
 }
 
 .countdown__unit {
@@ -270,17 +252,24 @@ html[data-sheet-open] {
   color: var(--ink-faint);
 }
 
+/* ------------------------------------------------------------------ cta */
+
+/* A material control rather than a pill: softly inset, frosted, and clearly
+   part of the invitation surface. */
+
 .cta {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
   min-height: 3rem;
-  padding: 0.75rem 1.5rem;
-  border: 0;
-  border-radius: var(--control-radius);
+  padding: 0.75rem 1.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--calendar-control-radius);
   color: var(--paper-highlight);
-  background: var(--sage-deep);
-  box-shadow: 0 10px 26px rgba(21, 33, 27, 0.18);
+  background: rgba(43, 65, 52, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0.5rem 1.25rem rgba(19, 31, 24, 0.18);
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
@@ -289,8 +278,8 @@ html[data-sheet-open] {
   cursor: pointer;
   transition:
     transform var(--dur-local) var(--ease-local),
-    box-shadow var(--dur-local) var(--ease-local),
-    background-color var(--dur-local) var(--ease-local);
+    background-color var(--dur-local) var(--ease-local),
+    box-shadow var(--dur-local) var(--ease-local);
 }
 
 .cta__mark {
@@ -298,7 +287,7 @@ html[data-sheet-open] {
   width: 1.25rem;
   height: 1px;
   background: currentColor;
-  opacity: 0.38;
+  opacity: 0.4;
   transform-origin: left center;
   transition:
     transform var(--dur-local) var(--ease-local),
@@ -308,52 +297,64 @@ html[data-sheet-open] {
 .cta:hover .cta__mark,
 .cta:focus-visible .cta__mark {
   opacity: 1;
-  transform: scaleX(1.5);
+  transform: scaleX(1.4);
 }
 
 .cta:hover {
-  background: #445649;
+  background: rgba(35, 54, 43, 0.94);
 }
 
 .cta:active {
   transform: scale(0.985);
-  box-shadow: 0 6px 16px rgba(21, 33, 27, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0.25rem 0.75rem rgba(19, 31, 24, 0.16);
 }
 
 .note {
-  margin: 0;
+  margin: calc(var(--gap-cta-note) - var(--gap-countdown-cta)) 0 0;
   color: var(--ink-faint);
   font-size: var(--label-size);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.footer__tail {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.75rem 1.25rem;
-  margin-top: calc(var(--gap-cta-note) - var(--gap-countdown-cta));
-}
+/* ------------------------------------------------------- back control */
 
-.replay {
-  margin-left: auto;
-  padding: 0.375rem 0;
+/* State control only: it closes the invitation. Quiet, off to the upper left,
+   and deliberately not part of the wedding copy. */
+
+.back {
+  position: absolute;
+  top: max(0.875rem, env(safe-area-inset-top));
+  left: max(0.625rem, env(safe-area-inset-left));
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
   border: 0;
-  color: var(--ink-faint);
-  background: none;
-  font-family: inherit;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: color var(--dur-local) var(--ease-local);
-}
-
-.replay:hover {
+  border-radius: 50%;
   color: var(--ink-soft);
+  background: none;
+  cursor: pointer;
+  transition:
+    color var(--dur-local) var(--ease-local),
+    background-color var(--dur-local) var(--ease-local);
 }
 
-.replay[hidden] {
+.back svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.back:hover {
+  color: var(--ink);
+  background: rgba(23, 28, 24, 0.07);
+}
+
+.back[hidden] {
   display: none;
 }
 
@@ -378,7 +379,8 @@ html[data-sheet-open] {
   background-color: var(--glass-fill);
   background-image: var(--cover-atmos);
   background-size: 200% 100%;
-  backdrop-filter: blur(14px) saturate(0.92);
+  backdrop-filter: blur(10px) saturate(0.9);
+  -webkit-backdrop-filter: blur(10px) saturate(0.9);
   transition:
     transform var(--dur-cover) var(--ease-material),
     opacity var(--dur-cover) var(--ease-material);
@@ -394,17 +396,18 @@ html[data-sheet-open] {
   background-position: 100% 0;
 }
 
+/* Two segments with a geometric gap around the control. Nothing overlaps or
+   masks the line — it simply stops, so no fragment can survive at any DPR. */
+
 .cover__seam {
   position: absolute;
-  top: 12%;
-  bottom: 12%;
   left: 50%;
-  width: 1px;
+  width: var(--seam-width);
   background: linear-gradient(
     180deg,
     transparent,
-    var(--glass-edge) 22%,
-    var(--glass-edge) 78%,
+    var(--glass-edge) 26%,
+    var(--glass-edge) 74%,
     transparent
   );
   transform: translateX(-50%) scaleY(0.72);
@@ -414,7 +417,22 @@ html[data-sheet-open] {
     opacity var(--dur-seam) var(--ease-material);
 }
 
+.cover__seam--top {
+  top: 11%;
+  bottom: calc(50% + var(--seam-control-size) / 2 + var(--seam-control-gap));
+  transform-origin: bottom center;
+}
+
+.cover__seam--bottom {
+  top: calc(50% + var(--seam-control-size) / 2 + var(--seam-label-clearance));
+  bottom: 11%;
+  transform-origin: top center;
+}
+
 /* -------------------------------------------------------------- opener */
+
+/* The ring is centred on the container's exact midpoint and the label is taken
+   out of flow, so the seam gap can be derived from that same midpoint. */
 
 .opener {
   position: absolute;
@@ -422,8 +440,6 @@ html[data-sheet-open] {
   z-index: 4;
   display: grid;
   place-content: center;
-  justify-items: center;
-  gap: 1.125rem;
   padding: 0;
   border: 0;
   background: none;
@@ -436,40 +452,47 @@ html[data-sheet-open] {
 .opener__ring {
   display: grid;
   place-items: center;
-  width: 6.5rem;
-  height: 6.5rem;
+  width: var(--seam-control-size);
+  height: var(--seam-control-size);
   border: 1px solid var(--glass-edge);
   border-radius: 50%;
   background: var(--glass-sheen);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition:
     border-color var(--dur-local) var(--ease-local),
+    background-color var(--dur-local) var(--ease-local),
     transform var(--dur-local) var(--ease-local);
 }
 
 .opener__mark {
-  color: rgba(244, 247, 241, 0.92);
+  color: rgba(246, 248, 244, 0.92);
   font-family: var(--font-display);
-  font-size: 1.75rem;
+  font-size: 1.625rem;
   letter-spacing: 0.02em;
 }
 
 .opener__label {
-  color: rgba(226, 234, 224, 0.72);
+  position: absolute;
+  top: calc(50% + var(--seam-control-size) / 2 + 1.15rem);
+  left: 50%;
+  color: rgba(232, 238, 230, 0.78);
   font-size: var(--label-size);
   font-weight: 500;
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
+  transform: translateX(-50%);
   transition: color var(--dur-local) var(--ease-local);
 }
 
 .opener:hover .opener__ring,
 .opener:focus-visible .opener__ring {
-  border-color: rgba(238, 244, 236, 0.44);
+  border-color: rgba(240, 245, 238, 0.5);
+  background: rgba(238, 244, 236, 0.1);
 }
 
 .opener:hover .opener__label,
 .opener:focus-visible .opener__label {
-  color: rgba(238, 244, 236, 0.92);
+  color: rgba(242, 246, 240, 0.95);
 }
 
 .opener:active .opener__ring {
@@ -495,10 +518,23 @@ html[data-sheet-open] {
 .invitation[data-phase="seam-active"] .invitation__footer,
 .invitation[data-phase="cover-opening"] .invitation__header,
 .invitation[data-phase="cover-opening"] .invitation__main,
-.invitation[data-phase="cover-opening"] .invitation__footer {
+.invitation[data-phase="cover-opening"] .invitation__footer,
+.invitation[data-phase="cover-closing"] .invitation__header,
+.invitation[data-phase="cover-closing"] .invitation__main,
+.invitation[data-phase="cover-closing"] .invitation__footer,
+.invitation[data-phase="seam-restoring"] .invitation__header,
+.invitation[data-phase="seam-restoring"] .invitation__main,
+.invitation[data-phase="seam-restoring"] .invitation__footer {
   opacity: 0;
   transform: translateY(10px);
   visibility: hidden;
+}
+
+.invitation[data-phase="content-resolving"] .invitation__header,
+.invitation[data-phase="content-resolving"] .invitation__main,
+.invitation[data-phase="content-resolving"] .invitation__footer {
+  opacity: 0;
+  transition-duration: var(--dur-close);
 }
 
 .invitation[data-phase="content-revealing"] .invitation__header,
@@ -515,6 +551,17 @@ html[data-sheet-open] {
 
 .invitation[data-phase="content-revealing"] .invitation__footer {
   transition-delay: calc(var(--stagger) * 2);
+}
+
+/* The paper is barely present while the cover is closed, so the destination
+   reads through the material, then resolves into being as the cover parts. */
+
+.invitation[data-phase="closed"] .invitation__surface,
+.invitation[data-phase="control-active"] .invitation__surface,
+.invitation[data-phase="control-exiting"] .invitation__surface,
+.invitation[data-phase="seam-active"] .invitation__surface,
+.invitation[data-phase="seam-restoring"] .invitation__surface {
+  --invitation-alpha: var(--invitation-alpha-closed);
 }
 
 .invitation[data-phase="composed"] .cover,
@@ -535,8 +582,28 @@ html[data-sheet-open] {
   opacity: 0;
 }
 
+.invitation[data-phase="content-resolving"] .cover__half {
+  transition-duration: var(--dur-close);
+}
+
+.invitation[data-phase="content-resolving"] .cover__half--left {
+  transform: translateX(-8%);
+  opacity: 0;
+}
+
+.invitation[data-phase="content-resolving"] .cover__half--right {
+  transform: translateX(8%);
+  opacity: 0;
+}
+
+.invitation[data-phase="cover-closing"] .cover__half,
+.invitation[data-phase="seam-restoring"] .cover__half {
+  transition-duration: var(--dur-close);
+}
+
 .invitation[data-phase="seam-active"] .cover__seam,
-.invitation[data-phase="cover-opening"] .cover__seam {
+.invitation[data-phase="cover-opening"] .cover__seam,
+.invitation[data-phase="seam-restoring"] .cover__seam {
   transform: translateX(-50%) scaleY(1);
   opacity: 1;
 }
@@ -550,7 +617,9 @@ html[data-sheet-open] {
 .invitation[data-phase="control-active"] .cover,
 .invitation[data-phase="control-exiting"] .cover,
 .invitation[data-phase="seam-active"] .cover,
-.invitation[data-phase="cover-opening"] .cover {
+.invitation[data-phase="cover-opening"] .cover,
+.invitation[data-phase="cover-closing"] .cover,
+.invitation[data-phase="seam-restoring"] .cover {
   pointer-events: auto;
 }
 
@@ -561,7 +630,9 @@ html[data-sheet-open] {
 .invitation[data-phase="control-exiting"] .opener,
 .invitation[data-phase="seam-active"] .opener,
 .invitation[data-phase="cover-opening"] .opener,
-.invitation[data-phase="content-revealing"] .opener {
+.invitation[data-phase="content-revealing"] .opener,
+.invitation[data-phase="content-resolving"] .opener,
+.invitation[data-phase="cover-closing"] .opener {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -583,11 +654,14 @@ html[data-sheet-open] {
   height: 100%;
   padding: 0;
   border: 0;
-  background: rgba(18, 26, 21, 0.42);
+  background: rgba(14, 22, 17, 0.38);
   opacity: 0;
   cursor: default;
   transition: opacity var(--dur-sheet) var(--ease-material);
 }
+
+/* A material insert from the same system as the invitation, not an operating
+   system sheet: no drag handle, restrained radius, warm frosted paper. */
 
 .sheet {
   position: absolute;
@@ -595,20 +669,27 @@ html[data-sheet-open] {
   bottom: 0;
   left: 0;
   padding: 1.5rem var(--edge) max(1.5rem, env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(23, 28, 24, 0.08);
-  border-radius: 1.25rem 1.25rem 0 0;
-  background: var(--paper-highlight);
-  box-shadow: 0 -20px 50px rgba(16, 24, 19, 0.22);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0.875rem 0.875rem 0 0;
+  background-color: rgba(var(--invitation-tint), var(--calendar-sheet-alpha));
+  box-shadow: 0 -1.25rem 3rem rgba(12, 20, 15, 0.26);
   transform: translateY(101%);
   transition: transform var(--dur-sheet) var(--ease-material);
 }
 
-.sheet__grip {
-  width: 2.25rem;
-  height: 3px;
-  margin: 0 auto 1.125rem;
-  border-radius: 999px;
-  background: rgba(23, 28, 24, 0.14);
+/* The same paper grain as the invitation, at the same restraint. */
+
+.sheet::before {
+  position: absolute;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: url("../assets/materials/grain.svg");
+  background-size: 180px 180px;
+  content: "";
+  inset: 0;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
 .sheet__header {
@@ -616,7 +697,7 @@ html[data-sheet-open] {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.125rem;
+  margin-bottom: 1rem;
 }
 
 .sheet__title {
@@ -648,10 +729,13 @@ html[data-sheet-open] {
 
 .sheet__providers {
   display: grid;
-  gap: 0.25rem;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.sheet__providers li + li {
+  border-top: 1px solid rgba(23, 28, 24, 0.08);
 }
 
 .provider {
@@ -659,8 +743,8 @@ html[data-sheet-open] {
   align-items: center;
   gap: 0.875rem;
   min-height: 3.25rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.875rem;
+  padding: 0.625rem 0.5rem;
+  border-radius: 0.5rem;
   color: var(--ink);
   text-decoration: none;
   transition: background-color var(--dur-local) var(--ease-local);
@@ -672,8 +756,8 @@ html[data-sheet-open] {
 
 .provider__icon {
   flex: none;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.625rem;
+  height: 1.625rem;
   object-fit: contain;
 }
 
@@ -709,60 +793,63 @@ html[data-sheet-open] {
 @media (min-width: 48rem) and (min-height: 40rem) {
   .std {
     padding: clamp(1.5rem, 4vh, 3rem);
-    background: var(--stage-deep);
+  }
+
+  .stage__image {
+    background-position: var(--stage-position-desktop);
   }
 
   /* The staged card is a fixed-proportion object, so its type and spacing are
      expressed as a share of its own height. The composition then holds
      identically from a short laptop to a large display, instead of the content
-     overflowing a card that cannot grow.
-
-     Against a dark stage the cover can also read as smoked glass over the
-     paper, carrying a little more of the light beneath it than the full-bleed
-     phone surface can afford to. */
+     overflowing a card that cannot grow. */
 
   .invitation {
-    --glass-fill: rgba(13, 22, 18, 0.76);
+    --invitation-alpha: var(--invitation-alpha-desktop);
     --label-size: 1.6cqh;
-    --names-size: 12.7cqh;
-    --date-size: 3.7cqh;
-    --place-size: 2.25cqh;
-    --meta-size: 1.72cqh;
-    --gap-header-names: 6.35cqh;
-    --gap-names-details: 4.76cqh;
-    --gap-date-place: 1.32cqh;
-    --gap-countdown-cta: 2.65cqh;
-    --gap-cta-note: 3.17cqh;
-    --invitation-pad-y: 6.9cqh;
-    --invitation-pad-x: 6.35cqh;
+    --names-size: 12.1cqh;
+    --date-size: 3.6cqh;
+    --place-size: 2.2cqh;
+    --countdown-size: 1.66cqh;
+    --gap-header-names: 6cqh;
+    --gap-names-details: 4.4cqh;
+    --gap-date-place: 1.1cqh;
+    --gap-countdown-cta: 2.4cqh;
+    --gap-cta-note: 3cqh;
+    --breath-min: 4cqh;
+    --breath-max: 9cqh;
+    --invitation-pad-y: 6.6cqh;
+    --invitation-pad-x: 6.2cqh;
 
     width: auto;
     height: min(84svh, 49rem);
     min-height: 30rem;
     max-width: min(90vw, 35rem);
     aspect-ratio: 5 / 7;
+    border: 1px solid var(--invitation-border);
     border-radius: var(--invitation-radius);
-    box-shadow:
-      0 40px 90px rgba(0, 0, 0, 0.42),
-      0 4px 14px rgba(0, 0, 0, 0.24);
+    box-shadow: var(--invitation-shadow);
     container-type: size;
   }
 
-  .cta {
-    min-height: 6.35cqh;
-    padding: 1.6cqh 3.2cqh;
-    font-size: 1.98cqh;
-  }
+  /* A brighter halo immediately behind the object, so it sits in the scene
+     rather than on top of it. */
 
-  .replay {
-    font-size: 1.5cqh;
+  .invitation::before {
+    position: absolute;
+    z-index: -1;
+    border-radius: inherit;
+    box-shadow: 0 0 8rem 2rem rgba(226, 208, 176, 0.14);
+    content: "";
+    inset: -1px;
+    pointer-events: none;
   }
 
   .invitation::after {
     position: absolute;
     z-index: 6;
     border-radius: inherit;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
     content: "";
     inset: 0;
     pointer-events: none;
@@ -772,17 +859,32 @@ html[data-sheet-open] {
     padding: var(--invitation-pad-y) var(--invitation-pad-x);
   }
 
-  /* The card is narrower than the phone surface, so the printed frond drops
-     into the lower right quadrant to stay clear of the text column. */
+  .cta {
+    min-height: 6.2cqh;
+    padding: 1.6cqh 2.9cqh;
+    font-size: 1.92cqh;
+  }
 
-  .invitation__leaf {
-    right: -18%;
-    bottom: -4%;
-    width: 62%;
+  /* On the stage rather than the paper, so it takes the stage's light. */
+
+  .back {
+    top: 1.25rem;
+    left: 1.25rem;
+    color: rgba(233, 238, 231, 0.72);
+  }
+
+  .back:hover {
+    color: rgba(245, 248, 243, 0.95);
+    background: rgba(245, 248, 243, 0.12);
   }
 
   .cover__half {
-    backdrop-filter: blur(16px) saturate(0.85);
+    backdrop-filter: blur(12px) saturate(0.88);
+    -webkit-backdrop-filter: blur(12px) saturate(0.88);
+  }
+
+  .sheet {
+    border-radius: 0.75rem 0.75rem 0 0;
   }
 }
 
@@ -792,22 +894,33 @@ html[data-sheet-open] {
   .invitation__content {
     padding-block: 1.5rem;
   }
+}
 
-  .invitation__main {
-    align-content: start;
+/* --------------------------------------------- no backdrop-filter support */
+
+/* Without the blur the material would read as a flat transparent panel, so the
+   surface becomes considerably more opaque and keeps its own depth. */
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .std {
+    --invitation-alpha-desktop: 0.95;
+    --invitation-alpha-mobile: 0.96;
+    --invitation-alpha-closed: 0.4;
+    --glass-fill: rgba(11, 19, 15, 0.9);
   }
 }
 
 /* ------------------------------------------------------ reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
-  .std__botanical {
+  .stage__image {
     animation: none;
   }
 
   .invitation__header,
   .invitation__main,
   .invitation__footer,
+  .invitation__surface,
   .cover__half,
   .cover__seam,
   .opener,
@@ -833,6 +946,6 @@ html[data-sheet-open] {
   }
 }
 
-.std[data-paused] .std__botanical {
+.std[data-paused] .stage__image {
   animation-play-state: paused;
 }
