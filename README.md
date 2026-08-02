@@ -9,7 +9,11 @@ The Save the Date is now the reference for the production system. The Design Lab
 
 ## Save the Date
 
-On mobile the invitation is the screen. On desktop the same invitation language becomes a portrait 5 : 7 object presented on a dark atmospheric stage. A dark smoked cover splits on a central seam to reveal a light paper invitation, then the composition settles.
+On mobile the invitation is the screen. On desktop the same invitation language becomes a portrait 5 : 7 object presented on a destination stage. A smoked cover splits on a central seam to reveal a warm frosted invitation the stage still reads through, then the composition settles.
+
+The stage image at `public/assets/stage/philippines-concept.webp` is **temporary AI-generated concept imagery. It is not a photograph of Shangri-La Mactan and must not be presented as one.** To replace it with an approved or licensed photograph, drop the new file at that path — no code change is needed.
+
+> **Do not run Node tooling from the Google Drive mirror.** Package tooling performs thousands of small reads and the CloudStorage mount serves them slowly enough that `astro check` can hang. Work from a local SSD clone, e.g. `/Users/lawrence.mcguire/Developer/WedSite2027`, where `pnpm install` takes about four seconds. See [docs/SAVE_THE_DATE_V1_1.md](docs/SAVE_THE_DATE_V1_1.md).
 
 All wedding content and calendar data live in `src/config/wedding.ts`. Production tokens live in `src/styles/save-the-date.tokens.css`, scoped to `.std` so nothing leaks between the page and the lab.
 
@@ -129,7 +133,7 @@ DTEND;VALUE=DATE:20271025
 
 The ICS is generated from `src/config/wedding.ts` by `src/lib/calendar.ts` and emitted as a static file at build time by `src/pages/emily-lawrence-wedding.ics.ts`, so `/WedSite2027/emily-lawrence-wedding.ics` works without JavaScript and there is no hand-maintained copy to drift.
 
-The countdown assumes midnight at the start of the wedding date in Cebu (`Asia/Manila`, UTC+08:00), equivalent to `2027-10-23T16:00:00Z`, because no ceremony time is confirmed. Days, hours, and minutes are shown by default. Seconds can be enabled in the lab.
+The countdown assumes midnight at the start of the wedding date in Cebu (`Asia/Manila`, UTC+08:00), equivalent to `2027-10-23T16:00:00Z`, because no ceremony time is confirmed. It shows days, hours, minutes and seconds, updated on a timer aligned to the whole second. The seconds add visual precision only — they do not change that assumption.
 
 ## Typefaces
 

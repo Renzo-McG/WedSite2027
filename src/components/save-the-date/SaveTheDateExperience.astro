@@ -13,13 +13,22 @@ import CalendarSheet from "./CalendarSheet.astro";
   <article class="invitation" data-phase="composed" data-invitation>
     <div class="invitation__surface">
       <div class="invitation__grain" aria-hidden="true"></div>
-      <div class="invitation__leaf" aria-hidden="true"></div>
       <InvitationContent />
     </div>
 
     <OpeningCover />
     <CalendarSheet />
   </article>
+
+  {
+    /* State control only — it closes the invitation, it is not browser
+      navigation. It sits outside the card so it never joins the wedding copy. */
+  }
+  <button class="back" type="button" data-replay aria-label="Return to closed invitation" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="1.4"></path>
+    </svg>
+  </button>
 </div>
 
 <!-- Runs before first paint so returning visitors never see the closed state
