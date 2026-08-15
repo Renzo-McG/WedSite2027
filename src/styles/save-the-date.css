@@ -47,6 +47,33 @@ html[data-sheet-open] {
   font-family: var(--font-ui);
 }
 
+/* Mobile Safari can expose a fractional compositor seam even when every layer
+   measures exactly to the viewport. The visual layers overscan by one pixel
+   inside the clipped canvas, while the content keeps its existing alignment. */
+
+@media (max-width: 47.99rem) {
+  .std-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .std {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .std > .stage {
+    right: -1px;
+  }
+
+  .std > .invitation {
+    justify-self: start;
+    width: calc(100% + 1px);
+    max-width: none;
+  }
+}
+
 /* ---------------------------------------------------------------- stage */
 
 .stage {
