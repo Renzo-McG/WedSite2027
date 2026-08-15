@@ -673,6 +673,25 @@ html[data-sheet-open] {
     filter var(--dur-local) var(--ease-local);
 }
 
+/* The two cover panels meet behind the opener. A softly feathered seal makes
+   that physical join disappear inside the emblem, so the deliberate seam
+   segments read as stopping above and below rather than crossing the mark. */
+
+.opener__assembly::before {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(42, 56, 47, 0.98) 0 72%,
+    rgba(34, 48, 40, 0.94) 80%,
+    rgba(20, 32, 26, 0.46) 89%,
+    transparent 100%
+  );
+  content: "";
+  inset: -0.85rem;
+  pointer-events: none;
+}
+
 .opener__ring {
   position: absolute;
   top: 50%;
