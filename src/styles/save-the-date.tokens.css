@@ -17,8 +17,8 @@
      secondary tiers are separated by size, case and tracking rather than by
      going pale, which was failing contrast. */
   --ink: #171c18;
-  --ink-soft: #4d5751;
-  --ink-faint: #4e5852;
+  --ink-soft: #464f49;
+  --ink-faint: #464f49;
 
   --sage: #91a191;
   --sage-soft: #bcc7bb;
@@ -70,13 +70,19 @@
 
   /* ------------------------------------------------------------ typography */
 
-  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --font-ui: "Manrope", "Helvetica Neue", system-ui, sans-serif;
+  --font-display: "Sirivennela", "Segoe Script", cursive;
+  --font-ui: "Plus Jakarta Sans", "Helvetica Neue", system-ui, sans-serif;
 
   --label-size: 0.75rem;
   --label-tracking: 0.22em;
-  --names-size: clamp(4rem, 20vw, 5.6rem);
-  --names-leading: 0.9;
+  --names-size: clamp(5.25rem, 24vw, 6.75rem);
+  --names-leading: 0.76;
+  --names-gap: 0.12em;
+  --names-offset-x: -0.015em;
+  --names-offset-y: 0.08em;
+  --amp-size: 0.19em;
+  --amp-offset-x: 0.8em;
+  --amp-offset-y: 0.2em;
   --date-size: clamp(1.4375rem, 5.6vw, 1.8125rem);
   --place-size: clamp(0.9375rem, 3.8vw, 1.0625rem);
   --countdown-size: 0.8125rem;
@@ -102,12 +108,59 @@
 
   --ease-material: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-local: cubic-bezier(0.2, 0.75, 0.25, 1);
+  --ease-aperture: cubic-bezier(0.32, 0.02, 0.2, 1);
+  --ease-reseal: cubic-bezier(0.4, 0, 0.25, 1);
   --dur-local: 200ms;
   --dur-control: 260ms;
-  --dur-seam: 320ms;
-  --dur-cover: 860ms;
-  --dur-content: 700ms;
-  --dur-sheet: 520ms;
-  --dur-close: 420ms;
-  --stagger: 80ms;
+  --dur-align: 520ms;
+  --dur-unlock: 300ms;
+  --dur-seam: 220ms;
+  --dur-cover: 1400ms;
+  --dur-content: 1100ms;
+  --dur-sheet: 620ms;
+  --dur-close: 1180ms;
+}
+
+html[data-display-type="sirivennela"] .std {
+  --font-display: "Sirivennela", "Segoe Script", cursive;
+  --names-size: clamp(5.25rem, 24vw, 6.75rem);
+  --names-leading: 0.76;
+  --names-gap: 0.12em;
+  --names-offset-x: -0.015em;
+  --names-offset-y: 0.08em;
+  --amp-offset-x: 0.8em;
+  --amp-offset-y: 0.2em;
+}
+
+html[data-display-type="montecarlo"] .std {
+  --font-display: "MonteCarlo", "Segoe Script", cursive;
+  --names-size: clamp(4.9rem, 22vw, 6.4rem);
+  --names-leading: 0.82;
+  --names-gap: 0.08em;
+  --names-offset-x: -0.04em;
+  --names-offset-y: 0.03em;
+  --amp-offset-x: 0.62em;
+  --amp-offset-y: 0.16em;
+}
+
+html[data-display-type="corinthia"] .std {
+  --font-display: "Corinthia", "Segoe Script", cursive;
+  --names-size: clamp(5.8rem, 27vw, 7.4rem);
+  --names-leading: 0.7;
+  --names-gap: 0.13em;
+  --names-offset-x: -0.035em;
+  --names-offset-y: 0.12em;
+  --amp-offset-x: 0.92em;
+  --amp-offset-y: 0.28em;
+}
+
+html[data-display-type="parisienne"] .std {
+  --font-display: "Parisienne", "Segoe Script", cursive;
+  --names-size: clamp(4.65rem, 21vw, 6.05rem);
+  --names-leading: 0.86;
+  --names-gap: 0.08em;
+  --names-offset-x: -0.01em;
+  --names-offset-y: 0.02em;
+  --amp-offset-x: 0.58em;
+  --amp-offset-y: 0.14em;
 }

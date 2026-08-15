@@ -2,16 +2,18 @@
 
 The repository holds two things:
 
-1. **The public Save the Date** at `/` — the production page guests see. See [docs/SAVE_THE_DATE_V1.md](docs/SAVE_THE_DATE_V1.md).
+1. **The public Save the Date** at `/` — the production page guests see. See [docs/SAVE_THE_DATE_V1_2.md](docs/SAVE_THE_DATE_V1_2.md).
 2. **The Design Lab** at `/design-lab/` — an internal creative-direction environment for shaping, comparing, documenting, and exporting a visual and motion system. It is not the wedding site and is intentionally absent from public navigation.
 
 The Save the Date is now the reference for the production system. The Design Lab's own preview deliberately still shows the earlier exploration; realigning it to the production system is a later task.
 
 ## Save the Date
 
-On mobile the invitation is the screen. On desktop the same invitation language becomes a portrait 5 : 7 object presented on a destination stage. A smoked cover splits on a central seam to reveal a warm frosted invitation the stage still reads through, then the composition settles.
+On mobile the invitation is the screen. On desktop the same invitation language becomes a portrait 5 : 7 object presented on a destination stage. An abstract access mark aligns and releases a central seam; both smoked panels then travel fully clear while one session-selected destination concept video begins moving beneath the warm frosted invitation.
 
 The stage image at `public/assets/stage/philippines-concept.webp` is **temporary AI-generated concept imagery. It is not a photograph of Shangri-La Mactan and must not be presented as one.** To replace it with an approved or licensed photograph, drop the new file at that path — no code change is needed.
+
+The four clips in `public/assets/stage/video/` are also temporary atmospheric concept footage, not venue footage or documentary imagery of Cebu. Only one clip is requested per tab session. Review overrides remain available at `?video=1` through `?video=4`; `?video=none` presents the static fallback.
 
 > **Do not run Node tooling from the Google Drive mirror.** Package tooling performs thousands of small reads and the CloudStorage mount serves them slowly enough that `astro check` can hang. Work from a local SSD clone, e.g. `/Users/lawrence.mcguire/Developer/WedSite2027`, where `pnpm install` takes about four seconds. See [docs/SAVE_THE_DATE_V1_1.md](docs/SAVE_THE_DATE_V1_1.md).
 
@@ -137,7 +139,7 @@ The countdown assumes midnight at the start of the wedding date in Cebu (`Asia/M
 
 ## Typefaces
 
-The Save the Date self-hosts Instrument Serif (display) and Manrope (interface), both SIL OFL 1.1, as latin-subset `.woff2` in `src/assets/fonts/` with their licences alongside. There is no remote font dependency. The Design Lab keeps its own temporary pairing.
+The Save the Date self-hosts Plus Jakarta Sans for all interface and functional text. The names remain an explicit four-font audition: Sirivennela, MonteCarlo, Corinthia and Parisienne, selectable with `?type=sirivennela`, `?type=montecarlo`, `?type=corinthia` or `?type=parisienne`. Sirivennela is the provisional default, not an approval. All five production families are local `.woff2` files with SIL OFL 1.1 licences; there is no remote font dependency. The Design Lab keeps its own type system.
 
 ## Persistence and reset
 

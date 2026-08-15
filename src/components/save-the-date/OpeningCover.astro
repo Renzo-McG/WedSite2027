@@ -9,6 +9,11 @@ const openLabel = `Open ${wedding.couple.first} and ${wedding.couple.second}'s S
   <span class="cover__half cover__half--left"></span>
   <span class="cover__half cover__half--right"></span>
 
+  <span class="cover__lock-line cover__lock-line--upper-left"></span>
+  <span class="cover__lock-line cover__lock-line--upper-right"></span>
+  <span class="cover__lock-line cover__lock-line--lower-left"></span>
+  <span class="cover__lock-line cover__lock-line--lower-right"></span>
+
   {
     /* Two deliberate segments with a geometric gap, so no line can ever cross
       the control at any device pixel ratio. */
@@ -18,6 +23,13 @@ const openLabel = `Open ${wedding.couple.first} and ${wedding.couple.second}'s S
 </div>
 
 <button class="opener" type="button" data-opener aria-label={openLabel}>
-  <span class="opener__ring"><span class="opener__mark">{mark}</span></span>
+  <span class="opener__assembly" aria-hidden="true">
+    <span class="opener__ring opener__ring--outer"></span>
+    <span class="opener__ring opener__ring--inner"></span>
+    <span class="opener__ticks">
+      <span></span><span></span><span></span><span></span>
+    </span>
+    <span class="opener__mark">{mark}</span>
+  </span>
   <span class="opener__label" aria-hidden="true">Open</span>
 </button>

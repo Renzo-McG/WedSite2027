@@ -24,10 +24,11 @@ import CalendarSheet from "./CalendarSheet.astro";
     /* State control only — it closes the invitation, it is not browser
       navigation. It sits outside the card so it never joins the wedding copy. */
   }
-  <button class="back" type="button" data-replay aria-label="Return to closed invitation" hidden>
+  <button class="back" type="button" data-replay aria-label="Close invitation" hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="1.4"></path>
     </svg>
+    <span class="back__label" aria-hidden="true">Close</span>
   </button>
 </div>
 
@@ -43,7 +44,7 @@ import CalendarSheet from "./CalendarSheet.astro";
     } catch {
       /* Blocked storage simply replays the opening next visit. */
     }
-    root.setAttribute("data-phase", opened ? "composed" : "closed");
+    root.setAttribute("data-phase", opened ? "composed" : "sealed");
   })();
 </script>
 

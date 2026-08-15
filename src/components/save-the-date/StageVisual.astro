@@ -7,10 +7,29 @@ import { wedding } from "../../config/wedding";
  * broken-image icon on the page.
  */
 const stageImage = `${import.meta.env.BASE_URL}${wedding.stage.image}`;
+const videoConfig = JSON.stringify(wedding.stage.videos);
 ---
 
-<div class="stage" aria-hidden="true">
-  <div class="stage__image" style={`background-image: url("${stageImage}")`}></div>
+<div
+  class="stage"
+  aria-hidden="true"
+  data-stage
+  data-stage-base={import.meta.env.BASE_URL}
+  data-stage-fallback={stageImage}
+  data-stage-videos={videoConfig}
+>
+  <div class="stage__image" data-stage-fallback-layer></div>
+  <noscript>
+    <div class="stage__noscript" style={`background-image: url("${stageImage}")`}></div>
+  </noscript>
+  <video
+    class="stage__video"
+    muted
+    playsinline
+    preload="auto"
+    tabindex="-1"
+    data-stage-video
+    disablepictureinpicture></video>
   <span class="stage__wash"></span>
   <span class="stage__glow"></span>
 </div>
