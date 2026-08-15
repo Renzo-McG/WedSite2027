@@ -43,7 +43,7 @@ import CalendarSheet from "./CalendarSheet.astro";
     } catch {
       /* Blocked storage simply replays the opening next visit. */
     }
-    root.setAttribute("data-phase", opened ? "composed" : "closed");
+    root.setAttribute("data-phase", opened ? "composed" : "sealed");
   })();
 </script>
 

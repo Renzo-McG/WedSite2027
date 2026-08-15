@@ -4,55 +4,43 @@ import {
   countdownUnits,
   countdownUnitsCompact,
 } from "../lib/countdown";
-
-type Phase =
-  | "closed"
-  | "control-active"
-  | "control-exiting"
-  | "seam-active"
-  | "cover-opening"
-  | "content-revealing"
-  | "composed"
-  | "content-resolving"
-  | "cover-closing"
-  | "seam-restoring";
-
-interface Step {
-  phase: Phase;
-  after: number;
-}
-
-const OPEN_SEQUENCE: Step[] = [
-  { phase: "control-active", after: 0 },
-  { phase: "control-exiting", after: 180 },
-  { phase: "seam-active", after: 260 },
-  { phase: "cover-opening", after: 320 },
-  { phase: "content-revealing", after: 420 },
-  { phase: "composed", after: 860 },
-];
-
-/** Shorter and intentional rather than a frame-perfect reverse. */
-const CLOSE_SEQUENCE: Step[] = [
-  { phase: "content-resolving", after: 0 },
-  { phase: "cover-closing", after: 200 },
-  { phase: "seam-restoring", after: 520 },
-  { phase: "closed", after: 260 },
-];
-
-const REDUCED_OPEN: Step[] = [
-  { phase: "content-revealing", after: 0 },
-  { phase: "composed", after: 160 },
-];
-
-const REDUCED_CLOSE: Step[] = [{ phase: "closed", after: 0 }];
+import { displayFontFromSearch } from "../lib/display-font";
+import {
+  CALENDAR_CLOSE_SEQUENCE,
+  CALENDAR_OPEN_SEQUENCE,
+  OPEN_SEQUENCE,
+  REDUCED_CALENDAR_CLOSE_SEQUENCE,
+  REDUCED_CALENDAR_OPEN_SEQUENCE,
+  REDUCED_OPEN_SEQUENCE,
+  REDUCED_RESEAL_SEQUENCE,
+  RESEAL_SEQUENCE,
+  isStageVideoResetPoint,
+  type ExperiencePhase,
+  type ExperienceStep,
+} from "../lib/experience-machine";
+import { selectStageVideo, type StageVideo } from "../lib/stage-video";
 
 const STORAGE_KEY = "eandl.save-the-date.v1";
 const OPENED = "opened";
-/** Below this width the countdown uses `04h · 12m · 09s` instead of full words. */
+const CALENDAR_USED_KEY = "eandl.calendar-used:v1";
 const COMPACT_COUNTDOWN = "(max-width: 26rem)";
+
+interface StageMediaController {
+  start(): void;
+  resetAfterSeal(): void;
+  setEnvironmentPaused(paused: boolean): void;
+}
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function storageOrNull(kind: "localStorage" | "sessionStorage"): Storage | null {
+  try {
+    return window[kind];
+  } catch {
+    return null;
+  }
 }
 
 function readOpened(): boolean {
@@ -67,41 +55,187 @@ function writeOpened(): void {
   try {
     window.localStorage.setItem(STORAGE_KEY, OPENED);
   } catch {
-    /* Private mode and blocked storage simply replay the opening next visit. */
+    // Blocked storage simply replays the opening on a later visit.
   }
+}
+
+function hasUsedCalendarThisSession(): boolean {
+  try {
+    return window.sessionStorage.getItem(CALENDAR_USED_KEY) === "used";
+  } catch {
+    return false;
+  }
+}
+
+function markCalendarUsedThisSession(): void {
+  try {
+    window.sessionStorage.setItem(CALENDAR_USED_KEY, "used");
+  } catch {
+    // The finite cue may replay on refresh when session storage is blocked.
+  }
+}
+
+function mediaUrl(base: string, path: string): string {
+  return `${base.replace(/\/?$/, "/")}${path.replace(/^\//, "")}`;
+}
+
+function configureStageVideo(stage: HTMLElement | null): StageMediaController {
+  const video = stage?.querySelector<HTMLVideoElement>("[data-stage-video]") ?? null;
+  const fallback = stage?.querySelector<HTMLElement>("[data-stage-fallback-layer]") ?? null;
+  const noop: StageMediaController = {
+    start: () => undefined,
+    resetAfterSeal: () => undefined,
+    setEnvironmentPaused: () => undefined,
+  };
+
+  if (!stage || !video) return noop;
+
+  const showFallback = (): void => {
+    const fallbackUrl = stage.dataset.stageFallback;
+    if (fallback && fallbackUrl) fallback.style.backgroundImage = `url("${fallbackUrl}")`;
+  };
+
+  const selection = selectStageVideo(window.location.search, storageOrNull("sessionStorage"));
+  stage.dataset.videoSelection = selection.video?.id ?? "none";
+  stage.dataset.videoSource = selection.source;
+
+  if (!selection.video) {
+    video.removeAttribute("src");
+    video.removeAttribute("poster");
+    showFallback();
+    return noop;
+  }
+
+  const selected: StageVideo = selection.video;
+  const base = stage.dataset.stageBase ?? "/";
+  stage.style.setProperty("--video-position-desktop", selected.desktopPosition);
+  stage.style.setProperty("--video-position-mobile", selected.mobilePosition);
+  stage.style.setProperty("--video-brightness", String(selected.brightness));
+  stage.style.setProperty("--video-saturation", String(selected.saturation));
+  stage.style.setProperty("--video-overlay-strength", String(selected.overlayStrength));
+
+  video.poster = mediaUrl(base, selected.poster);
+  video.src = mediaUrl(base, selected.src);
+  video.load();
+
+  let started = false;
+  let ended = false;
+  let environmentPaused = false;
+
+  const markFailure = (): void => {
+    stage.dataset.videoState = "fallback";
+    video.hidden = true;
+    showFallback();
+  };
+
+  const playWithoutBlocking = (): void => {
+    if (prefersReducedMotion() || ended || environmentPaused) return;
+    started = true;
+    stage.dataset.videoState = "starting";
+    const promise = video.play();
+    if (promise) {
+      promise
+        .then(() => {
+          stage.dataset.videoState = "playing";
+        })
+        .catch(() => {
+          started = false;
+          markFailure();
+        });
+    }
+  };
+
+  video.addEventListener("playing", () => {
+    stage.dataset.videoState = "playing";
+  });
+  video.addEventListener("ended", () => {
+    ended = true;
+    stage.dataset.videoState = "ended";
+    // The browser deliberately keeps the actual final rendered frame visible.
+  });
+  video.addEventListener("error", markFailure);
+
+  return {
+    start(): void {
+      if (started || ended) return;
+      playWithoutBlocking();
+    },
+    resetAfterSeal(): void {
+      // Called only after the reseal sequence has reached the fully sealed state.
+      video.pause();
+      try {
+        video.currentTime = 0;
+      } catch {
+        // A failed/unavailable source is already presenting the static fallback.
+      }
+      started = false;
+      ended = false;
+      stage.dataset.videoState = "sealed";
+    },
+    setEnvironmentPaused(paused: boolean): void {
+      environmentPaused = paused;
+      if (!started || ended) return;
+      if (paused) {
+        video.pause();
+        stage.dataset.videoState = "paused";
+      } else {
+        playWithoutBlocking();
+      }
+    },
+  };
 }
 
 function setUpExperience(root: HTMLElement): void {
   const page = root.closest<HTMLElement>("[data-std]");
+  const stage = page?.querySelector<HTMLElement>("[data-stage]") ?? null;
   const opener = root.querySelector<HTMLButtonElement>("[data-opener]");
-  /* The back control sits on the stage, outside the invitation. */
   const back = (page ?? document).querySelector<HTMLButtonElement>("[data-replay]");
+  const content = root.querySelector<HTMLElement>(".invitation__content");
   const layer = root.querySelector<HTMLElement>("[data-sheet-layer]");
   const sheet = root.querySelector<HTMLElement>("[data-sheet]");
   const trigger = root.querySelector<HTMLAnchorElement>("[data-sheet-open]");
   const countdown = root.querySelector<HTMLElement>("[data-countdown]");
+  const stageMedia = configureStageVideo(stage);
 
-  let timers: number[] = [];
+  let phaseTimers: number[] = [];
+  let cueTimers: number[] = [];
   let lastFocused: HTMLElement | null = null;
 
   page?.setAttribute("data-enhanced", "");
 
-  function clearTimers(): void {
-    timers.forEach((timer) => window.clearTimeout(timer));
-    timers = [];
+  function phase(): ExperiencePhase {
+    return (root.dataset.phase as ExperiencePhase | undefined) ?? "sealed";
   }
 
-  function play(sequence: Step[], done?: () => void): void {
-    clearTimers();
-    let elapsed = 0;
+  function setPhase(next: ExperiencePhase): void {
+    root.dataset.phase = next;
+  }
+
+  function clearPhaseTimers(): void {
+    phaseTimers.forEach((timer) => window.clearTimeout(timer));
+    phaseTimers = [];
+  }
+
+  function clearCueTimers(): void {
+    cueTimers.forEach((timer) => window.clearTimeout(timer));
+    cueTimers = [];
+  }
+
+  function play(
+    sequence: readonly ExperienceStep[],
+    onStep?: (next: ExperiencePhase) => void,
+    done?: () => void,
+  ): void {
+    clearPhaseTimers();
     sequence.forEach((step, index) => {
-      elapsed += step.after;
-      timers.push(
-        window.setTimeout(() => {
-          root.setAttribute("data-phase", step.phase);
-          if (index === sequence.length - 1) done?.();
-        }, elapsed),
-      );
+      const apply = (): void => {
+        setPhase(step.phase);
+        onStep?.(step.phase);
+        if (index === sequence.length - 1) done?.();
+      };
+
+      if (step.at === 0) apply();
+      else phaseTimers.push(window.setTimeout(apply, step.at));
     });
   }
 
@@ -109,24 +243,57 @@ function setUpExperience(root: HTMLElement): void {
     if (back) back.hidden = !visible;
   }
 
-  function open(): void {
-    play(prefersReducedMotion() ? REDUCED_OPEN : OPEN_SEQUENCE);
-    writeOpened();
-    showBack(true);
+  function scheduleCalendarCue(): void {
+    clearCueTimers();
+    if (hasUsedCalendarThisSession() || phase() !== "composed") return;
+
+    cueTimers.push(
+      window.setTimeout(() => {
+        if (phase() !== "composed") return;
+        setPhase("calendar-cue");
+        cueTimers.push(
+          window.setTimeout(() => {
+            if (phase() === "calendar-cue") setPhase("composed");
+          }, 1260),
+        );
+      }, 760),
+    );
   }
 
-  function close(): void {
+  function openInvitation(): void {
+    if (phase() !== "sealed") return;
+    clearCueTimers();
     showBack(false);
-    play(prefersReducedMotion() ? REDUCED_CLOSE : CLOSE_SEQUENCE, () => {
+    play(
+      prefersReducedMotion() ? REDUCED_OPEN_SEQUENCE : OPEN_SEQUENCE,
+      (next) => {
+        if (next === "seam-release") stageMedia.start();
+      },
+      () => {
+        writeOpened();
+        showBack(true);
+        scheduleCalendarCue();
+      },
+    );
+  }
+
+  function resealInvitation(): void {
+    if (phase() !== "composed" && phase() !== "calendar-cue") return;
+    clearCueTimers();
+    showBack(false);
+    play(prefersReducedMotion() ? REDUCED_RESEAL_SEQUENCE : RESEAL_SEQUENCE, undefined, () => {
+      // The media reset is intentionally after the final sealed state.
+      if (isStageVideoResetPoint(phase())) stageMedia.resetAfterSeal();
       opener?.focus({ preventScroll: true });
     });
   }
 
-  root.setAttribute("data-phase", readOpened() ? "composed" : "closed");
-  showBack(root.getAttribute("data-phase") === "composed");
+  setPhase(readOpened() ? "composed" : "sealed");
+  showBack(phase() === "composed");
+  if (phase() === "composed") scheduleCalendarCue();
 
-  opener?.addEventListener("click", open);
-  back?.addEventListener("click", close);
+  opener?.addEventListener("click", openInvitation);
+  back?.addEventListener("click", resealInvitation);
 
   /* ------------------------------------------------------------- sheet */
 
@@ -137,21 +304,40 @@ function setUpExperience(root: HTMLElement): void {
     ).filter((node) => node.offsetParent !== null);
   }
 
+  function setBackgroundInert(inert: boolean): void {
+    if (content) content.inert = inert;
+    if (back) back.inert = inert;
+  }
+
   function openSheet(): void {
-    if (!sheet) return;
+    if (!sheet || (phase() !== "composed" && phase() !== "calendar-cue")) return;
+    clearCueTimers();
+    markCalendarUsedThisSession();
     lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    root.setAttribute("data-sheet", "open");
     sheet.setAttribute("aria-modal", "true");
     document.documentElement.setAttribute("data-sheet-open", "");
-    window.setTimeout(() => sheet.focus({ preventScroll: true }), 20);
+    setBackgroundInert(true);
+
+    play(
+      prefersReducedMotion() ? REDUCED_CALENDAR_OPEN_SEQUENCE : CALENDAR_OPEN_SEQUENCE,
+      undefined,
+      () => undefined,
+    );
+    window.setTimeout(() => sheet.focus({ preventScroll: true }), 30);
   }
 
   function closeSheet(): void {
-    if (!sheet || root.getAttribute("data-sheet") !== "open") return;
-    root.removeAttribute("data-sheet");
-    sheet.removeAttribute("aria-modal");
-    document.documentElement.removeAttribute("data-sheet-open");
-    lastFocused?.focus({ preventScroll: true });
+    if (!sheet || !["calendar-opening", "calendar-open"].includes(phase())) return;
+    play(
+      prefersReducedMotion() ? REDUCED_CALENDAR_CLOSE_SEQUENCE : CALENDAR_CLOSE_SEQUENCE,
+      undefined,
+      () => {
+        sheet.removeAttribute("aria-modal");
+        document.documentElement.removeAttribute("data-sheet-open");
+        setBackgroundInert(false);
+        lastFocused?.focus({ preventScroll: true });
+      },
+    );
   }
 
   trigger?.addEventListener("click", (event) => {
@@ -168,7 +354,7 @@ function setUpExperience(root: HTMLElement): void {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (root.getAttribute("data-sheet") !== "open") return;
+    if (!["calendar-opening", "calendar-open"].includes(phase())) return;
 
     if (event.key === "Escape") {
       event.preventDefault();
@@ -203,9 +389,6 @@ function setUpExperience(root: HTMLElement): void {
 
     const render = (): void => {
       const parts = countdownParts(target, Date.now());
-
-      /* The accessible name changes only once a day, so assistive technology is
-         never interrupted by the seconds. */
       countdown.setAttribute("aria-label", countdownLabel(parts, resolved));
 
       if (!parts) {
@@ -235,8 +418,6 @@ function setUpExperience(root: HTMLElement): void {
       tick = undefined;
     };
 
-    /* Aligned to the next whole second rather than a free-running interval, so
-       the display never drifts or skips a number. */
     const schedule = (): void => {
       tick = window.setTimeout(
         () => {
@@ -254,6 +435,7 @@ function setUpExperience(root: HTMLElement): void {
 
       document.addEventListener("visibilitychange", () => {
         stop();
+        stageMedia.setEnvironmentPaused(document.hidden);
         if (!document.hidden) {
           render();
           schedule();
@@ -264,27 +446,20 @@ function setUpExperience(root: HTMLElement): void {
     }
   }
 
-  /* ----------------------------------------------------- ambient motion */
+  /* ----------------------------------------------------- ambient media */
 
-  if (page) {
-    const setPaused = (paused: boolean): void => {
-      if (paused) page.setAttribute("data-paused", "");
-      else page.removeAttribute("data-paused");
-    };
-
-    document.addEventListener("visibilitychange", () => setPaused(document.hidden));
-
-    if ("IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) setPaused(!entry.isIntersecting);
-        },
-        { threshold: 0 },
-      );
-      observer.observe(root);
-    }
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) stageMedia.setEnvironmentPaused(!entry.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+    observer.observe(root);
   }
 }
+
+document.documentElement.dataset.displayType = displayFontFromSearch(window.location.search);
 
 const experience = document.querySelector<HTMLElement>("[data-invitation]");
 if (experience) setUpExperience(experience);

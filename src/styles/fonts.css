@@ -1,17 +1,41 @@
-/* Self-hosted, latin-subset only. Licences sit beside the files in src/assets/fonts. */
+/* Self-hosted Google Fonts latin subsets. SIL OFL notices sit beside the files. */
 
 @font-face {
-  font-family: "Instrument Serif";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("../assets/fonts/instrument-serif-400-latin.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Manrope";
+  font-family: "Plus Jakarta Sans";
   font-style: normal;
   font-weight: 400 600;
   font-display: swap;
-  src: url("../assets/fonts/manrope-400-600-latin.woff2") format("woff2");
+  src: url("../assets/fonts/plus-jakarta-sans-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Sirivennela";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/sirivennela-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "MonteCarlo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/montecarlo-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Corinthia";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/corinthia-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Parisienne";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/parisienne-latin.woff2") format("woff2");
 }
