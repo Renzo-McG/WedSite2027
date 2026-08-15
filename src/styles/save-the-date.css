@@ -1184,11 +1184,68 @@ html[data-sheet-open] {
   }
 }
 
-/* Short or landscape phones fall back to the full-bleed screen invitation. */
+/* Short landscape screens keep the full-bleed invitation, but recompose its
+   reading frame into two calm columns so the action never falls below the
+   viewport. */
 
-@media (max-height: 40rem) and (min-width: 48rem) {
+@media (max-height: 40rem) and (min-width: 34rem) {
+  .invitation {
+    --label-size: 0.65rem;
+    --names-size: clamp(3.35rem, 8vw, 4.5rem);
+    --names-leading: 0.74;
+    --names-gap: 0.05em;
+    --date-size: clamp(1rem, 2.5vw, 1.35rem);
+    --place-size: 0.8125rem;
+    --countdown-size: 0.6875rem;
+    height: 100svh;
+    min-height: 100svh;
+  }
+
   .invitation__content {
-    padding-block: 1.5rem;
+    grid-template-rows: auto auto;
+    grid-template-columns: minmax(0, 1.12fr) minmax(12.5rem, 0.88fr);
+    align-content: center;
+    column-gap: clamp(1.5rem, 6vw, 4rem);
+    padding: 1.25rem clamp(2rem, 6vw, 4rem);
+  }
+
+  .invitation__header {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .invitation__main {
+    grid-column: 1;
+    grid-row: 2;
+    gap: 0.75rem;
+    margin-top: 0.875rem;
+  }
+
+  .invitation__breath {
+    display: none;
+  }
+
+  .invitation__footer {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+    gap: 0.875rem;
+  }
+
+  .note {
+    margin-top: 0;
+  }
+
+  html[data-display-type="montecarlo"] .std {
+    --names-size: clamp(3.15rem, 7.5vw, 4.15rem);
+  }
+
+  html[data-display-type="corinthia"] .std {
+    --names-size: clamp(3.7rem, 9vw, 5rem);
+  }
+
+  html[data-display-type="parisienne"] .std {
+    --names-size: clamp(3rem, 7.2vw, 4rem);
   }
 }
 
@@ -1209,6 +1266,49 @@ html[data-sheet-open] {
 /* ------------------------------------------------------ reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
+  .invitation__header,
+  .invitation__main,
+  .invitation__footer,
+  .invitation__surface,
+  .cover__half,
+  .cover__seam,
+  .cover__lock-line,
+  .opener,
+  .opener__assembly,
+  .opener__ring,
+  .opener__ticks,
+  .cta,
+  .sheet,
+  .sheet-scrim {
+    transition-duration: 120ms;
+    transition-delay: 0ms;
+  }
+
+  .invitation[data-phase="sealed"] .invitation__header,
+  .invitation[data-phase="sealed"] .invitation__main,
+  .invitation[data-phase="sealed"] .invitation__footer {
+    transform: none;
+  }
+
+  .invitation[data-phase="sealed"] .opener__assembly,
+  .invitation[data-phase="calendar-cue"] .cta {
+    animation: none;
+  }
+
+  .cover__half--left,
+  .cover__half--right {
+    transition-property: opacity;
+  }
+
+  .sheet {
+    transition-property: opacity;
+  }
+}
+
+/* Deterministic accessibility QA mirror for `?motion=reduced`. The visitor's
+   operating-system preference remains the primary production path. */
+
+html[data-reduced-motion] {
   .invitation__header,
   .invitation__main,
   .invitation__footer,

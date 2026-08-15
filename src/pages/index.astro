@@ -25,10 +25,14 @@ const description = `${wedding.date.display} · ${wedding.venue}, ${wedding.loca
       define:vars={{ displayFontIds: DISPLAY_FONT_IDS, defaultDisplayFont: DEFAULT_DISPLAY_FONT }}
     >
       (function () {
-        const value = new URLSearchParams(window.location.search).get("type");
+        const params = new URLSearchParams(window.location.search);
+        const value = params.get("type");
         document.documentElement.dataset.displayType = displayFontIds.includes(value)
           ? value
           : defaultDisplayFont;
+        if (params.get("motion") === "reduced") {
+          document.documentElement.setAttribute("data-reduced-motion", "");
+        }
       })();
     </script>
     <link rel="preload" href={plusJakartaFont} as="font" type="font/woff2" crossorigin />

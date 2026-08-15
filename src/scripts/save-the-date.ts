@@ -32,7 +32,10 @@ interface StageMediaController {
 }
 
 function prefersReducedMotion(): boolean {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    document.documentElement.hasAttribute("data-reduced-motion") ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 function storageOrNull(kind: "localStorage" | "sessionStorage"): Storage | null {

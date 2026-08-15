@@ -17,8 +17,8 @@
      secondary tiers are separated by size, case and tracking rather than by
      going pale, which was failing contrast. */
   --ink: #171c18;
-  --ink-soft: #4d5751;
-  --ink-faint: #4e5852;
+  --ink-soft: #464f49;
+  --ink-faint: #464f49;
 
   --sage: #91a191;
   --sage-soft: #bcc7bb;
