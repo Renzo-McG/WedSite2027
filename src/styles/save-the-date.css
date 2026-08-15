@@ -185,8 +185,10 @@ html[data-sheet-open] {
 @media (max-width: 47.99rem) and (orientation: portrait) {
   .std {
     --invitation-alpha-mobile: 0.16;
-    --mobile-frame-top: clamp(3.5rem, 9svh, 5rem);
-    --mobile-frame-bottom: clamp(4rem, 11svh, 6rem);
+    --mobile-feather-faint: 4%;
+    --mobile-feather-mid: 8%;
+    --mobile-feather-near: 12%;
+    --mobile-feather-solid: 18%;
     --gap-header-names: clamp(1.5rem, 5vw, 2rem);
     --gap-names-details: clamp(1.125rem, 4vw, 1.5rem);
     --breath-min: clamp(2rem, 5svh, 3rem);
@@ -207,23 +209,40 @@ html[data-sheet-open] {
   .invitation__surface::before {
     position: absolute;
     z-index: 1;
-    top: var(--mobile-frame-top);
-    right: 0;
-    bottom: var(--mobile-frame-bottom);
-    left: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(var(--invitation-tint), 0) 0%,
-      rgba(var(--invitation-tint), 0.84) 6%,
-      rgba(var(--invitation-tint), 0.9) 14%,
-      rgba(var(--invitation-tint), 0.9) 86%,
-      rgba(var(--invitation-tint), 0.84) 94%,
-      rgba(var(--invitation-tint), 0) 100%
-    );
+    background: rgba(var(--invitation-tint), 0.9);
     backdrop-filter: blur(18px) saturate(0.88);
     -webkit-backdrop-filter: blur(18px) saturate(0.88);
     content: "";
+    inset: 0;
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.12) var(--mobile-feather-faint),
+      rgba(0, 0, 0, 0.45) var(--mobile-feather-mid),
+      rgba(0, 0, 0, 0.78) var(--mobile-feather-near),
+      #000 var(--mobile-feather-solid),
+      #000 calc(100% - var(--mobile-feather-solid)),
+      rgba(0, 0, 0, 0.78) calc(100% - var(--mobile-feather-near)),
+      rgba(0, 0, 0, 0.45) calc(100% - var(--mobile-feather-mid)),
+      rgba(0, 0, 0, 0.12) calc(100% - var(--mobile-feather-faint)),
+      transparent 100%
+    );
+    mask-repeat: no-repeat;
     pointer-events: none;
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.12) var(--mobile-feather-faint),
+      rgba(0, 0, 0, 0.45) var(--mobile-feather-mid),
+      rgba(0, 0, 0, 0.78) var(--mobile-feather-near),
+      #000 var(--mobile-feather-solid),
+      #000 calc(100% - var(--mobile-feather-solid)),
+      rgba(0, 0, 0, 0.78) calc(100% - var(--mobile-feather-near)),
+      rgba(0, 0, 0, 0.45) calc(100% - var(--mobile-feather-mid)),
+      rgba(0, 0, 0, 0.12) calc(100% - var(--mobile-feather-faint)),
+      transparent 100%
+    );
+    -webkit-mask-repeat: no-repeat;
   }
 
   .invitation__grain {
@@ -1220,8 +1239,10 @@ html[data-sheet-open] {
 
 @media (max-width: 47.99rem) and (max-height: 38rem) {
   .std {
-    --mobile-frame-top: 2rem;
-    --mobile-frame-bottom: 2rem;
+    --mobile-feather-faint: 2%;
+    --mobile-feather-mid: 4%;
+    --mobile-feather-near: 7%;
+    --mobile-feather-solid: 10%;
   }
 
   .invitation__content {
