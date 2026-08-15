@@ -1,5 +1,5 @@
 /*
- * Save the Date v1.1 — public root route.
+ * Save the Date v1.2 — public root route.
  *
  * Structural model: on mobile the invitation is the screen; on desktop the same
  * invitation language becomes a portrait object presented on a destination
@@ -173,6 +173,67 @@ html[data-sheet-open] {
   padding-inline: var(--edge);
   padding-top: max(3.25rem, calc(env(safe-area-inset-top) + 2.25rem));
   padding-bottom: max(1.75rem, env(safe-area-inset-bottom));
+}
+
+/* ------------------------------------------------ mobile reading frame */
+
+/* On a narrow screen the invitation no longer behaves like one continuous
+   sheet of paper. The image is left crisp at the top and bottom, while a
+   feathered reading field settles behind the copy. This keeps every text tier
+   predictable without hiding the destination behind a full-screen veil. */
+
+@media (max-width: 47.99rem) and (orientation: portrait) {
+  .std {
+    --invitation-alpha-mobile: 0.16;
+    --mobile-frame-top: clamp(3.5rem, 9svh, 5rem);
+    --mobile-frame-bottom: clamp(4rem, 11svh, 6rem);
+    --gap-header-names: clamp(1.5rem, 5vw, 2rem);
+    --gap-names-details: clamp(1.125rem, 4vw, 1.5rem);
+    --breath-min: clamp(2rem, 5svh, 3rem);
+    --breath-max: 5.25rem;
+  }
+
+  .invitation__surface {
+    background-image: linear-gradient(
+      214deg,
+      rgba(255, 253, 247, 0.07) 0%,
+      transparent 42%,
+      rgba(208, 202, 186, 0.07) 100%
+    );
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .invitation__surface::before {
+    position: absolute;
+    z-index: 1;
+    top: var(--mobile-frame-top);
+    right: 0;
+    bottom: var(--mobile-frame-bottom);
+    left: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(var(--invitation-tint), 0) 0%,
+      rgba(var(--invitation-tint), 0.84) 6%,
+      rgba(var(--invitation-tint), 0.9) 14%,
+      rgba(var(--invitation-tint), 0.9) 86%,
+      rgba(var(--invitation-tint), 0.84) 94%,
+      rgba(var(--invitation-tint), 0) 100%
+    );
+    backdrop-filter: blur(18px) saturate(0.88);
+    -webkit-backdrop-filter: blur(18px) saturate(0.88);
+    content: "";
+    pointer-events: none;
+  }
+
+  .invitation__grain {
+    z-index: 1;
+    opacity: 0.22;
+  }
+
+  .invitation__content {
+    padding-bottom: max(4.5rem, calc(env(safe-area-inset-bottom) + 3.5rem));
+  }
 }
 
 .invitation__header,
@@ -1158,6 +1219,11 @@ html[data-sheet-open] {
 }
 
 @media (max-width: 47.99rem) and (max-height: 38rem) {
+  .std {
+    --mobile-frame-top: 2rem;
+    --mobile-frame-bottom: 2rem;
+  }
+
   .invitation__content {
     --gap-header-names: 1.35rem;
     --gap-names-details: 1rem;
