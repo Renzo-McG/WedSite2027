@@ -119,7 +119,9 @@ function configureStageVideo(stage: HTMLElement | null): StageMediaController {
 
   video.poster = mediaUrl(base, selected.poster);
   video.src = mediaUrl(base, selected.src);
+  video.defaultPlaybackRate = selected.playbackRate;
   video.load();
+  video.playbackRate = selected.playbackRate;
 
   let started = false;
   let ended = false;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { wedding } from "../src/config/wedding";
 import { STAGE_VIDEO_STORAGE_KEY, selectStageVideo } from "../src/lib/stage-video";
 
 function memoryStorage(initial: Record<string, string> = {}): Storage {
@@ -47,5 +48,13 @@ describe("per-session stage video selection", () => {
     const storage = memoryStorage({ [STAGE_VIDEO_STORAGE_KEY]: "1" });
     expect(selectStageVideo("?video=none", storage).video).toBeNull();
     expect(selectStageVideo("?video=99", storage).video?.id).toBe("1");
+  });
+
+  it("keeps every review clip within the requested slow-motion window", () => {
+    for (const video of wedding.stage.videos) {
+      const effectiveDuration = video.durationSeconds / video.playbackRate;
+      expect(effectiveDuration).toBeGreaterThanOrEqual(15);
+      expect(effectiveDuration).toBeLessThanOrEqual(20.1);
+    }
   });
 });

@@ -37,15 +37,18 @@ Production assets live at `public/assets/stage/video/`:
 
 | Video                | Size             | Poster                       | Size          |
 | -------------------- | ---------------- | ---------------------------- | ------------- |
-| `philippines-01.mp4` | 7,336,340 bytes  | `philippines-01-poster.webp` | 266,000 bytes |
-| `philippines-02.mp4` | 10,379,216 bytes | `philippines-02-poster.webp` | 213,946 bytes |
-| `philippines-03.mp4` | 3,376,451 bytes  | `philippines-03-poster.webp` | 105,174 bytes |
-| `philippines-04.mp4` | 3,905,283 bytes  | `philippines-04-poster.webp` | 221,838 bytes |
+| `philippines-01.mp4` | 12,790,380 bytes | `philippines-01-poster.webp` | 615,422 bytes |
+| `philippines-02.mp4` | 10,379,216 bytes | `philippines-02-poster.webp` | 527,074 bytes |
+| `philippines-03.mp4` | 3,376,451 bytes  | `philippines-03-poster.webp` | 274,762 bytes |
+| `philippines-04.mp4` | 6,394,812 bytes  | `philippines-04-poster.webp` | 536,812 bytes |
 
 All videos are 1600×900, silent, 30fps, H.264 Constrained Baseline level 4.0,
 `yuv420p`, BT.709 progressive, encoded with x264 preset `slow` at CRF 28. Lanczos scaling
-was used, metadata was stripped, and `faststart` places `moov` before `mdat`. Posters are
-1600×900 WebP files encoded from each real first frame at quality 76.
+was used, metadata was stripped, and `faststart` places `moov` before `mdat`. Clips 1 and
+4 use motion-compensated interpolation to create smooth 18-second versions rather than
+repeating source frames. Clips 2 and 3 use their original encoded frames with gentle
+playback rates of 0.82 and 0.95, producing effective review durations of 18.05 and 20.07
+seconds. Posters are 1920×1080 WebP files encoded from each real first frame at quality 86.
 
 ## Video selection and art direction
 
@@ -67,12 +70,12 @@ Review overrides win without changing the normal stored choice:
 Invalid values fall through to normal session selection. `none` deliberately uses the
 static concept-image fallback.
 
-| ID  | Desktop position | Mobile position | Wash | Brightness | Saturation |
-| --- | ---------------- | --------------- | ---- | ---------- | ---------- |
-| 1   | `50% 50%`        | `56% 50%`       | 0.48 | 0.88       | 0.84       |
-| 2   | `50% 48%`        | `58% 50%`       | 0.44 | 0.94       | 0.84       |
-| 3   | `50% 52%`        | `50% 52%`       | 0.48 | 0.92       | 0.82       |
-| 4   | `50% 50%`        | `62% 50%`       | 0.50 | 0.88       | 0.82       |
+| ID  | Desktop position | Mobile position | Wash | Brightness | Saturation | Rate | Effective duration |
+| --- | ---------------- | --------------- | ---- | ---------- | ---------- | ---- | ------------------ |
+| 1   | `50% 50%`        | `56% 50%`       | 0.48 | 0.88       | 0.84       | 1.00 | 18.00s             |
+| 2   | `50% 48%`        | `58% 50%`       | 0.44 | 0.94       | 0.84       | 0.82 | 18.05s             |
+| 3   | `50% 52%`        | `50% 52%`       | 0.48 | 0.92       | 0.82       | 0.95 | 20.07s             |
+| 4   | `50% 50%`        | `62% 50%`       | 0.50 | 0.88       | 0.82       | 1.00 | 18.00s             |
 
 The per-clip crop and grade keep the four clips in one restrained destination family
 without presenting them as exact geography.
