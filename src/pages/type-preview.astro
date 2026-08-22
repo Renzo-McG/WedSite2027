@@ -1,0 +1,20 @@
+---
+/**
+ * The studio moved to /studio/ when it was deployed for Emily and Lawrence to
+ * share. This stub keeps older local bookmarks working rather than 404ing.
+ */
+const target = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}studio/`;
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <title>Save the Date Studio has moved</title>
+  </head>
+  <body>
+    <p>The Save the Date Studio is now at <a href={target}>{target}</a>.</p>
+  </body>
+</html>

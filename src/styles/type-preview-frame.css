@@ -1,0 +1,364 @@
+/*
+ * The invitation as rendered inside the studio's preview frame.
+ *
+ * Layered on top of save-the-date.css, which is loaded unchanged: the stage,
+ * the video, the frosted card and its material all come from production. This
+ * file adds the native editorial typography and re-points production's own
+ * material variables at the studio's tuning values, so what is being judged is
+ * the real invitation and not a lookalike.
+ */
+
+/* Instrument Serif ships in the repo with its OFL notice but production never
+   declared it. Declared here rather than in fonts.css so the production route
+   is untouched by this experiment. */
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/instrument-serif-400-latin.woff2") format("woff2");
+}
+
+/* ------------------------------------------------------- tuning wiring */
+
+/* The studio takes over the invitation's material so the frosted area can
+   become a band of adjustable height rather than the whole card.
+
+   Production paints the frost on `.invitation__surface` itself (plus a masked
+   ::before on mobile portrait). Both are neutralised here and replaced by one
+   explicit `.tp-frost` element, so "how much of the phone is frosted?" has a
+   single, predictable thing to resize. Colours, tints and blur all still come
+   from production's own tokens. */
+
+.tp-frame .invitation__surface {
+  background-color: transparent;
+  background-image: none;
+  backdrop-filter: none;
+  container-type: inline-size;
+  -webkit-backdrop-filter: none;
+}
+
+.tp-frame .invitation__surface::before {
+  display: none;
+}
+
+.tp-frame .stage {
+  --video-overlay-strength: var(--tp-wash, 0.46);
+}
+
+/* ------------------------------------------------------- frosted band */
+
+/* Positioned by its centre, so reducing the height alone opens clear video
+   above and below by the same amount — the behaviour the whole mobile
+   composition idea rests on. `--tp-frost-y` then trades one end against the
+   other without changing the height.
+
+   The blur lives on this element, so the venue is genuinely unfrosted outside
+   the band rather than merely lighter. The mask feathers both edges, and the
+   feather is a share of the band's own height so it stays proportionate as
+   the band shrinks. */
+
+.tp-frame .tp-frost {
+  position: absolute;
+  z-index: 0;
+  top: var(--tp-frost-y, 50%);
+  right: 0;
+  left: 0;
+  height: var(--tp-frost-height, 100%);
+  background: rgba(var(--invitation-tint), var(--tp-invitation-alpha, 0.76));
+  backdrop-filter: blur(var(--tp-blur, 20px)) saturate(0.9);
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 var(--tp-frost-feather, 16%),
+    #000 calc(100% - var(--tp-frost-feather, 16%)),
+    transparent 100%
+  );
+  mask-repeat: no-repeat;
+  pointer-events: none;
+  transform: translateY(-50%);
+  -webkit-backdrop-filter: blur(var(--tp-blur, 20px)) saturate(0.9);
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 var(--tp-frost-feather, 16%),
+    #000 calc(100% - var(--tp-frost-feather, 16%)),
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+}
+
+/* On a computer the invitation stays the 5:7 card it already is: the band
+   fills it edge to edge with no feather, so the frosted-height control is
+   plainly a phone tool and cannot quietly alter the desktop composition. */
+
+@media (min-width: 48rem) and (min-height: 40rem) {
+  .tp-frame .tp-frost {
+    top: 50%;
+    height: 100%;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
+
+/* ------------------------------------------------------ readability veil */
+
+/* A soft local lift behind the wording, tied to the artwork's own centre so
+   it follows the design rather than a fixed strip. Heavily feathered on all
+   sides via a radial mask, so it never reads as a rectangle behind the
+   artwork — it should feel like material, not a panel. */
+
+.tp-frame .tp-veil {
+  position: absolute;
+  z-index: 1;
+  top: var(--tp-veil-y, 50%);
+  right: 0;
+  left: 0;
+  height: var(--tp-veil-height, 62%);
+  background: rgba(var(--invitation-tint), var(--tp-text-veil, 0.18));
+  mask-image: radial-gradient(
+    120% 78% at 50% 50%,
+    #000 0%,
+    rgba(0, 0, 0, 0.85) 45%,
+    rgba(0, 0, 0, 0.4) 72%,
+    transparent 100%
+  );
+  mask-repeat: no-repeat;
+  pointer-events: none;
+  transform: translateY(-50%);
+  -webkit-mask-image: radial-gradient(
+    120% 78% at 50% 50%,
+    #000 0%,
+    rgba(0, 0, 0, 0.85) 45%,
+    rgba(0, 0, 0, 0.4) 72%,
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+}
+
+/* ---------------------------------------------------------- artwork */
+
+/* The uploaded Canva SVG, as a plain decorative image layer. Width is a share
+   of the invitation, height follows the file's own 5:7, so it can never be
+   stretched independently in one axis — only scaled and moved. */
+
+.tp-frame .tp-artwork {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: calc(var(--tp-art-scale, 100%) * 1);
+  height: auto;
+  opacity: calc(var(--tp-art-strength, 100%) / 100%);
+  pointer-events: none;
+  transform: translate(-50%, -50%) translate(var(--tp-art-x, 0%), var(--tp-art-y, 0%));
+}
+
+/* Which placement applies is a media-query decision, so one uploaded file
+   serves both regimes from a single set of stored values. */
+
+.tp-frame {
+  --tp-art-scale: var(--tp-art-mobile-scale, 88%);
+  --tp-art-x: var(--tp-art-mobile-x, 0%);
+  --tp-art-y: var(--tp-art-mobile-y, -6%);
+}
+
+@media (min-width: 48rem) and (min-height: 40rem) {
+  .tp-frame {
+    --tp-art-scale: var(--tp-art-desktop-scale, 100%);
+    --tp-art-x: var(--tp-art-desktop-x, 0%);
+    --tp-art-y: var(--tp-art-desktop-y, 0%);
+  }
+}
+
+/* Artwork mode swaps which layer is visible. The native wording stays in the
+   DOM for screen readers even when the Canva design is what is on screen. */
+
+.tp-frame[data-artwork-mode="svg"] .tp-editorial {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  border: 0;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.tp-frame:not([data-artwork-mode="svg"]) .tp-artwork {
+  display: none;
+}
+
+/* Production lays this out as a four-row grid with its own padding. In the
+   studio the editorial block and the functional zone are positioned
+   independently, so the wrapper becomes a plain positioning context filling
+   the card. The class name is kept because the production script uses it to
+   make the background inert while the calendar sheet is open. */
+
+.tp-frame .invitation__content {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  padding: 0;
+  inset: 0;
+}
+
+/* --------------------------------------------------------- editorial */
+
+.tp-editorial {
+  position: absolute;
+  z-index: 2;
+  top: var(--tp-mobile-y, 36%);
+  right: var(--tp-inset, 10.2%);
+  left: var(--tp-inset, 10.2%);
+  color: var(--ink);
+  font-family: var(--tp-font-display, "Instrument Serif", Georgia, serif);
+  font-weight: 400;
+  line-height: 1;
+}
+
+@media (min-width: 48rem) and (min-height: 40rem) {
+  .tp-editorial {
+    top: var(--tp-desktop-y, 23.5%);
+  }
+}
+
+.tp-editorial p,
+.tp-editorial h1 {
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Each line carries the gap that precedes it, so every gap the panel exposes
+   maps to exactly one rule and nothing collapses unexpectedly. */
+
+.tp-editorial .tp-cue {
+  font-size: var(--tp-size-cue, 5cqw);
+  letter-spacing: var(--tp-tracking, 0.012em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tp-editorial .tp-names {
+  margin-top: var(--tp-gap-cue-names, 10.2cqw);
+  font-size: var(--tp-size-names, 8.2cqw);
+  letter-spacing: var(--tp-tracking, 0.012em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tp-editorial .tp-date {
+  margin-top: var(--tp-gap-names-date, 8.8cqw);
+  font-size: var(--tp-size-date, 7.15cqw);
+  letter-spacing: var(--tp-tracking, 0.012em);
+  white-space: nowrap;
+}
+
+/* The three date parts are separate spans so the grouping can be tuned
+   without touching the surrounding rhythm. */
+
+.tp-editorial .tp-date__part + .tp-date__part {
+  margin-left: var(--tp-date-gap, 0.5em);
+}
+
+.tp-editorial .tp-venue {
+  margin-top: var(--tp-gap-date-venue, 5.4cqw);
+  font-size: var(--tp-size-venue, 4.75cqw);
+  letter-spacing: var(--tp-tracking, 0.012em);
+}
+
+.tp-editorial .tp-location {
+  margin-top: var(--tp-gap-venue-lines, 2.8cqw);
+  font-size: var(--tp-size-location, 4.75cqw);
+  letter-spacing: var(--tp-tracking, 0.012em);
+  text-transform: uppercase;
+}
+
+.tp-editorial .tp-note {
+  margin-top: var(--tp-gap-before-note, 9.4cqw);
+  font-family: var(--tp-font-script, "Parisienne", cursive);
+  font-size: var(--tp-size-note, 5.6cqw);
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+/* The two handwritten words sit inside printed lines, so they are shifted
+   relative to their own type size rather than the invitation width. */
+
+.tp-editorial .tp-script {
+  display: inline-block;
+  font-family: var(--tp-font-script, "Parisienne", cursive);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.tp-editorial .tp-script--the {
+  font-size: var(--tp-the-size, 1.12em);
+  transform: translate(var(--tp-the-x, 0em), var(--tp-the-y, -0.04em));
+}
+
+.tp-editorial .tp-script--and {
+  font-size: var(--tp-and-size, 0.92em);
+  transform: translate(var(--tp-and-x, 0em), var(--tp-and-y, -0.02em));
+}
+
+/* -------------------------------------------------------- functional */
+
+/* Deliberately anchored to the bottom of the invitation rather than flowing
+   after the editorial block: the brief calls for a substantial, deliberate
+   pause before the functional zone, and anchoring keeps that pause honest at
+   every height instead of letting it collapse on a short screen. */
+
+.tp-functional {
+  position: absolute;
+  z-index: 2;
+  right: var(--tp-inset, 10.2%);
+  bottom: var(--tp-zone-y, 0%);
+  left: var(--tp-inset, 10.2%);
+  display: grid;
+  justify-items: start;
+  gap: var(--tp-gap-countdown-cta, 3.3cqw);
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+.tp-functional .countdown {
+  margin: 0;
+  transform: translateY(var(--tp-countdown-y, 0cqw));
+}
+
+/* The real Save to Calendar control, unchanged in behaviour: the studio only
+   moves it, it does not restyle or rewire it. */
+
+.tp-functional .cta {
+  margin: 0;
+}
+
+/* ----------------------------------------------- Canva reference overlay */
+
+.tp-reference {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  mix-blend-mode: var(--tp-reference-blend, normal);
+  opacity: var(--tp-reference-opacity, 0);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------ utility */
+
+.tp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}

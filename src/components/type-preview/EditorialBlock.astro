@@ -1,0 +1,44 @@
+---
+/**
+ * The native editorial layer under study. Real text, real fonts, no raster
+ * artwork — the Canva PNG appears only as a comparison overlay elsewhere.
+ *
+ * Casing is left natural in the DOM and the capitals are produced with
+ * `text-transform`, so a screen reader announces "Emily and Lawrence" rather
+ * than spelling out capitals.
+ */
+import { wedding } from "../../config/wedding";
+
+const [day, month, year] = ["24", "10", "2027"];
+---
+
+<div class="tp-editorial" data-editorial>
+  <p class="tp-cue">
+    Save <span class="tp-script tp-script--the">the</span> Date
+  </p>
+
+  <h1 class="tp-names">
+    {wedding.couple.first}
+    <span class="tp-script tp-script--and">and</span>
+    {wedding.couple.second}
+  </h1>
+
+  <p class="tp-date">
+    {
+      /* The stylised grouping is decorative; the real date stays machine- and
+    screen-reader-readable on the <time> element itself. */
+    }
+    <time datetime={wedding.date.iso}>
+      <span class="tp-sr-only">{wedding.date.display}</span>
+      <span aria-hidden="true"
+        ><span class="tp-date__part">{day}</span><span class="tp-date__part">{month}</span><span
+          class="tp-date__part">{year}</span
+        ></span
+      >
+    </time>
+  </p>
+
+  <p class="tp-venue">{wedding.venue}</p>
+  <p class="tp-location">{wedding.location}</p>
+  <p class="tp-note">{wedding.note}</p>
+</div>

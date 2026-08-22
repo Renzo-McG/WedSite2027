@@ -1,0 +1,323 @@
+{
+  "version": 2,
+  "note": "Starting values for the Save the Date Studio. Sizes and gaps are a percentage of the invitation's own width; frost height and position are a percentage of the phone screen.",
+  "settings": {
+    "artworkMode": "native",
+    "artDesktopScale": 100,
+    "artDesktopY": 0,
+    "artDesktopX": 0,
+    "artMobileScale": 88,
+    "artMobileY": -6,
+    "artMobileX": 0,
+    "artStrength": 100,
+    "desktopY": 24.03,
+    "mobileY": 36.45,
+    "inset": 10.2,
+    "gapCueNames": 5.75,
+    "gapNamesDate": 3.15,
+    "gapDateVenue": 1.52,
+    "gapVenueLines": 0.26,
+    "gapBeforeNote": 7.06,
+    "sizeCue": 6.75,
+    "sizeNames": 10.6,
+    "sizeDate": 8.6,
+    "sizeVenue": 6.05,
+    "sizeLocation": 6,
+    "sizeNote": 5,
+    "tracking": 0.012,
+    "theSize": 1.12,
+    "theX": 0,
+    "theY": -0.04,
+    "andSize": 0.92,
+    "andX": 0,
+    "andY": -0.02,
+    "dateGap": 0.85,
+    "mobileFrostHeight": 100,
+    "mobileFrostY": 50,
+    "frostEdgeSoftness": 16,
+    "invitationStrength": 0.76,
+    "textVeil": 0.18,
+    "blur": 20,
+    "wash": 0.46,
+    "zoneY": 0,
+    "countdownY": 0,
+    "gapCountdownCta": 3.3,
+    "displayFont": "\"Instrument Serif\", Georgia, serif",
+    "scriptFont": "\"Parisienne\", cursive"
+  },
+  "documented": {
+    "artwork": {
+      "_title": "Artwork",
+      "artworkMode": {
+        "label": "What should the invitation show?",
+        "value": "native",
+        "cssVar": "--tp-artwork-mode"
+      },
+      "artDesktopScale": {
+        "label": "Artwork size on a computer",
+        "value": 100,
+        "cssVar": "--tp-art-desktop-scale",
+        "unit": "%"
+      },
+      "artDesktopY": {
+        "label": "Move artwork up / down on a computer",
+        "value": 0,
+        "cssVar": "--tp-art-desktop-y",
+        "unit": "%"
+      },
+      "artDesktopX": {
+        "label": "Move artwork left / right on a computer",
+        "value": 0,
+        "cssVar": "--tp-art-desktop-x",
+        "unit": "%"
+      },
+      "artMobileScale": {
+        "label": "Artwork size on a phone",
+        "value": 88,
+        "cssVar": "--tp-art-mobile-scale",
+        "unit": "%"
+      },
+      "artMobileY": {
+        "label": "Move artwork up / down on a phone",
+        "value": -6,
+        "cssVar": "--tp-art-mobile-y",
+        "unit": "%"
+      },
+      "artMobileX": {
+        "label": "Move artwork left / right on a phone",
+        "value": 0,
+        "cssVar": "--tp-art-mobile-x",
+        "unit": "%"
+      },
+      "artStrength": {
+        "label": "Artwork strength",
+        "value": 100,
+        "cssVar": "--tp-art-strength",
+        "unit": "%"
+      }
+    },
+    "position": {
+      "_title": "Position & spacing",
+      "desktopY": {
+        "label": "Move all invitation text up / down (desktop)",
+        "value": 24.03,
+        "cssVar": "--tp-desktop-y",
+        "unit": "%"
+      },
+      "mobileY": {
+        "label": "Move all invitation text up / down (phone)",
+        "value": 36.45,
+        "cssVar": "--tp-mobile-y",
+        "unit": "%"
+      },
+      "inset": {
+        "label": "Move text left / right",
+        "value": 10.2,
+        "cssVar": "--tp-inset",
+        "unit": "%"
+      },
+      "gapCueNames": {
+        "label": "Space between Save the Date and names",
+        "value": 5.75,
+        "cssVar": "--tp-gap-cue-names",
+        "unit": "cqw"
+      },
+      "gapNamesDate": {
+        "label": "Space between names and date",
+        "value": 3.15,
+        "cssVar": "--tp-gap-names-date",
+        "unit": "cqw"
+      },
+      "gapDateVenue": {
+        "label": "Space between date and venue",
+        "value": 1.52,
+        "cssVar": "--tp-gap-date-venue",
+        "unit": "cqw"
+      },
+      "gapVenueLines": {
+        "label": "Space between venue lines",
+        "value": 0.26,
+        "cssVar": "--tp-gap-venue-lines",
+        "unit": "cqw"
+      },
+      "gapBeforeNote": {
+        "label": "Space before Formal invitation to follow",
+        "value": 7.06,
+        "cssVar": "--tp-gap-before-note",
+        "unit": "cqw"
+      }
+    },
+    "size": {
+      "_title": "Text size",
+      "sizeCue": {
+        "label": "Save the Date size",
+        "value": 6.75,
+        "cssVar": "--tp-size-cue",
+        "unit": "cqw"
+      },
+      "sizeNames": {
+        "label": "Names size",
+        "value": 10.6,
+        "cssVar": "--tp-size-names",
+        "unit": "cqw"
+      },
+      "sizeDate": {
+        "label": "Date size",
+        "value": 8.6,
+        "cssVar": "--tp-size-date",
+        "unit": "cqw"
+      },
+      "sizeVenue": {
+        "label": "Venue size",
+        "value": 6.05,
+        "cssVar": "--tp-size-venue",
+        "unit": "cqw"
+      },
+      "sizeLocation": {
+        "label": "Location size",
+        "value": 6,
+        "cssVar": "--tp-size-location",
+        "unit": "cqw"
+      },
+      "sizeNote": {
+        "label": "Formal note size",
+        "value": 5,
+        "cssVar": "--tp-size-note",
+        "unit": "cqw"
+      },
+      "tracking": {
+        "label": "Letter spacing",
+        "value": 0.012,
+        "cssVar": "--tp-tracking",
+        "unit": "em"
+      }
+    },
+    "script": {
+      "_title": "Handwritten words",
+      "theSize": {
+        "label": "Size of “the”",
+        "value": 1.12,
+        "cssVar": "--tp-the-size",
+        "unit": "em"
+      },
+      "theX": {
+        "label": "Move “the” left / right",
+        "value": 0,
+        "cssVar": "--tp-the-x",
+        "unit": "em"
+      },
+      "theY": {
+        "label": "Move “the” up / down",
+        "value": -0.04,
+        "cssVar": "--tp-the-y",
+        "unit": "em"
+      },
+      "andSize": {
+        "label": "Size of “and”",
+        "value": 0.92,
+        "cssVar": "--tp-and-size",
+        "unit": "em"
+      },
+      "andX": {
+        "label": "Move “and” left / right",
+        "value": 0,
+        "cssVar": "--tp-and-x",
+        "unit": "em"
+      },
+      "andY": {
+        "label": "Move “and” up / down",
+        "value": -0.02,
+        "cssVar": "--tp-and-y",
+        "unit": "em"
+      }
+    },
+    "date": {
+      "_title": "Date",
+      "dateGap": {
+        "label": "Space between 24, 10 and 2027",
+        "value": 0.85,
+        "cssVar": "--tp-date-gap",
+        "unit": "em"
+      }
+    },
+    "material": {
+      "_title": "Video & frosted background",
+      "mobileFrostHeight": {
+        "label": "How much of the phone is frosted?",
+        "value": 100,
+        "cssVar": "--tp-frost-height",
+        "unit": "%"
+      },
+      "mobileFrostY": {
+        "label": "Move frosted area up / down",
+        "value": 50,
+        "cssVar": "--tp-frost-y",
+        "unit": "%"
+      },
+      "frostEdgeSoftness": {
+        "label": "Soften the frosted edges",
+        "value": 16,
+        "cssVar": "--tp-frost-feather",
+        "unit": "%"
+      },
+      "invitationStrength": {
+        "label": "Invitation background strength",
+        "value": 0.76,
+        "cssVar": "--tp-invitation-alpha",
+        "unit": ""
+      },
+      "textVeil": {
+        "label": "Text background strength",
+        "value": 0.18,
+        "cssVar": "--tp-text-veil",
+        "unit": ""
+      },
+      "blur": {
+        "label": "Frost strength",
+        "value": 20,
+        "cssVar": "--tp-blur",
+        "unit": "px"
+      },
+      "wash": {
+        "label": "Background darkness",
+        "value": 0.46,
+        "cssVar": "--tp-wash",
+        "unit": ""
+      }
+    },
+    "functional": {
+      "_title": "Countdown & calendar",
+      "zoneY": {
+        "label": "Move countdown and button together",
+        "value": 0,
+        "cssVar": "--tp-zone-y",
+        "unit": "%"
+      },
+      "countdownY": {
+        "label": "Move countdown up / down",
+        "value": 0,
+        "cssVar": "--tp-countdown-y",
+        "unit": "cqw"
+      },
+      "gapCountdownCta": {
+        "label": "Space between countdown and Save to Calendar",
+        "value": 3.3,
+        "cssVar": "--tp-gap-countdown-cta",
+        "unit": "cqw"
+      }
+    },
+    "fonts": {
+      "_title": "Lettering style",
+      "displayFont": {
+        "label": "Printed lettering",
+        "value": "\"Instrument Serif\", Georgia, serif",
+        "cssVar": "--tp-font-display"
+      },
+      "scriptFont": {
+        "label": "Handwritten lettering",
+        "value": "\"Parisienne\", cursive",
+        "cssVar": "--tp-font-script"
+      }
+    }
+  }
+}
