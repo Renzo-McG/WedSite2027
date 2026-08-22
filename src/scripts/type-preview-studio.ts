@@ -12,6 +12,7 @@ import {
   type Control,
   type Settings,
 } from "../lib/type-preview-settings";
+import { downloadBlob } from "../lib/browser-download";
 import { inspectSvg, type ArtworkInspection } from "../lib/svg-artwork";
 import {
   artworkObjectUrl,
@@ -461,28 +462,31 @@ function wireSharing(): void {
 
   document.querySelector<HTMLButtonElement>("[data-export-look]")?.addEventListener("click", () => {
     void (async () => {
-      const record = await readArtwork("current");
-      let artworkSvg = record?.source ?? null;
-      // The bundled design is not in IndexedDB, so fetch it to send it along.
-      if (!artworkSvg && artworkSource === "starting") {
-        artworkSvg = await fetch(STARTING_ARTWORK_URL)
-          .then((r) => (r.ok ? r.text() : null))
-          .catch(() => null);
-      }
+      const FILENAME = "save-the-date-look.zip";
+      showToast("Preparing complete look…");
+      try {
+        const record = await readArtwork("current");
+        let artworkSvg = record?.source ?? null;
+        // The bundled design is not in IndexedDB, so fetch it to send it along.
+        if (!artworkSvg && artworkSource === "starting") {
+          artworkSvg = await fetch(STARTING_ARTWORK_URL)
+            .then((r) => (r.ok ? r.text() : null))
+            .catch(() => null);
+        }
 
-      const files = completeLookPackage(artworkSvg, {
-        schemaVersion: LOOK_SCHEMA_VERSION,
-        exportedAt: new Date().toISOString(),
-        settings: coerceSettings(settings),
-      });
-      const blob = new Blob([buildZip(files) as BlobPart], { type: "application/zip" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "save-the-date-look.zip";
-      link.click();
-      URL.revokeObjectURL(url);
-      showToast("Downloaded save-the-date-look.zip");
+        const files = completeLookPackage(artworkSvg, {
+          schemaVersion: LOOK_SCHEMA_VERSION,
+          exportedAt: new Date().toISOString(),
+          settings: coerceSettings(settings),
+        });
+        const blob = new Blob([buildZip(files) as BlobPart], { type: "application/zip" });
+        const result = downloadBlob(blob, FILENAME);
+        if (!result.ok) throw result.error ?? new Error("download failed");
+        showToast("Complete look downloaded");
+      } catch (error) {
+        console.error("Export complete look failed:", error);
+        showToast("Couldn't download the complete look — see the console for details.");
+      }
     })();
   });
 
@@ -992,38 +996,43 @@ function wireExport(): void {
   });
 
   document.querySelector<HTMLButtonElement>("[data-download]")?.addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(exportPayload(settings), null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "save-the-date-type-settings.json";
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast("Downloaded save-the-date-type-settings.json");
+    const FILENAME = "save-the-date-type-settings.json";
+    try {
+      const blob = new Blob([JSON.stringify(exportPayload(settings), null, 2)], {
+        type: "application/json",
+      });
+      const result = downloadBlob(blob, FILENAME);
+      if (!result.ok) throw result.error ?? new Error("download failed");
+      showToast(`Downloaded ${FILENAME}`);
+    } catch (error) {
+      console.error("Download settings failed:", error);
+      showToast("Couldn't download the settings file — see the console for details.");
+    }
   });
 
   document.querySelector<HTMLButtonElement>("[data-package]")?.addEventListener("click", () => {
     void (async () => {
-      const record = await readArtwork("current");
-      const dimensions = currentInspection?.width
-        ? `${Math.round(currentInspection.width)} × ${Math.round(currentInspection.height ?? 0)} SVG`
-        : "SVG";
-      const files = productionPackage({
-        artworkSvg: record?.source ?? null,
-        settingsJson: JSON.stringify(exportPayload(settings), null, 2),
-        artworkDimensions: dimensions,
-        exportedAt: new Date().toISOString(),
-      });
-      const blob = new Blob([buildZip(files) as BlobPart], { type: "application/zip" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "save-the-date-approved.zip";
-      link.click();
-      URL.revokeObjectURL(url);
-      showToast("Downloaded save-the-date-approved.zip");
+      const FILENAME = "save-the-date-approved.zip";
+      showToast("Preparing production package…");
+      try {
+        const record = await readArtwork("current");
+        const dimensions = currentInspection?.width
+          ? `${Math.round(currentInspection.width)} × ${Math.round(currentInspection.height ?? 0)} SVG`
+          : "SVG";
+        const files = productionPackage({
+          artworkSvg: record?.source ?? null,
+          settingsJson: JSON.stringify(exportPayload(settings), null, 2),
+          artworkDimensions: dimensions,
+          exportedAt: new Date().toISOString(),
+        });
+        const blob = new Blob([buildZip(files) as BlobPart], { type: "application/zip" });
+        const result = downloadBlob(blob, FILENAME);
+        if (!result.ok) throw result.error ?? new Error("download failed");
+        showToast("Production package downloaded");
+      } catch (error) {
+        console.error("Download production package failed:", error);
+        showToast("Couldn't download the production package — see the console for details.");
+      }
     })();
   });
 
