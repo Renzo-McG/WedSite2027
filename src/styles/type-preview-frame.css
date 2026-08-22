@@ -22,68 +22,173 @@
 
 /* ------------------------------------------------------- tuning wiring */
 
-/* Production's own custom properties, re-pointed at the studio values. The
-   invitation surface, its blur and the stage wash then respond live without
-   any of production's rules being rewritten. */
+/* The studio takes over the invitation's material so the frosted area can
+   become a band of adjustable height rather than the whole card.
 
-.tp-frame .invitation,
+   Production paints the frost on `.invitation__surface` itself (plus a masked
+   ::before on mobile portrait). Both are neutralised here and replaced by one
+   explicit `.tp-frost` element, so "how much of the phone is frosted?" has a
+   single, predictable thing to resize. Colours, tints and blur all still come
+   from production's own tokens. */
+
 .tp-frame .invitation__surface {
-  --invitation-alpha: var(--tp-invitation-alpha, 0.76);
-  --invitation-blur: var(--tp-blur, 20px);
+  background-color: transparent;
+  background-image: none;
+  backdrop-filter: none;
+  container-type: inline-size;
+  -webkit-backdrop-filter: none;
+}
+
+.tp-frame .invitation__surface::before {
+  display: none;
 }
 
 .tp-frame .stage {
   --video-overlay-strength: var(--tp-wash, 0.46);
 }
 
-/* `cqw` throughout the editorial block resolves against the invitation's own
-   width, which is what makes one set of numbers hold from a 320px phone to
-   the 540px desktop card. */
+/* ------------------------------------------------------- frosted band */
 
-.tp-frame .invitation__surface {
-  container-type: inline-size;
-}
+/* Positioned by its centre, so reducing the height alone opens clear video
+   above and below by the same amount — the behaviour the whole mobile
+   composition idea rests on. `--tp-frost-y` then trades one end against the
+   other without changing the height.
 
-/* The readability veil. Production paints this only on mobile portrait; the
-   studio enables it at every size so "text background strength" means the
-   same thing on a phone and on the desktop card. Feathered top and bottom so
-   it never reads as a hard band. */
+   The blur lives on this element, so the venue is genuinely unfrosted outside
+   the band rather than merely lighter. The mask feathers both edges, and the
+   feather is a share of the band's own height so it stays proportionate as
+   the band shrinks. */
 
-.tp-frame .invitation__surface::before {
+.tp-frame .tp-frost {
   position: absolute;
-  z-index: 1;
-  background: rgba(var(--invitation-tint), var(--tp-text-veil, 0.18));
-  content: "";
-  inset: 0;
+  z-index: 0;
+  top: var(--tp-frost-y, 50%);
+  right: 0;
+  left: 0;
+  height: var(--tp-frost-height, 100%);
+  background: rgba(var(--invitation-tint), var(--tp-invitation-alpha, 0.76));
+  backdrop-filter: blur(var(--tp-blur, 20px)) saturate(0.9);
   mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.12) 4%,
-    rgba(0, 0, 0, 0.45) 8%,
-    rgba(0, 0, 0, 0.78) 12%,
-    #000 18%,
-    #000 82%,
-    rgba(0, 0, 0, 0.78) 88%,
-    rgba(0, 0, 0, 0.45) 92%,
-    rgba(0, 0, 0, 0.12) 96%,
+    #000 var(--tp-frost-feather, 16%),
+    #000 calc(100% - var(--tp-frost-feather, 16%)),
     transparent 100%
   );
   mask-repeat: no-repeat;
   pointer-events: none;
+  transform: translateY(-50%);
+  -webkit-backdrop-filter: blur(var(--tp-blur, 20px)) saturate(0.9);
   -webkit-mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.12) 4%,
-    rgba(0, 0, 0, 0.45) 8%,
-    rgba(0, 0, 0, 0.78) 12%,
-    #000 18%,
-    #000 82%,
-    rgba(0, 0, 0, 0.78) 88%,
-    rgba(0, 0, 0, 0.45) 92%,
-    rgba(0, 0, 0, 0.12) 96%,
+    #000 var(--tp-frost-feather, 16%),
+    #000 calc(100% - var(--tp-frost-feather, 16%)),
     transparent 100%
   );
   -webkit-mask-repeat: no-repeat;
+}
+
+/* On a computer the invitation stays the 5:7 card it already is: the band
+   fills it edge to edge with no feather, so the frosted-height control is
+   plainly a phone tool and cannot quietly alter the desktop composition. */
+
+@media (min-width: 48rem) and (min-height: 40rem) {
+  .tp-frame .tp-frost {
+    top: 50%;
+    height: 100%;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
+
+/* ------------------------------------------------------ readability veil */
+
+/* A soft local lift behind the wording, tied to the artwork's own centre so
+   it follows the design rather than a fixed strip. Heavily feathered on all
+   sides via a radial mask, so it never reads as a rectangle behind the
+   artwork — it should feel like material, not a panel. */
+
+.tp-frame .tp-veil {
+  position: absolute;
+  z-index: 1;
+  top: var(--tp-veil-y, 50%);
+  right: 0;
+  left: 0;
+  height: var(--tp-veil-height, 62%);
+  background: rgba(var(--invitation-tint), var(--tp-text-veil, 0.18));
+  mask-image: radial-gradient(
+    120% 78% at 50% 50%,
+    #000 0%,
+    rgba(0, 0, 0, 0.85) 45%,
+    rgba(0, 0, 0, 0.4) 72%,
+    transparent 100%
+  );
+  mask-repeat: no-repeat;
+  pointer-events: none;
+  transform: translateY(-50%);
+  -webkit-mask-image: radial-gradient(
+    120% 78% at 50% 50%,
+    #000 0%,
+    rgba(0, 0, 0, 0.85) 45%,
+    rgba(0, 0, 0, 0.4) 72%,
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+}
+
+/* ---------------------------------------------------------- artwork */
+
+/* The uploaded Canva SVG, as a plain decorative image layer. Width is a share
+   of the invitation, height follows the file's own 5:7, so it can never be
+   stretched independently in one axis — only scaled and moved. */
+
+.tp-frame .tp-artwork {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: calc(var(--tp-art-scale, 100%) * 1);
+  height: auto;
+  opacity: calc(var(--tp-art-strength, 100%) / 100%);
+  pointer-events: none;
+  transform: translate(-50%, -50%) translate(var(--tp-art-x, 0%), var(--tp-art-y, 0%));
+}
+
+/* Which placement applies is a media-query decision, so one uploaded file
+   serves both regimes from a single set of stored values. */
+
+.tp-frame {
+  --tp-art-scale: var(--tp-art-mobile-scale, 88%);
+  --tp-art-x: var(--tp-art-mobile-x, 0%);
+  --tp-art-y: var(--tp-art-mobile-y, -6%);
+}
+
+@media (min-width: 48rem) and (min-height: 40rem) {
+  .tp-frame {
+    --tp-art-scale: var(--tp-art-desktop-scale, 100%);
+    --tp-art-x: var(--tp-art-desktop-x, 0%);
+    --tp-art-y: var(--tp-art-desktop-y, 0%);
+  }
+}
+
+/* Artwork mode swaps which layer is visible. The native wording stays in the
+   DOM for screen readers even when the Canva design is what is on screen. */
+
+.tp-frame[data-artwork-mode="svg"] .tp-editorial {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  border: 0;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.tp-frame:not([data-artwork-mode="svg"]) .tp-artwork {
+  display: none;
 }
 
 /* Production lays this out as a four-row grid with its own padding. In the
@@ -210,13 +315,12 @@
   position: absolute;
   z-index: 2;
   right: var(--tp-inset, 10.2%);
-  bottom: 0;
+  bottom: var(--tp-zone-y, 0%);
   left: var(--tp-inset, 10.2%);
   display: grid;
   justify-items: start;
   gap: var(--tp-gap-countdown-cta, 3.3cqw);
   padding-bottom: max(2rem, env(safe-area-inset-bottom));
-  transform: translateY(var(--tp-zone-y, 0%));
 }
 
 .tp-functional .countdown {

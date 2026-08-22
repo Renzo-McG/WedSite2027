@@ -49,7 +49,21 @@ import "../../styles/type-preview-frame.css";
 
     <article class="invitation" data-phase="composed" data-invitation>
       <div class="invitation__surface">
+        {
+          /* Material layers, back to front: the frosted band whose height is
+          the headline mobile control, then the soft readability veil that
+          follows the artwork. Both are decorative. */
+        }
+        <div class="tp-frost" aria-hidden="true" data-frost></div>
+        <div class="tp-veil" aria-hidden="true" data-veil></div>
         <div class="invitation__grain" aria-hidden="true"></div>
+
+        {
+          /* The uploaded Canva design. Decorative and never focusable: the
+          native wording below stays the accessible source of the same
+          information. */
+        }
+        <img class="tp-artwork" alt="" aria-hidden="true" data-artwork />
 
         {
           /* Kept named `invitation__content` because the production script

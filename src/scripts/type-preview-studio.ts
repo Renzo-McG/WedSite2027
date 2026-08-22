@@ -7,9 +7,21 @@ import {
   defaultSettings,
   estimateContrast,
   exportPayload,
+  frostBand,
+  functionalZoneEscapes,
   type Control,
   type Settings,
 } from "../lib/type-preview-settings";
+import { inspectSvg, type ArtworkInspection } from "../lib/svg-artwork";
+import {
+  artworkObjectUrl,
+  clearArtwork,
+  markCurrentApproved,
+  putCurrentArtwork,
+  readArtwork,
+  type ArtworkSlot,
+} from "../lib/artwork-store";
+import { buildZip, productionPackage } from "../lib/production-package";
 
 /**
  * Panel side of the studio.
@@ -28,6 +40,8 @@ let settings: Settings = defaultSettings();
 let viewport = { w: 1440, h: 900, label: "Desktop invitation", note: "540 × 756 card" };
 let zoom = 0; // 0 means fit-to-window
 let frameReady = false;
+let showingSlot: ArtworkSlot = "current";
+let currentInspection: ArtworkInspection | null = null;
 
 /* ----------------------------------------------------------- persistence */
 
@@ -114,8 +128,33 @@ function syncControl(control: Control): void {
   if (readout) readout.textContent = formatValue(control, value);
 }
 
+/**
+ * Shows only the controls that make sense for the active artwork mode. The
+ * hidden ones stay in the DOM with their values intact, so switching back to
+ * the built-in wording restores exactly what was there before.
+ */
+function applyModeVisibility(): void {
+  const mode = String(settings.artworkMode ?? "native");
+  for (const control of CONTROLS) {
+    const node = document.querySelector<HTMLElement>(`[data-control="${control.id}"]`);
+    if (!node) continue;
+    node.hidden = control.showWhen !== undefined && control.showWhen.artworkMode !== mode;
+  }
+
+  // A whole section disappears when every control in it is irrelevant.
+  document.querySelectorAll<HTMLElement>("[data-group-section]").forEach((section) => {
+    const controls = section.querySelectorAll<HTMLElement>("[data-control]");
+    const anyVisible = [...controls].some((node) => !node.hidden);
+    section.hidden = controls.length > 0 && !anyVisible;
+  });
+
+  const desktopNote = document.querySelector<HTMLElement>("[data-desktop-note]");
+  if (desktopNote) desktopNote.hidden = viewport.w < 768;
+}
+
 function syncAllControls(): void {
   for (const control of CONTROLS) syncControl(control);
+  applyModeVisibility();
   refreshContrastWarning();
 }
 
@@ -136,6 +175,182 @@ function refreshContrastWarning(): void {
 /** Ask the frame what the film actually looks like behind the wording. */
 function requestLuminance(): void {
   if (frameReady) postToFrame({ type: "tp:luminance" });
+}
+
+/* ------------------------------------------------------------- artwork */
+
+let artworkUrl: string | null = null;
+
+function renderCheck(inspection: ArtworkInspection | null): void {
+  const box = document.querySelector<HTMLElement>("[data-check]");
+  if (!box) return;
+  if (!inspection) {
+    box.hidden = true;
+    box.replaceChildren();
+    return;
+  }
+
+  box.hidden = false;
+  const lines: HTMLElement[] = [];
+  const strong = document.createElement("p");
+  strong.textContent = "Artwork check";
+  strong.style.fontWeight = "700";
+  lines.push(strong);
+
+  for (const pass of inspection.passed) {
+    const row = document.createElement("p");
+    row.className = "ok";
+    row.textContent = `✓ ${pass}`;
+    lines.push(row);
+  }
+  for (const warning of inspection.warnings) {
+    const row = document.createElement("p");
+    row.className = warning.blocking ? "bad" : "warn";
+    row.textContent = `⚠ ${warning.message}`;
+    lines.push(row);
+  }
+  box.replaceChildren(...lines);
+}
+
+/** Points the preview at one of the two stored artworks. */
+async function showArtwork(slot: ArtworkSlot): Promise<void> {
+  const record = await readArtwork(slot);
+  if (artworkUrl) URL.revokeObjectURL(artworkUrl);
+  artworkUrl = record ? artworkObjectUrl(record.source) : null;
+  showingSlot = slot;
+  postToFrame({ type: "tp:artwork", url: artworkUrl });
+}
+
+async function refreshArtworkUi(): Promise<void> {
+  const current = await readArtwork("current");
+  const previous = await readArtwork("previous");
+
+  const title = document.querySelector<HTMLElement>("[data-drop-title]");
+  const help = document.querySelector<HTMLElement>("[data-drop-help]");
+  const actions = document.querySelector<HTMLElement>("[data-artwork-actions]");
+  const compare = document.querySelector<HTMLButtonElement>("[data-compare-artwork]");
+
+  if (title) title.textContent = current ? "Replace Canva artwork" : "Upload Canva artwork";
+  if (help) {
+    help.textContent = current
+      ? "Load your latest Canva export. Your size, position, video and frost settings all stay exactly as they are."
+      : "Drop the SVG here, or click to choose the file.";
+  }
+  if (actions) actions.hidden = !current;
+  if (compare) {
+    compare.hidden = !previous;
+    compare.textContent = showingSlot === "current" ? "Compare with previous" : "Back to latest";
+  }
+
+  renderCheck(currentInspection);
+}
+
+/**
+ * Reads an SVG chosen by the user, checks it, stores it and shows it.
+ * Deliberately touches no other setting: replacing artwork must never undo the
+ * placement work already done around it.
+ */
+async function acceptFile(file: File): Promise<void> {
+  if (!/\.svg$/i.test(file.name) && file.type !== "image/svg+xml") {
+    showToast("That is not an SVG. Export your design from Canva as SVG.");
+    return;
+  }
+
+  const source = await file.text();
+  const inspection = inspectSvg(source);
+  currentInspection = inspection;
+
+  if (!inspection.ok) {
+    renderCheck(inspection);
+    showToast("That file was not loaded — see the artwork check.");
+    return;
+  }
+
+  await putCurrentArtwork(source, file.name);
+  settings.artworkMode = "svg";
+  saveSettings();
+  syncAllControls();
+  pushSettings();
+  await showArtwork("current");
+  await refreshArtworkUi();
+  showToast(`Loaded ${file.name}. Your settings are unchanged.`);
+}
+
+function wireArtwork(): void {
+  const drop = document.querySelector<HTMLElement>("[data-drop]");
+  const input = document.querySelector<HTMLInputElement>("[data-file]");
+
+  drop?.addEventListener("click", () => input?.click());
+  drop?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      input?.click();
+    }
+  });
+
+  input?.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (file) void acceptFile(file);
+    input.value = "";
+  });
+
+  for (const name of ["dragenter", "dragover"]) {
+    drop?.addEventListener(name, (event) => {
+      event.preventDefault();
+      drop.dataset.active = "true";
+    });
+  }
+  for (const name of ["dragleave", "drop"]) {
+    drop?.addEventListener(name, (event) => {
+      event.preventDefault();
+      delete drop.dataset.active;
+    });
+  }
+  drop?.addEventListener("drop", (event) => {
+    const file = (event as DragEvent).dataTransfer?.files?.[0];
+    if (file) void acceptFile(file);
+  });
+
+  document
+    .querySelector<HTMLButtonElement>("[data-compare-artwork]")
+    ?.addEventListener("click", () => {
+      void showArtwork(showingSlot === "current" ? "previous" : "current").then(() => {
+        showToast(showingSlot === "current" ? "Showing the latest." : "Showing the previous.");
+        return refreshArtworkUi();
+      });
+    });
+
+  document.querySelector<HTMLButtonElement>("[data-approve]")?.addEventListener("click", () => {
+    void markCurrentApproved().then(() => showToast("Marked as the version to take forward."));
+  });
+
+  document
+    .querySelector<HTMLButtonElement>("[data-remove-artwork]")
+    ?.addEventListener("click", () => {
+      if (!window.confirm("Remove the saved Canva artwork and go back to the built-in wording?")) {
+        return;
+      }
+      void clearArtwork().then(async () => {
+        currentInspection = null;
+        settings.artworkMode = "native";
+        saveSettings();
+        syncAllControls();
+        pushSettings();
+        await showArtwork("current");
+        await refreshArtworkUi();
+        showToast("Artwork removed.");
+      });
+    });
+
+  document.querySelector<HTMLButtonElement>("[data-fit-artwork]")?.addEventListener("click", () => {
+    const key = viewport.w >= 768 ? "artDesktopScale" : "artMobileScale";
+    const scale = Number(settings[key] ?? 100);
+    settings[key] = Math.max(20, scale - 6);
+    saveSettings();
+    syncAllControls();
+    pushSettings();
+    showToast("Artwork brought back inside the invitation.");
+  });
 }
 
 /* ------------------------------------------------------------ viewport */
@@ -172,6 +387,19 @@ function applyViewport(): void {
 
   const zoomReadout = document.querySelector<HTMLElement>('[data-readout="zoom"]');
   if (zoomReadout) zoomReadout.textContent = zoom > 0 ? `${zoom}%` : "Fit";
+
+  // The custom sliders and the preset buttons are two views of one value.
+  const wInput = document.querySelector<HTMLInputElement>("[data-vw]");
+  const hInput = document.querySelector<HTMLInputElement>("[data-vh]");
+  if (wInput && Number(wInput.value) !== viewport.w) wInput.value = String(viewport.w);
+  if (hInput && Number(hInput.value) !== viewport.h) hInput.value = String(viewport.h);
+  const wOut = document.querySelector<HTMLElement>('[data-readout="vw"]');
+  const hOut = document.querySelector<HTMLElement>('[data-readout="vh"]');
+  if (wOut) wOut.textContent = String(viewport.w);
+  if (hOut) hOut.textContent = String(viewport.h);
+
+  applyModeVisibility();
+  postToFrame({ type: "tp:geometry" });
 
   document.querySelectorAll<HTMLElement>("[data-viewport]").forEach((button) => {
     // Two presets share a 390px width, so both dimensions have to match.
@@ -251,6 +479,9 @@ function wireControls(): void {
       syncControl(control);
       saveSettings();
       pushSettings();
+      // Switching artwork mode changes which controls are relevant, so the
+      // whole panel has to be re-evaluated rather than just this one row.
+      if (control.id === "artworkMode") applyModeVisibility();
       if (control.group === "material") refreshContrastWarning();
     };
 
@@ -380,6 +611,144 @@ function wirePreviewAids(): void {
     });
 }
 
+function setViewport(w: number, h: number, label: string, note = ""): void {
+  viewport = { w, h, label, note };
+  applyViewport();
+}
+
+function wireCustomViewport(): void {
+  const wInput = document.querySelector<HTMLInputElement>("[data-vw]");
+  const hInput = document.querySelector<HTMLInputElement>("[data-vh]");
+
+  const update = (): void => {
+    setViewport(
+      Number(wInput?.value ?? viewport.w),
+      Number(hInput?.value ?? viewport.h),
+      "Custom screen",
+    );
+  };
+  wInput?.addEventListener("input", update);
+  hInput?.addEventListener("input", update);
+
+  const page = document.querySelector<HTMLElement>(".tps-page") ?? document.body;
+  const showBtn = document.querySelector<HTMLElement>("[data-show-panel]");
+
+  document.querySelector<HTMLButtonElement>("[data-hide-panel]")?.addEventListener("click", () => {
+    page.dataset.panelHidden = "true";
+    if (showBtn) showBtn.hidden = false;
+    applyViewport();
+  });
+
+  showBtn?.addEventListener("click", () => {
+    delete page.dataset.panelHidden;
+    showBtn.hidden = true;
+    applyViewport();
+  });
+
+  document.querySelector<HTMLButtonElement>("[data-fullscreen]")?.addEventListener("click", () => {
+    const stage = document.querySelector<HTMLElement>(".tps__stage");
+    if (!document.fullscreenElement) void stage?.requestFullscreen?.().catch(() => undefined);
+    else void document.exitFullscreen().catch(() => undefined);
+  });
+}
+
+/* --------------------------------------------------------------- sweep */
+
+/**
+ * Steps the preview through a broad range of screen shapes and reports the
+ * structural problems that actually matter. Programmatic rather than
+ * screenshot-based, so it is fast enough to run on demand and does not go
+ * stale the moment a colour changes.
+ */
+const SWEEP_SIZES: readonly (readonly [number, number, string])[] = [
+  [280, 653, "very narrow phone"],
+  [320, 568, "small phone"],
+  [360, 780, "compact phone"],
+  [375, 667, "older phone"],
+  [390, 844, "normal phone"],
+  [412, 915, "large android"],
+  [430, 932, "large phone"],
+  [480, 800, "phablet"],
+  [600, 960, "small tablet"],
+  [768, 1024, "tablet portrait"],
+  [820, 1180, "tablet"],
+  [844, 390, "phone landscape"],
+  [1024, 768, "tablet landscape"],
+  [1280, 720, "laptop"],
+  [1366, 768, "laptop"],
+  [1440, 900, "desktop"],
+  [1728, 1117, "large desktop"],
+  [1920, 1080, "full HD"],
+];
+
+interface GeometryReport {
+  artworkClipped: boolean;
+  zoneTopPct: number | null;
+  zoneBottomPct: number | null;
+  documentOverflows: boolean;
+}
+
+let geometryResolve: ((value: GeometryReport) => void) | null = null;
+
+function requestGeometry(): Promise<GeometryReport> {
+  return new Promise((resolve) => {
+    geometryResolve = resolve;
+    postToFrame({ type: "tp:geometry" });
+    window.setTimeout(() => {
+      if (geometryResolve === resolve) {
+        geometryResolve = null;
+        resolve({
+          artworkClipped: false,
+          zoneTopPct: null,
+          zoneBottomPct: null,
+          documentOverflows: false,
+        });
+      }
+    }, 600);
+  });
+}
+
+async function runSweep(): Promise<void> {
+  const box = document.querySelector<HTMLElement>("[data-sweep-result]");
+  if (!box) return;
+  box.hidden = false;
+  box.replaceChildren(Object.assign(document.createElement("p"), { textContent: "Checking…" }));
+
+  const restore = { ...viewport };
+  const problems: string[] = [];
+
+  for (const [w, h, name] of SWEEP_SIZES) {
+    setViewport(w, h, name);
+    await new Promise((resolve) => window.setTimeout(resolve, 130));
+    const report = await requestGeometry();
+    if (report.documentOverflows) problems.push(`${w}×${h} (${name}): content overflows sideways`);
+    if (report.artworkClipped) problems.push(`${w}×${h} (${name}): artwork is cut off`);
+  }
+
+  setViewport(restore.w, restore.h, restore.label, restore.note);
+
+  const lines: HTMLElement[] = [];
+  const heading = document.createElement("p");
+  heading.style.fontWeight = "700";
+  heading.textContent = `Checked ${SWEEP_SIZES.length} screen sizes`;
+  lines.push(heading);
+
+  if (problems.length === 0) {
+    const ok = document.createElement("p");
+    ok.className = "ok";
+    ok.textContent = "✓ No overflow or clipping found at any size.";
+    lines.push(ok);
+  } else {
+    for (const problem of problems) {
+      const row = document.createElement("p");
+      row.className = "warn";
+      row.textContent = `⚠ ${problem}`;
+      lines.push(row);
+    }
+  }
+  box.replaceChildren(...lines);
+}
+
 function wireExport(): void {
   document.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", async () => {
     const text = JSON.stringify(exportPayload(settings), null, 2);
@@ -403,6 +772,33 @@ function wireExport(): void {
     link.click();
     URL.revokeObjectURL(url);
     showToast("Downloaded save-the-date-type-settings.json");
+  });
+
+  document.querySelector<HTMLButtonElement>("[data-package]")?.addEventListener("click", () => {
+    void (async () => {
+      const record = await readArtwork("current");
+      const dimensions = currentInspection?.width
+        ? `${Math.round(currentInspection.width)} × ${Math.round(currentInspection.height ?? 0)} SVG`
+        : "SVG";
+      const files = productionPackage({
+        artworkSvg: record?.source ?? null,
+        settingsJson: JSON.stringify(exportPayload(settings), null, 2),
+        artworkDimensions: dimensions,
+        exportedAt: new Date().toISOString(),
+      });
+      const blob = new Blob([buildZip(files) as BlobPart], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "save-the-date-approved.zip";
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast("Downloaded save-the-date-approved.zip");
+    })();
+  });
+
+  document.querySelector<HTMLButtonElement>("[data-sweep]")?.addEventListener("click", () => {
+    void runSweep();
   });
 
   document.querySelector<HTMLButtonElement>("[data-preset-save]")?.addEventListener("click", () => {
@@ -431,12 +827,40 @@ window.addEventListener("message", (event: MessageEvent) => {
   if (message.type === "tp:ready") {
     frameReady = true;
     pushSettings();
+    void showArtwork(showingSlot).then(refreshArtworkUi);
     window.setTimeout(requestLuminance, 400);
   }
 
   if (message.type === "tp:luminance-result" && typeof message.value === "number") {
     backdropLuminance = message.value;
     refreshContrastWarning();
+  }
+
+  if (message.type === "tp:geometry-result") {
+    const report = event.data as GeometryReport;
+    geometryResolve?.(report);
+    geometryResolve = null;
+
+    const clip = document.querySelector<HTMLElement>("[data-clip-warning]");
+    const fitRow = document.querySelector<HTMLElement>("[data-fit-row]");
+    const svgMode = String(settings.artworkMode ?? "native") === "svg";
+    if (clip) clip.hidden = !(svgMode && report.artworkClipped);
+    if (fitRow) fitRow.hidden = !(svgMode && report.artworkClipped);
+
+    // Only meaningful on a phone, where the frosted band is a band at all.
+    const zone = document.querySelector<HTMLElement>("[data-zone-warning]");
+    if (zone) {
+      const band = frostBand(
+        Number(settings.mobileFrostHeight ?? 100),
+        Number(settings.mobileFrostY ?? 50),
+      );
+      const escapes =
+        viewport.w < 768 &&
+        report.zoneTopPct !== null &&
+        report.zoneBottomPct !== null &&
+        functionalZoneEscapes(band, report.zoneTopPct, report.zoneBottomPct);
+      zone.hidden = !escapes;
+    }
   }
 });
 
@@ -448,6 +872,12 @@ settings = loadSettings();
 syncAllControls();
 wireControls();
 wirePreviewAids();
+wireCustomViewport();
+wireArtwork();
 wireExport();
 renderPresets();
 applyViewport();
+void readArtwork("current").then((record) => {
+  if (record) currentInspection = inspectSvg(record.source);
+  return refreshArtworkUi();
+});

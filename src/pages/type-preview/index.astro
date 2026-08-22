@@ -1,6 +1,7 @@
 ---
 /**
- * Local typography and layout studio. Not production, never linked from it.
+ * Save the Date Studio — local design environment. Not production, never
+ * linked from it.
  *
  * The panel is rendered from the control manifest in lib/type-preview-settings,
  * so a control exists in exactly one place and the panel, the preview and the
@@ -14,12 +15,16 @@ import "../../styles/type-preview-studio.css";
 const frameUrl = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}type-preview/frame/`;
 const referenceBase = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}type-preview/`;
 
+/* Convenience jumping-off points only: each button simply sets the custom
+   width/height below, so nothing between them is a special case. */
 const VIEWPORTS = [
   { id: "desktop", label: "Desktop invitation", w: 1440, h: 900, note: "540 × 756 card" },
   { id: "canva-mobile", label: "Canva mobile reference", w: 390, h: 884, note: "" },
   { id: "phone", label: "Normal phone", w: 390, h: 844, note: "" },
   { id: "small", label: "Small phone", w: 320, h: 568, note: "" },
   { id: "large", label: "Large phone", w: 430, h: 932, note: "" },
+  { id: "tablet", label: "Tablet", w: 820, h: 1180, note: "" },
+  { id: "landscape", label: "Phone on its side", w: 844, h: 390, note: "" },
 ];
 
 function controlsFor(group: string) {
@@ -28,25 +33,81 @@ function controlsFor(group: string) {
 ---
 
 <BaseLayout
-  title="Save the Date — typography studio"
-  description="Local studio for tuning the native Save the Date typography, layout and material."
+  title="Save the Date Studio"
+  description="Local studio for placing the Canva artwork over the real invitation, video and frost."
   noindex
   className="tps-page"
 >
   <div class="tps">
     <aside class="tps__panel">
       <header class="tps__header">
-        <h1 class="tps__title">Save the Date — design studio</h1>
+        <h1 class="tps__title">Save the Date Studio</h1>
         <p class="tps__subtitle">
-          Move the sliders and the invitation updates as you go. Your work is saved in this browser,
-          so you can close the tab and come back to it.
+          Drop in your Canva design, then move the sliders until it sits right over the venue film.
+          Everything updates as you go, and your work is saved in this browser.
         </p>
         <p class="tps__notice">
           The final fonts (The Seasons and Above the Beyond Script) are paid fonts and are not
           installed, so this preview uses the closest free stand-ins. Shapes and weights will differ
           slightly from the Canva mock — judge the layout, not the exact letterforms.
         </p>
+        <div class="tps__row" style="margin-top:.6rem">
+          <button class="tps__btn tps__btn--tiny" type="button" data-hide-panel
+            >Hide controls</button
+          >
+          <button class="tps__btn tps__btn--tiny" type="button" data-fullscreen>Full screen</button>
+        </div>
       </header>
+
+      {/* -------------------------------------------------------- artwork */}
+      <details class="tps__section" open>
+        <summary>Your Canva design</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">
+            Export your design from Canva as an SVG with a transparent background, then drop it in
+            here.
+          </p>
+
+          <div
+            class="tps__drop"
+            data-drop
+            tabindex="0"
+            role="button"
+            aria-label="Upload Canva artwork"
+          >
+            <strong data-drop-title>Upload Canva artwork</strong>
+            <span data-drop-help>Drop the SVG here, or click to choose the file.</span>
+            <input type="file" accept=".svg,image/svg+xml" hidden data-file />
+          </div>
+
+          <div class="tps__check" data-check hidden></div>
+
+          <div class="tps__row" data-artwork-actions hidden>
+            <button class="tps__btn tps__btn--tiny" type="button" data-compare-artwork>
+              Compare with previous
+            </button>
+            <button class="tps__btn tps__btn--tiny" type="button" data-approve>
+              Mark as approved
+            </button>
+            <button
+              class="tps__btn tps__btn--tiny tps__btn--danger"
+              type="button"
+              data-remove-artwork
+            >
+              Remove
+            </button>
+          </div>
+
+          <p class="tps__warning" data-clip-warning hidden>
+            ⚠ Part of the Canva artwork is outside the visible invitation.
+          </p>
+          <div class="tps__row" data-fit-row hidden>
+            <button class="tps__btn tps__btn--tiny" type="button" data-fit-artwork>
+              Fit artwork safely
+            </button>
+          </div>
+        </div>
+      </details>
 
       {/* ----------------------------------------------------- preview aids */}
       <details class="tps__section" open>
@@ -95,6 +156,27 @@ function controlsFor(group: string) {
 
           <div class="tps__control">
             <div class="tps__label">
+              <span class="tps__label-text">Screen width</span>
+              <span class="tps__value" data-readout="vw">1440</span>
+            </div>
+            <p class="tps__help">
+              Try any width you like, not just the buttons above. The design is built to cope with
+              anything in between.
+            </p>
+            <input type="range" min="280" max="1920" step="1" value="1440" data-vw />
+          </div>
+
+          <div class="tps__control">
+            <div class="tps__label">
+              <span class="tps__label-text">Screen height</span>
+              <span class="tps__value" data-readout="vh">900</span>
+            </div>
+            <p class="tps__help">Test shorter and taller screens.</p>
+            <input type="range" min="380" max="1400" step="1" value="900" data-vh />
+          </div>
+
+          <div class="tps__control">
+            <div class="tps__label">
               <span class="tps__label-text">Point in the film</span>
               <span class="tps__value" data-readout="film">6%</span>
             </div>
@@ -135,7 +217,11 @@ function controlsFor(group: string) {
       {/* ------------------------------------------------- tuning sections */}
       {
         CONTROL_GROUPS.map((group) => (
-          <details class="tps__section" open={group.id === "position" || group.id === "material"}>
+          <details
+            class="tps__section"
+            data-group-section={group.id}
+            open={group.id === "artwork" || group.id === "material"}
+          >
             <summary>{group.title}</summary>
             <div class="tps__section-body">
               <p class="tps__blurb">{group.blurb}</p>
@@ -169,8 +255,20 @@ function controlsFor(group: string) {
               ))}
 
               {group.id === "material" && (
-                <p class="tps__warning" data-contrast-warning hidden>
-                  ⚠ Text may be difficult to read at this background setting.
+                <>
+                  <p class="tps__note" data-desktop-note hidden>
+                    Frosted-area height and position apply to phone layouts only. On a computer the
+                    invitation keeps its card.
+                  </p>
+                  <p class="tps__warning" data-contrast-warning hidden>
+                    ⚠ Text may be difficult to read at this background setting.
+                  </p>
+                </>
+              )}
+
+              {group.id === "functional" && (
+                <p class="tps__warning" data-zone-warning hidden>
+                  ⚠ Part of the countdown or button is outside the main frosted area.
                 </p>
               )}
 
@@ -217,6 +315,25 @@ function controlsFor(group: string) {
             Copy puts the settings on your clipboard — paste them into a message. Download saves
             <code>save-the-date-type-settings.json</code> to your computer.
           </p>
+          <div class="tps__row" style="margin-bottom:.75rem">
+            <button class="tps__btn tps__btn--primary" type="button" data-package>
+              Download production package
+            </button>
+          </div>
+          <p class="tps__blurb">
+            The package is a zip holding your approved artwork and these settings — everything
+            needed to build it into the real site, and nothing else.
+          </p>
+
+          <div class="tps__row" style="margin-bottom:.75rem">
+            <button class="tps__btn" type="button" data-sweep>Check all screen sizes</button>
+          </div>
+          <p class="tps__blurb">
+            Steps through a wide range of phone, tablet and desktop sizes and reports anything that
+            overflows, clips the artwork, or pushes the countdown out of the frosted area.
+          </p>
+          <div class="tps__check" data-sweep-result hidden></div>
+
           <div class="tps__row">
             <button class="tps__btn tps__btn--danger" type="button" data-reset-all>
               Reset everything to the Canva starting point
@@ -246,6 +363,7 @@ function controlsFor(group: string) {
     </main>
   </div>
 
+  <button class="tps__show-panel" type="button" data-show-panel hidden>Show controls</button>
   <div class="tps__toast" data-toast role="status" aria-live="polite"></div>
 
   <script>

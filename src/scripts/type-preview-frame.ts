@@ -21,6 +21,38 @@ function applySettings(settings: Settings): void {
   for (const control of CONTROLS) {
     root.style.setProperty(control.cssVar, cssValue(control, settings));
   }
+  // Mode drives which layer is visible, so it is an attribute rather than a
+  // custom property — CSS cannot branch on a variable's value.
+  document.body.dataset.artworkMode = String(settings.artworkMode ?? "native");
+  positionVeil();
+}
+
+/**
+ * Keeps the readability veil centred on whatever is actually being read — the
+ * Canva artwork in SVG mode, the native block otherwise — so lowering the veil
+ * reveals video around the real composition rather than around a fixed strip.
+ */
+function positionVeil(): void {
+  const surface = document.querySelector<HTMLElement>(".invitation__surface");
+  const artwork = document.querySelector<HTMLElement>("[data-artwork]");
+  const editorial = document.querySelector<HTMLElement>(".tp-editorial");
+  if (!surface) return;
+
+  const svgMode = document.body.dataset.artworkMode === "svg";
+  const target = svgMode ? artwork : editorial;
+  if (!target) return;
+
+  const host = surface.getBoundingClientRect();
+  const box = target.getBoundingClientRect();
+  if (host.height === 0 || box.height === 0) return;
+
+  const centre = ((box.top + box.height / 2 - host.top) / host.height) * 100;
+  // Generous padding so the soft mask fades out well clear of the wording.
+  const height = Math.min(100, (box.height / host.height) * 100 + 26);
+
+  const root = document.documentElement;
+  root.style.setProperty("--tp-veil-y", `${centre.toFixed(2)}%`);
+  root.style.setProperty("--tp-veil-height", `${height.toFixed(2)}%`);
 }
 
 /**
@@ -78,6 +110,74 @@ function playFilm(): void {
   if (promise) promise.catch(() => undefined);
 }
 
+let artworkUrl: string | null = null;
+
+/** Swaps the artwork image, revoking the previous object URL. */
+function setArtwork(url: string | null): void {
+  const image = document.querySelector<HTMLImageElement>("[data-artwork]");
+  if (!image) return;
+
+  if (artworkUrl) URL.revokeObjectURL(artworkUrl);
+  artworkUrl = null;
+
+  if (!url) {
+    image.removeAttribute("src");
+    return;
+  }
+
+  artworkUrl = url;
+  image.src = url;
+  image.addEventListener("load", positionVeil, { once: true });
+}
+
+/**
+ * Geometry the panel needs for its advisory warnings: whether the artwork has
+ * drifted outside the card, and whether the functional zone has left the solid
+ * part of the frosted band. Measured from the real layout rather than inferred
+ * from the numbers, so it stays honest at any screen shape.
+ */
+function reportGeometry(): void {
+  const surface = document.querySelector<HTMLElement>(".invitation__surface");
+  const artwork = document.querySelector<HTMLImageElement>("[data-artwork]");
+  const zone = document.querySelector<HTMLElement>(".tp-functional");
+  if (!surface) return;
+
+  const host = surface.getBoundingClientRect();
+  if (host.height === 0) return;
+
+  const pct = (value: number): number => ((value - host.top) / host.height) * 100;
+  const svgMode = document.body.dataset.artworkMode === "svg";
+
+  let artworkClipped = false;
+  if (svgMode && artwork?.getAttribute("src")) {
+    const box = artwork.getBoundingClientRect();
+    artworkClipped =
+      box.top < host.top - 1 ||
+      box.bottom > host.bottom + 1 ||
+      box.left < host.left - 1 ||
+      box.right > host.right + 1;
+  }
+
+  let zoneTopPct: number | null = null;
+  let zoneBottomPct: number | null = null;
+  if (zone) {
+    const box = zone.getBoundingClientRect();
+    zoneTopPct = pct(box.top);
+    zoneBottomPct = pct(box.bottom);
+  }
+
+  window.parent.postMessage(
+    {
+      type: "tp:geometry-result",
+      artworkClipped,
+      zoneTopPct,
+      zoneBottomPct,
+      documentOverflows: document.documentElement.scrollWidth > window.innerWidth + 1,
+    },
+    window.location.origin,
+  );
+}
+
 function setReference(url: string | null): void {
   const layer = document.querySelector<HTMLElement>("[data-reference]");
   if (!layer) return;
@@ -133,6 +233,14 @@ interface FrameMessage {
   blend?: string;
 }
 
+/** Re-measure after layout settles, so warnings track the real composition. */
+function scheduleGeometry(): void {
+  window.requestAnimationFrame(() => {
+    positionVeil();
+    reportGeometry();
+  });
+}
+
 window.addEventListener("message", (event: MessageEvent) => {
   if (event.origin !== window.location.origin) return;
   const message = event.data as FrameMessage | null;
@@ -141,6 +249,14 @@ window.addEventListener("message", (event: MessageEvent) => {
   switch (message.type) {
     case "tp:settings":
       applySettings(coerceSettings(message.settings));
+      scheduleGeometry();
+      break;
+    case "tp:artwork":
+      setArtwork(message.url ?? null);
+      scheduleGeometry();
+      break;
+    case "tp:geometry":
+      scheduleGeometry();
       break;
     case "tp:seek":
       seekFilm(typeof message.fraction === "number" ? message.fraction : 0);
@@ -165,7 +281,16 @@ window.addEventListener("message", (event: MessageEvent) => {
 });
 
 applySettings(readStoredSettings());
+
+/* `?artwork=<url>` loads a design without going through the panel, which is
+   how the studio's own screenshots are captured and how a particular look can
+   be shared as a plain link. The panel still owns the uploaded artwork. */
+const artworkParam = new URLSearchParams(window.location.search).get("artwork");
+if (artworkParam) setArtwork(artworkParam);
+
 seekFilm(0.06);
+window.addEventListener("resize", scheduleGeometry);
+scheduleGeometry();
 
 // Tell the panel the frame is ready to receive settings after a reload.
 window.parent.postMessage({ type: "tp:ready" }, window.location.origin);

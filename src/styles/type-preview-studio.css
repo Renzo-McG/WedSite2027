@@ -371,3 +371,122 @@
     border-bottom: 1px solid #2a2f35;
   }
 }
+
+/* ------------------------------------------------------- artwork upload */
+
+.tps__drop {
+  display: grid;
+  padding: 1rem 0.75rem;
+  border: 1px dashed #3f4750;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  background: #20252a;
+  cursor: pointer;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.tps__drop:hover,
+.tps__drop:focus-visible {
+  border-color: #4fc79a;
+  outline: none;
+}
+
+.tps__drop[data-active] {
+  border-color: #4fc79a;
+  background: #24322c;
+}
+
+.tps__drop strong {
+  font-size: 0.78rem;
+}
+
+.tps__drop span {
+  color: #858e99;
+  font-size: 0.69rem;
+  line-height: 1.4;
+}
+
+/* Artwork check list and sweep results share one presentation. */
+
+.tps__check {
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.4rem;
+  margin-bottom: 0.75rem;
+  background: #20252a;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.tps__check[hidden] {
+  display: none;
+}
+
+.tps__check p {
+  margin: 0 0 0.15rem;
+}
+
+.tps__check .ok {
+  color: #8be0c0;
+}
+
+.tps__check .warn {
+  color: #f0c99a;
+}
+
+.tps__check .bad {
+  color: #f0a9a9;
+}
+
+.tps__note {
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  margin: 0.6rem 0 0;
+  background: #202830;
+  color: #9fb3c4;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.tps__note[hidden] {
+  display: none;
+}
+
+/* Controls hidden by artwork mode stay in the DOM so their values persist. */
+
+.tps__control[hidden] {
+  display: none;
+}
+
+.tps__section[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------- unobstructed preview */
+
+.tps-page[data-panel-hidden] .tps {
+  grid-template-columns: 1fr;
+}
+
+.tps-page[data-panel-hidden] .tps__panel {
+  display: none;
+}
+
+.tps__show-panel {
+  position: fixed;
+  z-index: 30;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid #3a4149;
+  border-radius: 0.35rem;
+  background: #262c32;
+  color: #e8eaed;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.73rem;
+}
+
+.tps__show-panel[hidden] {
+  display: none;
+}
