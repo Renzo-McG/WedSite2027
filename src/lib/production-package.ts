@@ -42,12 +42,44 @@ export function crc32(bytes: Uint8Array): number {
 
 /* ------------------------------------------------------------------ ZIP */
 
-function u16(value: number): number[] {
-  return [value & 0xff, (value >>> 8) & 0xff];
+/*
+ * Every helper below returns or accepts a `Uint8Array` and joins byte
+ * sequences with `concat`'s pre-allocate-and-`.set()` loop. Nothing here ever
+ * spreads a byte array into a function call or an array literal.
+ *
+ * That distinction is the whole story of a real bug this file shipped with: a
+ * real Canva export runs to hundreds of kilobytes, and `array.push(...bytes)`
+ * — or `[...bytes]` in an array literal, which was also here — passes every
+ * byte as an individual argument. JS engines cap how many arguments a call can
+ * take (tens of thousands, well under a typical SVG's byte count), so it threw
+ * `RangeError: Maximum call stack size exceeded` on real artwork while sailing
+ * through on the tiny fixtures used to first build this feature.
+ */
+
+function u16(value: number): Uint8Array {
+  return Uint8Array.of(value & 0xff, (value >>> 8) & 0xff);
 }
 
-function u32(value: number): number[] {
-  return [value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff];
+function u32(value: number): Uint8Array {
+  return Uint8Array.of(
+    value & 0xff,
+    (value >>> 8) & 0xff,
+    (value >>> 16) & 0xff,
+    (value >>> 24) & 0xff,
+  );
+}
+
+/** Joins byte sequences into one buffer without ever spreading their contents. */
+function concat(parts: readonly Uint8Array[]): Uint8Array {
+  let total = 0;
+  for (const part of parts) total += part.length;
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const part of parts) {
+    out.set(part, offset);
+    offset += part.length;
+  }
+  return out;
 }
 
 /**
@@ -56,69 +88,72 @@ function u32(value: number): number[] {
  */
 export function buildZip(files: readonly PackageFile[]): Uint8Array {
   const encoder = new TextEncoder();
-  const local: number[] = [];
-  const central: number[] = [];
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
   let offset = 0;
 
   for (const file of files) {
-    const nameBytes = Array.from(encoder.encode(file.name));
+    const nameBytes = encoder.encode(file.name);
     const dataBytes = encoder.encode(file.content);
     const checksum = crc32(dataBytes);
     const size = dataBytes.length;
 
     // Local file header, then the stored data.
-    const header = [
-      ...u32(0x04034b50),
-      ...u16(20), // version needed
-      ...u16(0),
-      ...u16(0), // stored
-      ...u16(0),
-      ...u16(0), // no meaningful mtime; the README carries the export date
-      ...u32(checksum),
-      ...u32(size),
-      ...u32(size),
-      ...u16(nameBytes.length),
-      ...u16(0),
-      ...nameBytes,
-    ];
-    local.push(...header, ...Array.from(dataBytes));
+    const header = concat([
+      u32(0x04034b50),
+      u16(20), // version needed
+      u16(0),
+      u16(0), // stored
+      u16(0),
+      u16(0), // no meaningful mtime; the README carries the export date
+      u32(checksum),
+      u32(size),
+      u32(size),
+      u16(nameBytes.length),
+      u16(0),
+      nameBytes,
+    ]);
+    localParts.push(header, dataBytes);
 
-    central.push(
-      ...u32(0x02014b50),
-      ...u16(20),
-      ...u16(20),
-      ...u16(0),
-      ...u16(0),
-      ...u16(0),
-      ...u16(0),
-      ...u32(checksum),
-      ...u32(size),
-      ...u32(size),
-      ...u16(nameBytes.length),
-      ...u16(0),
-      ...u16(0),
-      ...u16(0),
-      ...u16(0),
-      ...u32(0),
-      ...u32(offset),
-      ...nameBytes,
+    centralParts.push(
+      concat([
+        u32(0x02014b50),
+        u16(20),
+        u16(20),
+        u16(0),
+        u16(0),
+        u16(0),
+        u16(0),
+        u32(checksum),
+        u32(size),
+        u32(size),
+        u16(nameBytes.length),
+        u16(0),
+        u16(0),
+        u16(0),
+        u16(0),
+        u32(0),
+        u32(offset),
+        nameBytes,
+      ]),
     );
 
     offset += header.length + size;
   }
 
-  const end = [
-    ...u32(0x06054b50),
-    ...u16(0),
-    ...u16(0),
-    ...u16(files.length),
-    ...u16(files.length),
-    ...u32(central.length),
-    ...u32(offset),
-    ...u16(0),
-  ];
+  const central = concat(centralParts);
+  const end = concat([
+    u32(0x06054b50),
+    u16(0),
+    u16(0),
+    u16(files.length),
+    u16(files.length),
+    u32(central.length),
+    u32(offset),
+    u16(0),
+  ]);
 
-  return Uint8Array.from([...local, ...central, ...end]);
+  return concat([concat(localParts), central, end]);
 }
 
 /* -------------------------------------------------------------- package */
