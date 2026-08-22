@@ -21,7 +21,23 @@ import {
   readArtwork,
   type ArtworkSlot,
 } from "../lib/artwork-store";
-import { buildZip, productionPackage } from "../lib/production-package";
+import {
+  LOOK_SCHEMA_VERSION,
+  buildZip,
+  completeLookPackage,
+  parseLookFiles,
+  productionPackage,
+  readZip,
+} from "../lib/production-package";
+import {
+  SHARE_PARAM,
+  decodeLook,
+  encodeLook,
+  shareLinkCarriesArtwork,
+  shareUrl,
+  statusLabel,
+  type ArtworkSource,
+} from "../lib/studio-share";
 
 /**
  * Panel side of the studio.
@@ -37,11 +53,22 @@ const caption = document.querySelector<HTMLElement>("[data-caption]");
 const toast = document.querySelector<HTMLElement>("[data-toast]");
 
 let settings: Settings = defaultSettings();
-let viewport = { w: 1440, h: 900, label: "Desktop invitation", note: "540 × 756 card" };
+/* Someone opening the studio on their phone wants to see the phone
+   composition, not a shrunken desktop card, so the opening preset follows the
+   device they are actually holding. */
+let viewport =
+  typeof window !== "undefined" && window.innerWidth < 960
+    ? { w: 390, h: 844, label: "Normal phone", note: "" }
+    : { w: 1440, h: 900, label: "Desktop invitation", note: "540 × 756 card" };
 let zoom = 0; // 0 means fit-to-window
 let frameReady = false;
 let showingSlot: ArtworkSlot = "current";
 let currentInspection: ArtworkInspection | null = null;
+let artworkSource: ArtworkSource = "none";
+let openedFromSharedLink = false;
+
+/** The design bundled with the deployed studio, used before anyone uploads. */
+const STARTING_ARTWORK_URL = new URL("starting-artwork.svg", document.baseURI).pathname;
 
 /* ----------------------------------------------------------- persistence */
 
@@ -212,13 +239,30 @@ function renderCheck(inspection: ArtworkInspection | null): void {
   box.replaceChildren(...lines);
 }
 
-/** Points the preview at one of the two stored artworks. */
+/**
+ * Points the preview at one of the two stored artworks, falling back to the
+ * design bundled with the studio when that slot is empty.
+ *
+ * Single-sourcing the decision here matters: the frame can only receive an
+ * artwork once its own script is listening, so this is called again when the
+ * frame reports ready rather than only at boot.
+ */
 async function showArtwork(slot: ArtworkSlot): Promise<void> {
   const record = await readArtwork(slot);
   if (artworkUrl) URL.revokeObjectURL(artworkUrl);
   artworkUrl = record ? artworkObjectUrl(record.source) : null;
   showingSlot = slot;
-  postToFrame({ type: "tp:artwork", url: artworkUrl });
+
+  if (artworkUrl) {
+    postToFrame({ type: "tp:artwork", url: artworkUrl });
+    return;
+  }
+
+  // Nothing saved locally: show the bundled starting design instead of blank.
+  postToFrame({
+    type: "tp:artwork",
+    url: artworkSource === "none" ? null : STARTING_ARTWORK_URL,
+  });
 }
 
 async function refreshArtworkUi(): Promise<void> {
@@ -267,12 +311,14 @@ async function acceptFile(file: File): Promise<void> {
   }
 
   await putCurrentArtwork(source, file.name);
+  artworkSource = "local";
   settings.artworkMode = "svg";
   saveSettings();
   syncAllControls();
   pushSettings();
   await showArtwork("current");
   await refreshArtworkUi();
+  refreshStatus();
   showToast(`Loaded ${file.name}. Your settings are unchanged.`);
 }
 
@@ -351,6 +397,175 @@ function wireArtwork(): void {
     pushSettings();
     showToast("Artwork brought back inside the invitation.");
   });
+}
+
+/* -------------------------------------------------------------- status */
+
+function refreshStatus(): void {
+  const node = document.querySelector<HTMLElement>("[data-status]");
+  if (node) {
+    node.textContent = statusLabel({
+      artwork: artworkSource,
+      fromSharedLink: openedFromSharedLink,
+    });
+  }
+
+  // A link only reproduces the look when the other browser can see the same
+  // picture, so say so rather than hand over something that looks complete.
+  const note = document.querySelector<HTMLElement>("[data-share-artwork-note]");
+  if (note) note.hidden = shareLinkCarriesArtwork(artworkSource);
+}
+
+/* ------------------------------------------------------- starting artwork */
+
+/**
+ * Loads the design bundled with the deployed studio. Used on a browser with no
+ * saved artwork, and by "Return to starting artwork".
+ */
+async function loadStartingArtwork(): Promise<void> {
+  try {
+    const response = await fetch(STARTING_ARTWORK_URL);
+    if (!response.ok) throw new Error("missing");
+    const source = await response.text();
+    currentInspection = inspectSvg(source);
+    artworkSource = "starting";
+    if (settings.artworkMode !== "svg") {
+      settings.artworkMode = "svg";
+      saveSettings();
+      syncAllControls();
+      pushSettings();
+    }
+  } catch {
+    // No bundled design is not an error: the built-in wording still works.
+    artworkSource = "none";
+  }
+  refreshStatus();
+}
+
+/* --------------------------------------------------------- share links */
+
+function wireSharing(): void {
+  document.querySelector<HTMLButtonElement>("[data-share-link]")?.addEventListener("click", () => {
+    void (async () => {
+      const encoded = encodeLook(settings, defaultSettings());
+      const url = shareUrl(window.location.origin, window.location.pathname, encoded);
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast("Share link copied.");
+      } catch {
+        window.prompt("Copy this share link:", url);
+      }
+      refreshStatus();
+    })();
+  });
+
+  document.querySelector<HTMLButtonElement>("[data-export-look]")?.addEventListener("click", () => {
+    void (async () => {
+      const record = await readArtwork("current");
+      let artworkSvg = record?.source ?? null;
+      // The bundled design is not in IndexedDB, so fetch it to send it along.
+      if (!artworkSvg && artworkSource === "starting") {
+        artworkSvg = await fetch(STARTING_ARTWORK_URL)
+          .then((r) => (r.ok ? r.text() : null))
+          .catch(() => null);
+      }
+
+      const files = completeLookPackage(artworkSvg, {
+        schemaVersion: LOOK_SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        settings: coerceSettings(settings),
+      });
+      const blob = new Blob([buildZip(files) as BlobPart], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "save-the-date-look.zip";
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast("Downloaded save-the-date-look.zip");
+    })();
+  });
+
+  const lookInput = document.querySelector<HTMLInputElement>("[data-look-file]");
+  document.querySelector<HTMLButtonElement>("[data-import-look]")?.addEventListener("click", () => {
+    lookInput?.click();
+  });
+
+  lookInput?.addEventListener("change", () => {
+    const file = lookInput.files?.[0];
+    lookInput.value = "";
+    if (file) void importLook(file);
+  });
+
+  document
+    .querySelector<HTMLButtonElement>("[data-reset-artwork]")
+    ?.addEventListener("click", () => {
+      if (!window.confirm("Go back to the design that came with the studio?")) return;
+      void clearArtwork().then(async () => {
+        await loadStartingArtwork();
+        await refreshArtworkUi();
+        showToast("Back to the starting artwork.");
+      });
+    });
+}
+
+function reportImport(message: string, kind: "ok" | "bad"): void {
+  const box = document.querySelector<HTMLElement>("[data-import-result]");
+  if (!box) return;
+  box.hidden = false;
+  const row = document.createElement("p");
+  row.className = kind;
+  row.textContent = `${kind === "ok" ? "✓" : "⚠"} ${message}`;
+  box.replaceChildren(row);
+}
+
+/**
+ * Opens a look someone else exported. Replaces the current working design only
+ * after asking, and never touches the named looks saved on this device.
+ */
+async function importLook(file: File): Promise<void> {
+  let files;
+  try {
+    files = await readZip(await file.arrayBuffer());
+  } catch {
+    reportImport("That file could not be opened. It does not look like a studio look.", "bad");
+    return;
+  }
+
+  const parsed = parseLookFiles(files);
+  if (!parsed.ok) {
+    reportImport(parsed.reason, "bad");
+    return;
+  }
+
+  if (parsed.artworkSvg) {
+    const inspection = inspectSvg(parsed.artworkSvg);
+    if (!inspection.ok) {
+      reportImport(
+        "The artwork inside that look is not safe to open, so nothing was changed.",
+        "bad",
+      );
+      return;
+    }
+    currentInspection = inspection;
+  }
+
+  if (!window.confirm("Replace your current studio look with the imported version?")) return;
+
+  settings = coerceSettings(parsed.settings);
+  saveSettings();
+  syncAllControls();
+  pushSettings();
+
+  if (parsed.artworkSvg) {
+    await putCurrentArtwork(parsed.artworkSvg, "imported-look.svg", "imported");
+    artworkSource = "imported";
+    await showArtwork("current");
+  }
+  openedFromSharedLink = false;
+  await refreshArtworkUi();
+  refreshStatus();
+  reportImport("Imported. Your saved versions on this device were left alone.", "ok");
 }
 
 /* ------------------------------------------------------------ viewport */
@@ -645,6 +860,21 @@ function wireCustomViewport(): void {
     applyViewport();
   });
 
+  const openDrawer = (open: boolean): void => {
+    if (open) page.dataset.drawerOpen = "true";
+    else delete page.dataset.drawerOpen;
+  };
+  document
+    .querySelector<HTMLButtonElement>("[data-open-drawer]")
+    ?.addEventListener("click", () => openDrawer(true));
+  document
+    .querySelector<HTMLButtonElement>("[data-drawer-done]")
+    ?.addEventListener("click", () => openDrawer(false));
+  // Tapping the dimmed invitation behind the drawer closes it too.
+  document.querySelector<HTMLElement>(".tps__stage")?.addEventListener("click", () => {
+    if (page.dataset.drawerOpen !== undefined) openDrawer(false);
+  });
+
   document.querySelector<HTMLButtonElement>("[data-fullscreen]")?.addEventListener("click", () => {
     const stage = document.querySelector<HTMLElement>(".tps__stage");
     if (!document.fullscreenElement) void stage?.requestFullscreen?.().catch(() => undefined);
@@ -869,15 +1099,45 @@ window.addEventListener("resize", () => {
 });
 
 settings = loadSettings();
+
+/* A share link wins over stored settings for this visit, but is never written
+   over the recipient's own saved work unless they choose to save it. */
+const sharedParam = new URLSearchParams(window.location.search).get(SHARE_PARAM);
+if (sharedParam) {
+  const outcome = decodeLook(sharedParam, defaultSettings());
+  if (outcome.ok) {
+    settings = outcome.settings;
+    openedFromSharedLink = true;
+  } else {
+    window.setTimeout(
+      () =>
+        showToast(
+          outcome.reason === "version"
+            ? "That shared look was made in a newer studio. Opened with the default design instead."
+            : "This shared look could not be loaded. The studio has opened with the default design instead.",
+        ),
+      600,
+    );
+  }
+}
+
 syncAllControls();
 wireControls();
 wirePreviewAids();
 wireCustomViewport();
 wireArtwork();
+wireSharing();
 wireExport();
 renderPresets();
 applyViewport();
-void readArtwork("current").then((record) => {
-  if (record) currentInspection = inspectSvg(record.source);
-  return refreshArtworkUi();
+void readArtwork("current").then(async (record) => {
+  if (record) {
+    currentInspection = inspectSvg(record.source);
+    artworkSource = record.origin === "imported" ? "imported" : "local";
+  } else {
+    await loadStartingArtwork();
+  }
+  await showArtwork("current");
+  await refreshArtworkUi();
+  refreshStatus();
 });
