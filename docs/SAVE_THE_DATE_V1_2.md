@@ -20,6 +20,11 @@ the Date is the only visual scope of this pass. `/design-lab/` and
 
 ## Source footage and production derivatives
 
+> **Superseded.** The concept clips described in this section were retired when the
+> authentic Ocean Pavilion venue film replaced them, and the files have been removed from
+> the repository. This section is kept as the record of that earlier pass. For the footage
+> the site actually ships, see [OCEAN_PAVILION_VIDEO.md](OCEAN_PAVILION_VIDEO.md).
+
 The user supplied `/Users/lawrence.mcguire/Downloads/WS.zip`. It contains four temporary
 atmospheric concept clips. They are not Shangri-La Mactan footage, exact Cebu footage,
 venue footage or documentary imagery of the wedding location. The archive was read
