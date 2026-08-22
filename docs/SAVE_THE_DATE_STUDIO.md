@@ -11,16 +11,27 @@ Its purpose is that Emily and Lawrence can compose the invitation themselves, in
 browser, without editing source or asking for a code change per adjustment. The output of
 a session is an artwork file and a settings file, not a commit.
 
-Local only. Not linked from production, not merged, not deployed.
+Deployed, unlinked and `noindex, nofollow`. The guest invitation at `/` is untouched.
 
-## Running it
+## Where it lives
+
+- **Live: https://renzo-mcg.github.io/WedSite2027/studio/**
+- Preview surface on its own: `/studio/frame/`
+- `/type-preview/` is a redirect stub kept so older local bookmarks still work.
+
+Locally:
 
 ```sh
 cd "/Users/lawrence.mcguire/Developer/WedSite2027" && ./.dev.sh
 ```
 
-- Studio: **http://localhost:4322/WedSite2027/type-preview/**
-- Preview surface on its own: `http://localhost:4322/WedSite2027/type-preview/frame/`
+then `http://localhost:4322/WedSite2027/studio/`.
+
+## Public by URL, not private
+
+The route is unlinked and noindexed. That is not access control — anyone with the link can
+open it. There is no login, no database and no backend, which is exactly why it can live on
+GitHub Pages. Do not put anything sensitive in it.
 
 Any control can be overridden on the frame by query string, which is how the review
 screenshots were captured and how a particular look can be shared as a link:
@@ -61,6 +72,61 @@ invitation over the real Ocean Pavilion film, not a lookalike. The one deliberat
 difference: production paints the readability veil only on mobile portrait, and the
 studio enables it at every size so "text background strength" means the same thing on a
 phone and on the desktop card.
+
+## Collaboration without a server
+
+Everything is static, so sharing works three ways, in increasing completeness:
+
+**Bundled starting design.** `public/studio/starting-artwork.svg` ships with the site. A
+browser with no saved work opens on it, which means a share link lands on the same picture
+for both people. To change the starting design, replace that one file.
+
+**Share links.** `Copy share link` encodes the settings into
+`/studio/?look=<base64url>`. Only values that differ from the baseline travel, so a
+typical link is ~200 characters. The payload is versioned; a link from a newer studio is
+refused rather than half-applied, and anything unreadable falls back to the default design
+with a plain-English message.
+
+A link carries **settings only, never artwork** — an SVG is far too large for a query
+string. When the current artwork is a local upload, the studio says so next to the button
+rather than handing over a link that looks complete and is not.
+
+**Complete looks.** `Export complete look` produces `save-the-date-look.zip` with the
+artwork, versioned settings and a short README. `Import complete look` reads it back,
+re-runs the SVG safety checks, asks before replacing the current working look, and never
+touches the named looks saved on that device.
+
+The ZIP reader walks the central directory and handles both stored and deflated entries
+(via `DecompressionStream`), so a look survives being re-zipped by a mail client on the
+way.
+
+### Three exports, one schema
+
+| Action                      | For                                                               |
+| --------------------------- | ----------------------------------------------------------------- |
+| Copy share link             | Sending settings quickly, when both sides use the starting design |
+| Export complete look        | Sending the editable design — artwork and settings together       |
+| Download production package | Handing the approved design to whoever builds the final site      |
+
+All three read the same settings object, so they cannot describe different designs.
+
+## Status line
+
+A small chip says what is being edited: _Starting design_, _Your Canva artwork_,
+_Imported look_, or _Built-in wording_, with `· shared settings` appended when the page was
+opened from a share link. Artwork provenance is stored alongside the file, so an imported
+look is still described as one after a refresh.
+
+## Mobile
+
+Below 60rem the preview takes the screen and the controls become a bottom drawer behind a
+full-width **Edit design** button, with **Done** and a tap-anywhere scrim to close. The
+drawer is scrollable, safe-area aware, and keeps every control — nothing is simplified
+away for phones. The studio also opens on a phone preset when the window itself is narrow,
+so a partner on their phone sees the phone composition rather than a shrunken desktop card.
+The long font caveat is hidden in the drawer so the design controls sit under the thumb.
+
+Engineering utilities live under **Advanced preview tools** rather than in the main flow.
 
 ## Artwork mode
 
@@ -176,3 +242,23 @@ manifest.
 screenshots and for trying the workflow before real artwork exists. It is not the
 couple's design. The frame also accepts `?artwork=<url>`, which is how those screenshots
 are captured reproducibly.
+
+## For Emily and Lawrence
+
+**To edit the design**
+
+1. Open the Studio.
+2. Upload your latest transparent Canva SVG if you have a newer one.
+3. Use the controls to adjust the artwork, video and frost.
+4. Save a version if you like it.
+
+**To share settings** — _Copy share link_. Quick, but it does not include your artwork.
+
+**To send the exact artwork and design** — _Export complete look_, then send the file.
+
+**To open someone else's version** — _Import complete look_.
+
+**When the design is final** — _Download production package_.
+
+Your work is saved in your own browser. It does not sync between devices on its own —
+share or export it if you want the other person to see it.
