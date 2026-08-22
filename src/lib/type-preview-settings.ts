@@ -1,5 +1,5 @@
 /**
- * Tuning model for the native typography studio at /type-preview/.
+ * Tuning model for the Save the Date Studio at /type-preview/.
  *
  * One manifest drives everything: the control panel renders from it, the
  * preview applies it as CSS custom properties, and the exported settings file
@@ -10,14 +10,26 @@
  * width-tied system holds from a 320px phone to the 540px desktop card, and
  * the only thing that genuinely differs between them is where the block sits
  * vertically.
+ *
+ * v2 adds the Canva SVG artwork mode and the mobile frosted-band controls.
+ * Controls carry an optional `showWhen` so the panel can present only the ones
+ * that make sense for the active artwork mode, without deleting the other
+ * implementation.
  */
 
-export const SETTINGS_VERSION = 1;
+export const SETTINGS_VERSION = 2;
 export const SETTINGS_STORAGE_KEY = "eandl.type-preview.settings:v1";
 export const PRESETS_STORAGE_KEY = "eandl.type-preview.presets:v1";
 
 export type ControlGroupId =
-  "position" | "size" | "script" | "date" | "material" | "functional" | "fonts";
+  "artwork" | "position" | "size" | "script" | "date" | "material" | "functional" | "fonts";
+
+export type ArtworkMode = "svg" | "native";
+
+/** Limits a control to one artwork mode; absent means "always shown". */
+export interface ControlVisibility {
+  artworkMode: ArtworkMode;
+}
 
 export interface ControlGroup {
   id: ControlGroupId;
@@ -28,6 +40,11 @@ export interface ControlGroup {
 }
 
 export const CONTROL_GROUPS: readonly ControlGroup[] = [
+  {
+    id: "artwork",
+    title: "Artwork",
+    blurb: "Your Canva design, and where it sits inside the invitation.",
+  },
   {
     id: "position",
     title: "Position & spacing",
@@ -46,8 +63,9 @@ export const CONTROL_GROUPS: readonly ControlGroup[] = [
   { id: "date", title: "Date", blurb: "How the three parts of the date sit together." },
   {
     id: "material",
-    title: "Video visibility & invitation background",
-    blurb: "How much of the Ocean Pavilion film shows through the invitation.",
+    title: "Video & frosted background",
+    blurb:
+      "How much of the Ocean Pavilion film you can see, and how much of the phone the frosted invitation covers.",
   },
   {
     id: "functional",
@@ -79,6 +97,8 @@ export interface SliderControl {
   value: number;
   /** Human-facing readout suffix, e.g. "%" — omitted when a bare number reads better. */
   display?: string;
+  /** Present this control only in one artwork mode. */
+  showWhen?: ControlVisibility;
 }
 
 export interface ChoiceControl {
@@ -90,6 +110,8 @@ export interface ChoiceControl {
   cssVar: string;
   value: string;
   options: readonly { value: string; label: string }[];
+  /** Present this control only in one artwork mode. */
+  showWhen?: ControlVisibility;
 }
 
 export type Control = SliderControl | ChoiceControl;
@@ -104,6 +126,126 @@ export type Control = SliderControl | ChoiceControl;
  * checked against the overlay.
  */
 export const CONTROLS: readonly Control[] = [
+  /* ------------------------------------------------------- artwork */
+  {
+    kind: "choice",
+    id: "artworkMode",
+    group: "artwork",
+    label: "What should the invitation show?",
+    help: "Your Canva design, or the wording built from scratch in code. The built-in version stays available as a backup and for screen readers.",
+    cssVar: "--tp-artwork-mode",
+    value: "native",
+    options: [
+      { value: "svg", label: "My Canva design" },
+      { value: "native", label: "Built-in wording" },
+    ],
+  },
+  {
+    kind: "slider",
+    id: "artDesktopScale",
+    group: "artwork",
+    label: "Artwork size on a computer",
+    help: "Makes the whole Canva design larger or smaller inside the invitation card. It never stretches — the proportions are always kept.",
+    cssVar: "--tp-art-desktop-scale",
+    min: 20,
+    max: 160,
+    step: 0.5,
+    unit: "%",
+    value: 100,
+    display: "%",
+    showWhen: { artworkMode: "svg" },
+  },
+  {
+    kind: "slider",
+    id: "artDesktopY",
+    group: "artwork",
+    label: "Move artwork up / down on a computer",
+    help: "Moves the whole Canva design higher or lower without changing its size.",
+    cssVar: "--tp-art-desktop-y",
+    min: -50,
+    max: 50,
+    step: 0.25,
+    unit: "%",
+    value: 0,
+    display: "%",
+    showWhen: { artworkMode: "svg" },
+  },
+  {
+    kind: "slider",
+    id: "artDesktopX",
+    group: "artwork",
+    label: "Move artwork left / right on a computer",
+    help: "Nudges the whole Canva design sideways.",
+    cssVar: "--tp-art-desktop-x",
+    min: -50,
+    max: 50,
+    step: 0.25,
+    unit: "%",
+    value: 0,
+    display: "%",
+    showWhen: { artworkMode: "svg" },
+  },
+  {
+    kind: "slider",
+    id: "artMobileScale",
+    group: "artwork",
+    label: "Artwork size on a phone",
+    help: "How large the Canva design appears on phones. One design serves both — you are only choosing how big it sits here.",
+    cssVar: "--tp-art-mobile-scale",
+    min: 20,
+    max: 160,
+    step: 0.5,
+    unit: "%",
+    value: 88,
+    display: "%",
+    showWhen: { artworkMode: "svg" },
+  },
+  {
+    kind: "slider",
+    id: "artMobileY",
+    group: "artwork",
+    label: "Move artwork up / down on a phone",
+    help: "Moves the Canva design higher or lower on taller phone screens.",
+    cssVar: "--tp-art-mobile-y",
+    min: -50,
+    max: 50,
+    step: 0.25,
+    unit: "%",
+    value: -6,
+    display: "%",
+    showWhen: { artworkMode: "svg" },
+  },
+  {
+    kind: "slider",
+    id: "artMobileX",
+    group: "artwork",
+    label: "Move artwork left / right on a phone",
+    help: "Nudges the Canva design sideways on phones.",
+    cssVar: "--tp-art-mobile-x",
+    min: -50,
+    max: 50,
+    step: 0.25,
+    unit: "%",
+    value: 0,
+    display: "%",
+    showWhen: { artworkMode: "svg" },
+  },
+  {
+    kind: "slider",
+    id: "artStrength",
+    group: "artwork",
+    label: "Artwork strength",
+    help: "Makes the whole Canva design slightly lighter or stronger. Normally leave this alone.",
+    cssVar: "--tp-art-strength",
+    min: 20,
+    max: 100,
+    step: 1,
+    unit: "%",
+    value: 100,
+    display: "%",
+    showWhen: { artworkMode: "svg" },
+  },
+
   /* ------------------------------------------------------ position */
   {
     kind: "slider",
@@ -118,6 +260,7 @@ export const CONTROLS: readonly Control[] = [
     unit: "%",
     value: 24.03,
     display: "%",
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -132,6 +275,7 @@ export const CONTROLS: readonly Control[] = [
     unit: "%",
     value: 36.45,
     display: "%",
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -146,6 +290,7 @@ export const CONTROLS: readonly Control[] = [
     unit: "%",
     value: 10.2,
     display: "%",
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -159,6 +304,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.2,
     unit: "cqw",
     value: 5.75,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -172,6 +318,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.2,
     unit: "cqw",
     value: 3.15,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -185,6 +332,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.2,
     unit: "cqw",
     value: 1.52,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -198,6 +346,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.1,
     unit: "cqw",
     value: 0.26,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -211,6 +360,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.2,
     unit: "cqw",
     value: 7.06,
+    showWhen: { artworkMode: "native" },
   },
 
   /* ---------------------------------------------------------- size */
@@ -226,6 +376,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.05,
     unit: "cqw",
     value: 6.75,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -239,6 +390,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.05,
     unit: "cqw",
     value: 10.6,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -252,6 +404,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.05,
     unit: "cqw",
     value: 8.6,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -265,6 +418,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.05,
     unit: "cqw",
     value: 6.05,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -278,6 +432,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.05,
     unit: "cqw",
     value: 6,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -291,6 +446,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.05,
     unit: "cqw",
     value: 5,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -304,6 +460,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.002,
     unit: "em",
     value: 0.012,
+    showWhen: { artworkMode: "native" },
   },
 
   /* -------------------------------------------------------- script */
@@ -320,6 +477,7 @@ export const CONTROLS: readonly Control[] = [
     unit: "em",
     value: 1.12,
     display: "×",
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -333,6 +491,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.01,
     unit: "em",
     value: 0,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -346,6 +505,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.01,
     unit: "em",
     value: -0.04,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -360,6 +520,7 @@ export const CONTROLS: readonly Control[] = [
     unit: "em",
     value: 0.92,
     display: "×",
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -373,6 +534,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.01,
     unit: "em",
     value: 0,
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "slider",
@@ -386,6 +548,7 @@ export const CONTROLS: readonly Control[] = [
     step: 0.01,
     unit: "em",
     value: -0.02,
+    showWhen: { artworkMode: "native" },
   },
 
   /* ---------------------------------------------------------- date */
@@ -401,9 +564,52 @@ export const CONTROLS: readonly Control[] = [
     step: 0.01,
     unit: "em",
     value: 0.85,
+    showWhen: { artworkMode: "native" },
   },
 
   /* ------------------------------------------------------ material */
+  {
+    kind: "slider",
+    id: "mobileFrostHeight",
+    group: "material",
+    label: "How much of the phone is frosted?",
+    help: "Makes the frosted invitation area taller or shorter. Making it shorter reveals more of the Ocean Pavilion video above and below at the same time. Phone layouts only — a computer keeps its invitation card.",
+    cssVar: "--tp-frost-height",
+    min: 30,
+    max: 100,
+    step: 0.5,
+    unit: "%",
+    value: 100,
+    display: "%",
+  },
+  {
+    kind: "slider",
+    id: "mobileFrostY",
+    group: "material",
+    label: "Move frosted area up / down",
+    help: "Keeps the same frosted height but shifts the whole frosted area higher or lower, if you want more video at one end than the other.",
+    cssVar: "--tp-frost-y",
+    min: 20,
+    max: 80,
+    step: 0.5,
+    unit: "%",
+    value: 50,
+    display: "%",
+  },
+  {
+    kind: "slider",
+    id: "frostEdgeSoftness",
+    group: "material",
+    label: "Soften the frosted edges",
+    help: "How gently the frosted invitation blends back into the clearer video at the top and bottom. Low gives a defined edge; high gives a long, soft fade.",
+    cssVar: "--tp-frost-feather",
+    min: 0,
+    max: 45,
+    step: 0.5,
+    unit: "%",
+    value: 16,
+    display: "%",
+  },
   {
     kind: "slider",
     id: "invitationStrength",
@@ -434,8 +640,8 @@ export const CONTROLS: readonly Control[] = [
     kind: "slider",
     id: "blur",
     group: "material",
-    label: "Frost / blur strength",
-    help: "How blurred the film looks through the invitation. Lower feels clearer and glass-like. Higher feels softer and more frosted.",
+    label: "Frost strength",
+    help: "How blurred the venue looks through the frosted area. Lower feels clearer and more glass-like; higher feels softer. This is separate from how tall the frosted area is.",
     cssVar: "--tp-blur",
     min: 0,
     max: 48,
@@ -464,10 +670,10 @@ export const CONTROLS: readonly Control[] = [
     id: "zoneY",
     group: "functional",
     label: "Move countdown and button together",
-    help: "Moves the whole functional section — timer and button — up or down as one.",
+    help: "Lifts the whole functional section — timer and button — up from the bottom of the screen. Useful when the frosted area is short and they would otherwise sit outside it.",
     cssVar: "--tp-zone-y",
-    min: -30,
-    max: 15,
+    min: 0,
+    max: 60,
     step: 0.5,
     unit: "%",
     value: 0,
@@ -514,6 +720,7 @@ export const CONTROLS: readonly Control[] = [
       { value: "Georgia, 'Times New Roman', serif", label: "Georgia" },
       { value: "'Times New Roman', Times, serif", label: "Times New Roman" },
     ],
+    showWhen: { artworkMode: "native" },
   },
   {
     kind: "choice",
@@ -529,6 +736,7 @@ export const CONTROLS: readonly Control[] = [
       { value: '"MonteCarlo", cursive', label: "MonteCarlo" },
       { value: '"Sirivennela", cursive', label: "Sirivennela" },
     ],
+    showWhen: { artworkMode: "native" },
   },
 ];
 
@@ -595,7 +803,7 @@ export function exportPayload(settings: Settings, now: Date = new Date()): Expor
   return {
     version: SETTINGS_VERSION,
     exportedAt: now.toISOString(),
-    note: "Approved Save the Date composition from /type-preview/. Sizes and gaps are a percentage of the invitation's own width (cqw).",
+    note: "Approved Save the Date composition from the Save the Date Studio. Sizes and gaps are a percentage of the invitation's own width (cqw); frost height and position are a percentage of the phone screen.",
     settings: coerceSettings(settings),
   };
 }
@@ -631,3 +839,50 @@ export function estimateContrast(
 }
 
 export const CONTRAST_FLOOR = 4.5;
+
+/* ------------------------------------------------- frosted band geometry */
+
+export interface FrostBand {
+  /** Distance from the top of the screen to the top of the frosted area, %. */
+  topPct: number;
+  /** Distance from the top of the screen to the bottom of the frosted area, %. */
+  bottomPct: number;
+  /** Clear video revealed above the frosted area, %. */
+  revealTopPct: number;
+  /** Clear video revealed below the frosted area, %. */
+  revealBottomPct: number;
+}
+
+/**
+ * Where the mobile frosted band sits, given its height and centre.
+ *
+ * This is the geometry behind the studio's headline mobile control. Because
+ * the band is positioned by its centre, reducing the height alone opens up
+ * clear video above *and* below by the same amount — which is exactly the
+ * behaviour asked for. Moving the centre then trades one end against the
+ * other without changing the height.
+ */
+export function frostBand(heightPct: number, centrePct: number): FrostBand {
+  const half = heightPct / 2;
+  const topPct = centrePct - half;
+  const bottomPct = centrePct + half;
+  return {
+    topPct,
+    bottomPct,
+    revealTopPct: Math.max(0, topPct),
+    revealBottomPct: Math.max(0, 100 - bottomPct),
+  };
+}
+
+/**
+ * True when the functional zone (countdown and button) has drifted outside the
+ * solid part of the frosted band. Advisory only — the studio warns, it never
+ * moves anything back on the user's behalf.
+ */
+export function functionalZoneEscapes(
+  band: FrostBand,
+  zoneTopPct: number,
+  zoneBottomPct: number,
+): boolean {
+  return zoneTopPct < band.topPct || zoneBottomPct > band.bottomPct;
+}
