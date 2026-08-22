@@ -12,8 +12,8 @@ import { CONTROLS, CONTROL_GROUPS } from "../../lib/type-preview-settings";
 import "../../styles/fonts.css";
 import "../../styles/type-preview-studio.css";
 
-const frameUrl = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}type-preview/frame/`;
-const referenceBase = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}type-preview/`;
+const frameUrl = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}studio/frame/`;
+const referenceBase = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}studio/`;
 
 /* Convenience jumping-off points only: each button simply sets the custom
    width/height below, so nothing between them is a special case. */
@@ -43,19 +43,29 @@ function controlsFor(group: string) {
       <header class="tps__header">
         <h1 class="tps__title">Save the Date Studio</h1>
         <p class="tps__subtitle">
-          Drop in your Canva design, then move the sliders until it sits right over the venue film.
-          Everything updates as you go, and your work is saved in this browser.
+          Design workspace for Emily &amp; Lawrence. Changes here do not alter the guest invitation
+          until they are approved and deployed.
         </p>
+        <p class="tps__status" data-status>Starting design</p>
         <p class="tps__notice">
           The final fonts (The Seasons and Above the Beyond Script) are paid fonts and are not
           installed, so this preview uses the closest free stand-ins. Shapes and weights will differ
           slightly from the Canva mock — judge the layout, not the exact letterforms.
         </p>
         <div class="tps__row" style="margin-top:.6rem">
-          <button class="tps__btn tps__btn--tiny" type="button" data-hide-panel
-            >Hide controls</button
+          <button class="tps__btn tps__btn--tiny tps__desk-only" type="button" data-hide-panel>
+            Hide controls
+          </button>
+          <button class="tps__btn tps__btn--tiny tps__desk-only" type="button" data-fullscreen>
+            Full screen
+          </button>
+          <button
+            class="tps__btn tps__btn--primary tps__drawer-only"
+            type="button"
+            data-drawer-done
           >
-          <button class="tps__btn tps__btn--tiny" type="button" data-fullscreen>Full screen</button>
+            Done
+          </button>
         </div>
       </header>
 
@@ -299,6 +309,51 @@ function controlsFor(group: string) {
       </details>
 
       {/* ------------------------------------------------------------ finish */}
+      {/* -------------------------------------------------------- sharing */}
+      <details class="tps__section" open>
+        <summary>Share with each other</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">
+            Your work stays in this browser unless you share or export it — it does not sync between
+            devices on its own.
+          </p>
+
+          <div class="tps__row" style="margin-bottom:.5rem">
+            <button class="tps__btn tps__btn--primary" type="button" data-share-link>
+              Copy share link
+            </button>
+          </div>
+          <p class="tps__help">
+            Creates a link that opens the studio with your current layout, frost, video and
+            positioning choices.
+          </p>
+          <p class="tps__warning" data-share-artwork-note hidden>
+            The link includes your settings, but not your locally uploaded Canva artwork. Use <strong
+              >Export complete look</strong
+            > if you need to send the artwork too.
+          </p>
+
+          <div class="tps__row" style="margin:.75rem 0 .5rem">
+            <button class="tps__btn" type="button" data-export-look>Export complete look</button>
+            <button class="tps__btn" type="button" data-import-look>Import complete look</button>
+            <input type="file" accept=".zip,application/zip" hidden data-look-file />
+          </div>
+          <p class="tps__help">
+            <strong>Export</strong> downloads your Canva artwork and all your settings together, so someone
+            else can open exactly this version. <strong>Import</strong> opens a design someone sent you.
+          </p>
+
+          <div class="tps__check" data-import-result hidden></div>
+
+          <div class="tps__row" style="margin-top:.6rem">
+            <button class="tps__btn tps__btn--tiny" type="button" data-reset-artwork>
+              Return to starting artwork
+            </button>
+          </div>
+          <p class="tps__help">Restores the design that was included with the shared studio.</p>
+        </div>
+      </details>
+
       <details class="tps__section" open>
         <summary>When you're happy</summary>
         <div class="tps__section-body">
@@ -325,20 +380,26 @@ function controlsFor(group: string) {
             needed to build it into the real site, and nothing else.
           </p>
 
-          <div class="tps__row" style="margin-bottom:.75rem">
-            <button class="tps__btn" type="button" data-sweep>Check all screen sizes</button>
-          </div>
-          <p class="tps__blurb">
-            Steps through a wide range of phone, tablet and desktop sizes and reports anything that
-            overflows, clips the artwork, or pushes the countdown out of the frosted area.
-          </p>
-          <div class="tps__check" data-sweep-result hidden></div>
-
           <div class="tps__row">
             <button class="tps__btn tps__btn--danger" type="button" data-reset-all>
               Reset everything to the Canva starting point
             </button>
           </div>
+        </div>
+      </details>
+      {/* ------------------------------------------------------- advanced */}
+      <details class="tps__section">
+        <summary>Advanced preview tools</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">Engineering checks. You can safely ignore these.</p>
+          <div class="tps__row" style="margin-bottom:.75rem">
+            <button class="tps__btn" type="button" data-sweep>Check all screen sizes</button>
+          </div>
+          <p class="tps__help">
+            Steps through a wide range of phone, tablet and desktop sizes and reports anything that
+            overflows, clips the artwork, or pushes the countdown out of the frosted area.
+          </p>
+          <div class="tps__check" data-sweep-result hidden></div>
         </div>
       </details>
     </aside>
@@ -363,6 +424,7 @@ function controlsFor(group: string) {
     </main>
   </div>
 
+  <button class="tps__edit" type="button" data-open-drawer>Edit design</button>
   <button class="tps__show-panel" type="button" data-show-panel hidden>Show controls</button>
   <div class="tps__toast" data-toast role="status" aria-live="polite"></div>
 
