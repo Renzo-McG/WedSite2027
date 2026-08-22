@@ -1,0 +1,373 @@
+/*
+ * The studio chrome at /type-preview/.
+ *
+ * This is tooling, not wedding UI: it deliberately looks like an instrument
+ * panel so it never competes with, or flatters, the invitation being judged.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.tps-page {
+  margin: 0;
+  background: #14171a;
+  color: #e8eaed;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.tps {
+  display: grid;
+  grid-template-columns: 22rem 1fr;
+  height: 100vh;
+  height: 100svh;
+}
+
+.tps__panel {
+  display: flex;
+  overflow-y: auto;
+  flex-direction: column;
+  border-right: 1px solid #2a2f35;
+  background: #1a1e22;
+}
+
+.tps__stage {
+  display: grid;
+  overflow: auto;
+  align-content: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: repeating-conic-gradient(#1e2226 0% 25%, #191d21 0% 50%) 50% / 24px 24px;
+}
+
+/* ------------------------------------------------------------- header */
+
+.tps__header {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  padding: 1rem 1.1rem 0.9rem;
+  border-bottom: 1px solid #2a2f35;
+  background: #1a1e22;
+}
+
+.tps__title {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.tps__subtitle {
+  margin: 0;
+  color: #9aa3ad;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.tps__notice {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  background: #2a2418;
+  color: #e3cf9a;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------ section */
+
+.tps__section {
+  border-bottom: 1px solid #23272c;
+}
+
+.tps__section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.1rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  list-style: none;
+  user-select: none;
+}
+
+.tps__section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tps__section > summary::after {
+  color: #7e8894;
+  content: "▾";
+  font-size: 0.7rem;
+}
+
+.tps__section[open] > summary::after {
+  content: "▴";
+}
+
+.tps__section-body {
+  padding: 0 1.1rem 1rem;
+}
+
+.tps__blurb {
+  margin: 0 0 0.85rem;
+  color: #8b949f;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------ control */
+
+.tps__control {
+  margin-bottom: 1.05rem;
+}
+
+.tps__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.1rem;
+}
+
+.tps__label-text {
+  color: #e8eaed;
+  font-size: 0.775rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.tps__value {
+  color: #8be0c0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tps__help {
+  margin: 0 0 0.4rem;
+  color: #858e99;
+  font-size: 0.69rem;
+  line-height: 1.4;
+}
+
+.tps__control input[type="range"] {
+  display: block;
+  width: 100%;
+  accent-color: #4fc79a;
+  cursor: pointer;
+}
+
+.tps__control select {
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid #343a41;
+  border-radius: 0.35rem;
+  background: #23282d;
+  color: #e8eaed;
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+/* ------------------------------------------------------------ buttons */
+
+.tps__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tps__btn {
+  padding: 0.42rem 0.7rem;
+  border: 1px solid #3a4149;
+  border-radius: 0.35rem;
+  background: #262c32;
+  color: #e8eaed;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.73rem;
+}
+
+.tps__btn:hover {
+  background: #2f363d;
+}
+
+.tps__btn:focus-visible {
+  outline: 2px solid #4fc79a;
+  outline-offset: 2px;
+}
+
+.tps__btn--primary {
+  border-color: #3f8f6f;
+  background: #2f6a52;
+}
+
+.tps__btn--primary:hover {
+  background: #38795e;
+}
+
+.tps__btn--danger {
+  border-color: #7a3c3c;
+  color: #f0bcbc;
+}
+
+.tps__btn--active {
+  border-color: #4fc79a;
+  background: #2f6a52;
+}
+
+.tps__btn--tiny {
+  padding: 0.25rem 0.45rem;
+  font-size: 0.66rem;
+}
+
+/* -------------------------------------------------------------- input */
+
+.tps__text {
+  flex: 1 1 8rem;
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #343a41;
+  border-radius: 0.35rem;
+  background: #23282d;
+  color: #e8eaed;
+  font: inherit;
+  font-size: 0.73rem;
+}
+
+.tps__presets {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
+}
+
+.tps__preset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.35rem;
+  background: #23282d;
+  font-size: 0.73rem;
+  gap: 0.4rem;
+}
+
+.tps__preset-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tps__empty {
+  margin: 0 0 0.6rem;
+  color: #6e7883;
+  font-size: 0.7rem;
+  font-style: italic;
+}
+
+/* ------------------------------------------------------------- status */
+
+.tps__warning {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  background: #3a2a1c;
+  color: #f0c99a;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.tps__warning[hidden] {
+  display: none;
+}
+
+.tps__toast {
+  position: fixed;
+  z-index: 20;
+  bottom: 1.25rem;
+  left: 50%;
+  padding: 0.55rem 0.95rem;
+  border-radius: 0.4rem;
+  background: #2f6a52;
+  color: #fff;
+  font-size: 0.78rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0.5rem);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.tps__toast[data-visible] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* -------------------------------------------------------------- frame */
+
+.tps__frame-wrap {
+  position: relative;
+  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+  transform-origin: center center;
+}
+
+.tps__frame {
+  display: block;
+  border: 0;
+  background: #0d1512;
+}
+
+.tps__caption {
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  color: #8b949f;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Side-by-side comparison against the Canva reference. */
+
+.tps__compare {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.tps__reference-pane {
+  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+.tps__reference-pane img {
+  display: block;
+  height: auto;
+}
+
+.tps__reference-pane[hidden] {
+  display: none;
+}
+
+/* Narrow windows: the panel drops above the preview so the invitation is
+   never squeezed. Tooling convenience only. */
+
+@media (max-width: 60rem) {
+  .tps {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: auto;
+  }
+
+  .tps__panel {
+    max-height: 50svh;
+    border-right: 0;
+    border-bottom: 1px solid #2a2f35;
+  }
+}

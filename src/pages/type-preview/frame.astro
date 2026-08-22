@@ -1,0 +1,83 @@
+---
+/**
+ * The invitation itself, rendered inside the studio's preview iframe.
+ *
+ * An iframe rather than a scaled div because production switches layout on a
+ * viewport media query at 48rem. Sizing a real browsing context is the only
+ * way a 390px phone preset and the 1440px desktop preset both render the
+ * layout production would actually serve.
+ *
+ * Everything structural here — stage, video, frosted card, countdown,
+ * calendar — is the production component or the production script. Only the
+ * editorial typography is new.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import StageVisual from "../../components/save-the-date/StageVisual.astro";
+import Countdown from "../../components/save-the-date/Countdown.astro";
+import CalendarSheet from "../../components/save-the-date/CalendarSheet.astro";
+import EditorialBlock from "../../components/type-preview/EditorialBlock.astro";
+import "../../styles/fonts.css";
+import "../../styles/save-the-date.tokens.css";
+import "../../styles/save-the-date.css";
+import "../../styles/type-preview-frame.css";
+---
+
+<BaseLayout
+  title="Type preview frame"
+  description="Invitation preview surface for the local typography studio."
+  noindex
+  themeColor="#0d1512"
+  className="std-page tp-frame"
+>
+  <Fragment slot="head">
+    {
+      /* The studio always studies the open invitation, so the production boot
+      script finds the opened flag and lands on `composed` rather than
+      replaying the seal. */
+    }
+    <script is:inline>
+      try {
+        window.localStorage.setItem("eandl.save-the-date.v1", "opened");
+      } catch {
+        /* Blocked storage still renders composed: the markup ships that way. */
+      }
+    </script>
+  </Fragment>
+
+  <div class="std" data-std>
+    <StageVisual />
+
+    <article class="invitation" data-phase="composed" data-invitation>
+      <div class="invitation__surface">
+        <div class="invitation__grain" aria-hidden="true"></div>
+
+        {
+          /* Kept named `invitation__content` because the production script
+          uses it to make the background inert while the calendar sheet is
+          open. Its production grid is neutralised in type-preview-frame.css;
+          here it is only a positioning context filling the card. */
+        }
+        <div class="invitation__content">
+          <EditorialBlock />
+
+          <div class="tp-functional">
+            <Countdown />
+            <a class="cta" href="#calendar-enclosure" data-sheet-open>
+              <span>Save to Calendar</span>
+              <span class="cta__mark" aria-hidden="true"></span>
+            </a>
+          </div>
+        </div>
+
+        <div class="tp-reference" aria-hidden="true" data-reference></div>
+      </div>
+
+      <CalendarSheet />
+    </article>
+  </div>
+
+  <script>
+    import "../../scripts/save-the-date";
+    import "../../scripts/type-preview-frame";
+  </script>
+</BaseLayout>

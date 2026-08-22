@@ -1,0 +1,254 @@
+---
+/**
+ * Local typography and layout studio. Not production, never linked from it.
+ *
+ * The panel is rendered from the control manifest in lib/type-preview-settings,
+ * so a control exists in exactly one place and the panel, the preview and the
+ * exported settings file can never drift apart.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { CONTROLS, CONTROL_GROUPS } from "../../lib/type-preview-settings";
+import "../../styles/fonts.css";
+import "../../styles/type-preview-studio.css";
+
+const frameUrl = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}type-preview/frame/`;
+const referenceBase = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}type-preview/`;
+
+const VIEWPORTS = [
+  { id: "desktop", label: "Desktop invitation", w: 1440, h: 900, note: "540 × 756 card" },
+  { id: "canva-mobile", label: "Canva mobile reference", w: 390, h: 884, note: "" },
+  { id: "phone", label: "Normal phone", w: 390, h: 844, note: "" },
+  { id: "small", label: "Small phone", w: 320, h: 568, note: "" },
+  { id: "large", label: "Large phone", w: 430, h: 932, note: "" },
+];
+
+function controlsFor(group: string) {
+  return CONTROLS.filter((control) => control.group === group);
+}
+---
+
+<BaseLayout
+  title="Save the Date — typography studio"
+  description="Local studio for tuning the native Save the Date typography, layout and material."
+  noindex
+  className="tps-page"
+>
+  <div class="tps">
+    <aside class="tps__panel">
+      <header class="tps__header">
+        <h1 class="tps__title">Save the Date — design studio</h1>
+        <p class="tps__subtitle">
+          Move the sliders and the invitation updates as you go. Your work is saved in this browser,
+          so you can close the tab and come back to it.
+        </p>
+        <p class="tps__notice">
+          The final fonts (The Seasons and Above the Beyond Script) are paid fonts and are not
+          installed, so this preview uses the closest free stand-ins. Shapes and weights will differ
+          slightly from the Canva mock — judge the layout, not the exact letterforms.
+        </p>
+      </header>
+
+      {/* ----------------------------------------------------- preview aids */}
+      <details class="tps__section" open>
+        <summary>Preview</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">
+            Change what you are looking at. None of these affect the saved design.
+          </p>
+
+          <div class="tps__control">
+            <div class="tps__label"><span class="tps__label-text">Screen size</span></div>
+            <p class="tps__help">See how the same design looks on different devices.</p>
+            <div class="tps__row" data-viewports>
+              {
+                VIEWPORTS.map((viewport) => (
+                  <button
+                    class="tps__btn tps__btn--tiny"
+                    type="button"
+                    data-viewport={viewport.id}
+                    data-w={viewport.w}
+                    data-h={viewport.h}
+                  >
+                    {viewport.label}
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="tps__control">
+            <div class="tps__label">
+              <span class="tps__label-text">Zoom</span>
+              <span class="tps__value" data-readout="zoom">Fit</span>
+            </div>
+            <p class="tps__help">Make the preview bigger or smaller on your screen.</p>
+            <input type="range" min="25" max="150" step="5" value="100" data-zoom />
+            <div class="tps__row" style="margin-top:.4rem">
+              <button class="tps__btn tps__btn--tiny" type="button" data-zoom-fit
+                >Fit to window</button
+              >
+              <button class="tps__btn tps__btn--tiny" type="button" data-zoom-100
+                >Actual size</button
+              >
+            </div>
+          </div>
+
+          <div class="tps__control">
+            <div class="tps__label">
+              <span class="tps__label-text">Point in the film</span>
+              <span class="tps__value" data-readout="film">6%</span>
+            </div>
+            <p class="tps__help">
+              Hold the Ocean Pavilion film on any moment, so you can check the wording stays
+              readable over the bright water as well as the dark trees.
+            </p>
+            <input type="range" min="0" max="100" step="1" value="6" data-film />
+            <div class="tps__row" style="margin-top:.4rem">
+              <button class="tps__btn tps__btn--tiny" type="button" data-film-play
+                >Play the film</button
+              >
+            </div>
+          </div>
+
+          <div class="tps__control">
+            <div class="tps__label">
+              <span class="tps__label-text">Show Canva reference</span>
+              <span class="tps__value" data-readout="reference">Off</span>
+            </div>
+            <p class="tps__help">
+              Places the original Canva mock over the native invitation so you can compare
+              positioning and sizing.
+            </p>
+            <input type="range" min="0" max="100" step="1" value="0" data-reference-opacity />
+            <div class="tps__row" style="margin-top:.4rem">
+              <button class="tps__btn tps__btn--tiny" type="button" data-reference-difference>
+                Highlight differences
+              </button>
+              <button class="tps__btn tps__btn--tiny" type="button" data-compare>
+                Side by side
+              </button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      {/* ------------------------------------------------- tuning sections */}
+      {
+        CONTROL_GROUPS.map((group) => (
+          <details class="tps__section" open={group.id === "position" || group.id === "material"}>
+            <summary>{group.title}</summary>
+            <div class="tps__section-body">
+              <p class="tps__blurb">{group.blurb}</p>
+
+              {controlsFor(group.id).map((control) => (
+                <div class="tps__control" data-control={control.id}>
+                  <div class="tps__label">
+                    <span class="tps__label-text">{control.label}</span>
+                    {control.kind === "slider" && (
+                      <span class="tps__value" data-value-for={control.id} />
+                    )}
+                  </div>
+                  <p class="tps__help">{control.help}</p>
+                  {control.kind === "slider" ? (
+                    <input
+                      type="range"
+                      min={control.min}
+                      max={control.max}
+                      step={control.step}
+                      value={control.value}
+                      data-input={control.id}
+                    />
+                  ) : (
+                    <select data-input={control.id}>
+                      {control.options.map((option) => (
+                        <option value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              ))}
+
+              {group.id === "material" && (
+                <p class="tps__warning" data-contrast-warning hidden>
+                  ⚠ Text may be difficult to read at this background setting.
+                </p>
+              )}
+
+              <div class="tps__row">
+                <button class="tps__btn tps__btn--tiny" type="button" data-reset-group={group.id}>
+                  Reset this section
+                </button>
+              </div>
+            </div>
+          </details>
+        ))
+      }
+
+      {/* ------------------------------------------------------- my versions */}
+      <details class="tps__section">
+        <summary>My saved versions</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">
+            Save the current design under a name so you can try something else and come back to it.
+          </p>
+          <div class="tps__presets" data-preset-list></div>
+          <p class="tps__empty" data-preset-empty hidden>Nothing saved yet.</p>
+          <div class="tps__row">
+            <input class="tps__text" type="text" placeholder="Name this version" data-preset-name />
+            <button class="tps__btn" type="button" data-preset-save>Save</button>
+          </div>
+        </div>
+      </details>
+
+      {/* ------------------------------------------------------------ finish */}
+      <details class="tps__section" open>
+        <summary>When you're happy</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">
+            Send these choices back so they can be built into the real invitation.
+          </p>
+          <div class="tps__row" style="margin-bottom:.75rem">
+            <button class="tps__btn tps__btn--primary" type="button" data-copy>
+              Copy final settings
+            </button>
+            <button class="tps__btn" type="button" data-download>Download settings</button>
+          </div>
+          <p class="tps__blurb">
+            Copy puts the settings on your clipboard — paste them into a message. Download saves
+            <code>save-the-date-type-settings.json</code> to your computer.
+          </p>
+          <div class="tps__row">
+            <button class="tps__btn tps__btn--danger" type="button" data-reset-all>
+              Reset everything to the Canva starting point
+            </button>
+          </div>
+        </div>
+      </details>
+    </aside>
+
+    <main class="tps__stage">
+      <div class="tps__compare">
+        <div class="tps__frame-wrap" data-frame-wrap>
+          <span class="tps__caption" data-caption></span>
+          <iframe
+            class="tps__frame"
+            src={frameUrl}
+            title="Invitation preview"
+            data-frame
+            width="1440"
+            height="900"></iframe>
+        </div>
+        <div class="tps__reference-pane" data-reference-pane hidden>
+          <span class="tps__caption">Canva reference</span>
+          <img src={`${referenceBase}reference-540x756.png`} alt="" data-reference-image />
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="tps__toast" data-toast role="status" aria-live="polite"></div>
+
+  <script>
+    import "../../scripts/type-preview-studio";
+  </script>
+</BaseLayout>
