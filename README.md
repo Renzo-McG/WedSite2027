@@ -9,11 +9,13 @@ The Save the Date is now the reference for the production system. The Design Lab
 
 ## Save the Date
 
-On mobile the invitation is the screen. On desktop the same invitation language becomes a portrait 5 : 7 object presented on a destination stage. An abstract access mark aligns and releases a central seam; both smoked panels then travel fully clear while one session-selected destination concept video begins moving beneath the warm frosted invitation.
+On mobile the invitation is the screen. On desktop the same invitation language becomes a portrait 5 : 7 object presented on a destination stage. An abstract access mark aligns and releases a central seam; both smoked panels then travel fully clear while the Ocean Pavilion venue film begins moving beneath the warm frosted invitation.
 
-The stage image at `public/assets/stage/philippines-concept.webp` is **temporary AI-generated concept imagery. It is not a photograph of Shangri-La Mactan and must not be presented as one.** To replace it with an approved or licensed photograph, drop the new file at that path — no code change is needed.
+The stage carries **authentic venue footage**: `public/assets/stage/video/venue-ocean-pavilion.mp4` is the Ocean Pavilion at Shangri-La Mactan, cut from the resort's own Event Spaces film. This is real imagery of the wedding location, not concept or AI-generated material, and it replaced the earlier temporary Philippines concept set, which has been removed from the repository.
 
-The four clips in `public/assets/stage/video/` are also temporary atmospheric concept footage, not venue footage or documentary imagery of Cebu. Only one clip is requested per tab session. Review overrides remain available at `?video=1` through `?video=4`; `?video=none` presents the static fallback.
+`venue-ocean-pavilion-poster.webp` is the film's own first frame, graded identically, so it doubles as the poster, the no-JavaScript still and the fallback if the video cannot play — the picture never changes underneath the guest. The film plays once on opening and rests on its final frame; it never loops. `?video=none` presents the static fallback.
+
+> The source film carries the resort's own burned-in `Ocean Pavilion` caption, visible bottom-left for roughly the first 4.6 seconds. It is inherent to the source shot and was kept rather than masked, since removing it would smear the moving aerial. See [docs/OCEAN_PAVILION_VIDEO.md](docs/OCEAN_PAVILION_VIDEO.md).
 
 > **Do not run Node tooling from the Google Drive mirror.** Package tooling performs thousands of small reads and the CloudStorage mount serves them slowly enough that `astro check` can hang. Work from a local SSD clone, e.g. `/Users/lawrence.mcguire/Developer/WedSite2027`, where `pnpm install` takes about four seconds. See [docs/SAVE_THE_DATE_V1_1.md](docs/SAVE_THE_DATE_V1_1.md).
 

@@ -2,7 +2,23 @@ import { wedding } from "../config/wedding";
 
 export const STAGE_VIDEO_STORAGE_KEY = "wedding-stage-video:v1";
 
-export type StageVideo = (typeof wedding.stage.videos)[number];
+/**
+ * Structural rather than derived from the config, so the selection logic stays
+ * testable against fixtures no matter how many clips the production stage ships.
+ */
+export interface StageVideo {
+  id: string;
+  src: string;
+  poster: string;
+  durationSeconds: number;
+  desktopPosition: string;
+  mobilePosition: string;
+  overlayStrength: number;
+  brightness: number;
+  saturation: number;
+  playbackRate: number;
+}
+
 export type StageVideoSource = "override" | "session" | "random" | "none";
 
 export interface StageVideoSelection {
@@ -16,8 +32,8 @@ interface SessionStore {
   removeItem(key: string): void;
 }
 
-function findVideo(id: string | null): StageVideo | null {
-  return wedding.stage.videos.find((video) => video.id === id) ?? null;
+function findVideo(videos: readonly StageVideo[], id: string | null): StageVideo | null {
+  return videos.find((video) => video.id === id) ?? null;
 }
 
 /**
@@ -29,16 +45,17 @@ export function selectStageVideo(
   search: string,
   storage: SessionStore | null,
   random: () => number = Math.random,
+  videos: readonly StageVideo[] = wedding.stage.videos,
 ): StageVideoSelection {
   const override = new URLSearchParams(search).get("video");
   if (override === "none") return { video: null, source: "none" };
 
-  const overriddenVideo = findVideo(override);
+  const overriddenVideo = findVideo(videos, override);
   if (overriddenVideo) return { video: overriddenVideo, source: "override" };
 
   if (storage) {
     try {
-      const storedVideo = findVideo(storage.getItem(STAGE_VIDEO_STORAGE_KEY));
+      const storedVideo = findVideo(videos, storage.getItem(STAGE_VIDEO_STORAGE_KEY));
       if (storedVideo) return { video: storedVideo, source: "session" };
       storage.removeItem(STAGE_VIDEO_STORAGE_KEY);
     } catch {
@@ -47,7 +64,7 @@ export function selectStageVideo(
   }
 
   const boundedRandom = Math.max(0, Math.min(0.999_999, random()));
-  const selected = wedding.stage.videos[Math.floor(boundedRandom * wedding.stage.videos.length)];
+  const selected = videos[Math.floor(boundedRandom * videos.length)];
   if (!selected) return { video: null, source: "none" };
 
   if (storage) {

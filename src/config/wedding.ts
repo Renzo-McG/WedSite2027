@@ -33,65 +33,32 @@ export const wedding = {
   },
   stage: {
     /**
-     * Temporary AI-generated concept imagery. It is NOT a photograph of
-     * Shangri-La Mactan and must never be presented as one. To replace it, drop
-     * an approved or licensed destination photograph at this path — no code
-     * change is needed. If the file is missing the gradient stage still renders.
+     * Fallback still for the stage. This is the Ocean Pavilion poster — the
+     * first frame of the venue film, graded identically — so a blocked or
+     * failed video degrades to the same picture rather than to unrelated art.
+     * It is also what renders without JavaScript. If the file is missing the
+     * gradient stage still renders.
      */
-    image: "assets/stage/philippines-concept.webp",
-    temporary: true,
+    image: "assets/stage/video/venue-ocean-pavilion-poster.webp",
+    temporary: false,
     /**
-     * Temporary atmospheric concept footage. These clips are not venue or
-     * documentary imagery. Per-clip crop and grade values are intentionally
-     * centralised so visual QA can tune the family without CSS exceptions.
+     * Authentic venue footage: the Ocean Pavilion at Shangri-La Mactan, cut
+     * from the resort's own Event Spaces film. This is real imagery of the
+     * wedding location and is not concept or AI-generated material. Crop and
+     * grade values are centralised here so visual QA can tune the stage
+     * without CSS exceptions.
      */
     videos: [
       {
-        id: "1",
-        src: "assets/stage/video/philippines-01.mp4",
-        poster: "assets/stage/video/philippines-01-poster.webp",
-        durationSeconds: 18,
-        desktopPosition: "50% 50%",
-        mobilePosition: "56% 50%",
-        overlayStrength: 0.48,
-        brightness: 0.88,
-        saturation: 0.84,
-        playbackRate: 1,
-      },
-      {
-        id: "2",
-        src: "assets/stage/video/philippines-02.mp4",
-        poster: "assets/stage/video/philippines-02-poster.webp",
-        durationSeconds: 14.8,
-        desktopPosition: "50% 48%",
-        mobilePosition: "58% 50%",
-        overlayStrength: 0.44,
-        brightness: 0.94,
-        saturation: 0.84,
-        playbackRate: 0.82,
-      },
-      {
-        id: "3",
-        src: "assets/stage/video/philippines-03.mp4",
-        poster: "assets/stage/video/philippines-03-poster.webp",
-        durationSeconds: 19.066667,
-        desktopPosition: "50% 52%",
-        mobilePosition: "50% 52%",
-        overlayStrength: 0.48,
-        brightness: 0.92,
-        saturation: 0.82,
-        playbackRate: 0.95,
-      },
-      {
-        id: "4",
-        src: "assets/stage/video/philippines-04.mp4",
-        poster: "assets/stage/video/philippines-04-poster.webp",
-        durationSeconds: 18,
-        desktopPosition: "50% 50%",
-        mobilePosition: "62% 50%",
-        overlayStrength: 0.5,
-        brightness: 0.88,
-        saturation: 0.82,
+        id: "ocean-pavilion",
+        src: "assets/stage/video/venue-ocean-pavilion.mp4",
+        poster: "assets/stage/video/venue-ocean-pavilion-poster.webp",
+        durationSeconds: 19.269,
+        desktopPosition: "50% 47%",
+        mobilePosition: "52% 50%",
+        overlayStrength: 0.46,
+        brightness: 0.95,
+        saturation: 0.94,
         playbackRate: 1,
       },
     ],
