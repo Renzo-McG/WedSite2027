@@ -1,7 +1,15 @@
 {
-  "version": 1,
-  "note": "Canva-derived starting point for the native Save the Date. Sizes and gaps are a percentage of the invitation's own width (cqw). Produced by /type-preview/.",
+  "version": 2,
+  "note": "Starting values for the Save the Date Studio. Sizes and gaps are a percentage of the invitation's own width; frost height and position are a percentage of the phone screen.",
   "settings": {
+    "artworkMode": "native",
+    "artDesktopScale": 100,
+    "artDesktopY": 0,
+    "artDesktopX": 0,
+    "artMobileScale": 88,
+    "artMobileY": -6,
+    "artMobileX": 0,
+    "artStrength": 100,
     "desktopY": 24.03,
     "mobileY": 36.45,
     "inset": 10.2,
@@ -24,6 +32,9 @@
     "andX": 0,
     "andY": -0.02,
     "dateGap": 0.85,
+    "mobileFrostHeight": 100,
+    "mobileFrostY": 50,
+    "frostEdgeSoftness": 16,
     "invitationStrength": 0.76,
     "textVeil": 0.18,
     "blur": 20,
@@ -35,6 +46,56 @@
     "scriptFont": "\"Parisienne\", cursive"
   },
   "documented": {
+    "artwork": {
+      "_title": "Artwork",
+      "artworkMode": {
+        "label": "What should the invitation show?",
+        "value": "native",
+        "cssVar": "--tp-artwork-mode"
+      },
+      "artDesktopScale": {
+        "label": "Artwork size on a computer",
+        "value": 100,
+        "cssVar": "--tp-art-desktop-scale",
+        "unit": "%"
+      },
+      "artDesktopY": {
+        "label": "Move artwork up / down on a computer",
+        "value": 0,
+        "cssVar": "--tp-art-desktop-y",
+        "unit": "%"
+      },
+      "artDesktopX": {
+        "label": "Move artwork left / right on a computer",
+        "value": 0,
+        "cssVar": "--tp-art-desktop-x",
+        "unit": "%"
+      },
+      "artMobileScale": {
+        "label": "Artwork size on a phone",
+        "value": 88,
+        "cssVar": "--tp-art-mobile-scale",
+        "unit": "%"
+      },
+      "artMobileY": {
+        "label": "Move artwork up / down on a phone",
+        "value": -6,
+        "cssVar": "--tp-art-mobile-y",
+        "unit": "%"
+      },
+      "artMobileX": {
+        "label": "Move artwork left / right on a phone",
+        "value": 0,
+        "cssVar": "--tp-art-mobile-x",
+        "unit": "%"
+      },
+      "artStrength": {
+        "label": "Artwork strength",
+        "value": 100,
+        "cssVar": "--tp-art-strength",
+        "unit": "%"
+      }
+    },
     "position": {
       "_title": "Position & spacing",
       "desktopY": {
@@ -180,7 +241,25 @@
       }
     },
     "material": {
-      "_title": "Video visibility & invitation background",
+      "_title": "Video & frosted background",
+      "mobileFrostHeight": {
+        "label": "How much of the phone is frosted?",
+        "value": 100,
+        "cssVar": "--tp-frost-height",
+        "unit": "%"
+      },
+      "mobileFrostY": {
+        "label": "Move frosted area up / down",
+        "value": 50,
+        "cssVar": "--tp-frost-y",
+        "unit": "%"
+      },
+      "frostEdgeSoftness": {
+        "label": "Soften the frosted edges",
+        "value": 16,
+        "cssVar": "--tp-frost-feather",
+        "unit": "%"
+      },
       "invitationStrength": {
         "label": "Invitation background strength",
         "value": 0.76,
@@ -194,7 +273,7 @@
         "unit": ""
       },
       "blur": {
-        "label": "Frost / blur strength",
+        "label": "Frost strength",
         "value": 20,
         "cssVar": "--tp-blur",
         "unit": "px"
