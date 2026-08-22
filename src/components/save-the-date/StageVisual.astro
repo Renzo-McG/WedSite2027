@@ -22,11 +22,14 @@ const videoConfig = JSON.stringify(wedding.stage.videos);
   <noscript>
     <div class="stage__noscript" style={`background-image: url("${stageImage}")`}></div>
   </noscript>
+  <!-- `metadata` only: the venue film is ~10 MB and must never compete with
+       first paint. The poster is the film's own first frame, so the handoff
+       into playback is invisible even if buffering costs a moment. -->
   <video
     class="stage__video"
     muted
     playsinline
-    preload="auto"
+    preload="metadata"
     tabindex="-1"
     data-stage-video
     disablepictureinpicture></video>
