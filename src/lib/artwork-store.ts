@@ -21,6 +21,8 @@ export interface StoredArtwork {
   fileName: string;
   savedAt: string;
   approved?: boolean;
+  /** How this artwork arrived, so the studio's status line survives a reload. */
+  origin?: "local" | "imported";
 }
 
 function openDb(): Promise<IDBDatabase> {
@@ -74,7 +76,11 @@ async function writeArtwork(record: StoredArtwork): Promise<void> {
  * else: every layout, frost and placement value is stored separately and
  * survives untouched.
  */
-export async function putCurrentArtwork(source: string, fileName: string): Promise<void> {
+export async function putCurrentArtwork(
+  source: string,
+  fileName: string,
+  origin: "local" | "imported" = "local",
+): Promise<void> {
   const existing = await readArtwork("current");
   if (existing) {
     await writeArtwork({ ...existing, slot: "previous", approved: false });
@@ -85,6 +91,7 @@ export async function putCurrentArtwork(source: string, fileName: string): Promi
     fileName,
     savedAt: new Date().toISOString(),
     approved: false,
+    origin,
   });
 }
 
