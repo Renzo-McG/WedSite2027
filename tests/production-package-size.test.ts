@@ -93,6 +93,67 @@ describe.each(SIZES_KB)("a realistic ~%i KB Canva SVG", (kb) => {
   });
 });
 
+/**
+ * The real shape of a finished look: a large invitation SVG plus both
+ * monogram pieces, all in one archive. This is the case the ZIP writer has to
+ * survive now that the cover carries its own artwork.
+ */
+describe("a complete look carrying three realistic SVGs", () => {
+  const invitation = realisticSvg(1_500 * 1024);
+  const outer = realisticSvg(700 * 1024);
+  const inner = realisticSvg(600 * 1024);
+
+  it("packages all three without a RangeError", () => {
+    const files = completeLookPackage(
+      { invitation, monogramOuter: outer, monogramInner: inner },
+      {
+        schemaVersion: LOOK_SCHEMA_VERSION,
+        exportedAt: "2026-08-23T10:00:00.000Z",
+        settings: { coverMode: "monogram", venueHoldSeconds: 2 },
+      },
+    );
+    expect(() => buildZip(files)).not.toThrow();
+  });
+
+  it("extracts every piece byte-perfectly, with settings intact", async () => {
+    const settings = { coverMode: "monogram", venueHoldSeconds: 2, mobileFrostHeight: 57 };
+    const zip = buildZip(
+      completeLookPackage(
+        { invitation, monogramOuter: outer, monogramInner: inner },
+        {
+          schemaVersion: LOOK_SCHEMA_VERSION,
+          exportedAt: "2026-08-23T10:00:00.000Z",
+          settings,
+        },
+      ),
+    );
+
+    const read = await readZip(
+      zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength) as ArrayBuffer,
+    );
+    const parsed = parseLookFiles(read);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    expect(parsed.artworkSvg).toBe(invitation);
+    expect(parsed.monogramOuter).toBe(outer);
+    expect(parsed.monogramInner).toBe(inner);
+    expect(parsed.settings).toEqual(settings);
+  });
+
+  it("packages the same three into a production handover", () => {
+    const files = productionPackage({
+      artworkSvg: invitation,
+      monogramOuter: outer,
+      monogramInner: inner,
+      settingsJson: JSON.stringify({ coverMode: "monogram" }),
+      artworkDimensions: "540 × 756 SVG",
+      exportedAt: "2026-08-23T10:00:00.000Z",
+    });
+    expect(() => buildZip(files)).not.toThrow();
+  });
+});
+
 describe("buildZip with multiple large entries", () => {
   it("handles a large SVG alongside settings and a readme in one archive", async () => {
     const svg = realisticSvg(1_000 * 1024);
