@@ -1,4 +1,4 @@
-# Save the Date Studio (`/type-preview/`)
+# Save the Date Studio (`/studio/`)
 
 A local design studio for composing the Save the Date: a Canva SVG placed over the real
 Ocean Pavilion film and frosted invitation, with native countdown and calendar around it.
@@ -128,6 +128,101 @@ The long font caveat is hidden in the drawer so the design controls sit under th
 
 Engineering utilities live under **Advanced preview tools** rather than in the main flow.
 
+## Designing the cover
+
+The closed invitation is opened by a **two-piece monogram**. Canva supplies the
+shapes; the website supplies the movement.
+
+1. In Canva, draw the monogram on one canvas. Export the **outer** piece and the
+   **centre** piece separately as SVG, **without changing the canvas size
+   between exports** and with a transparent background.
+2. Upload both in **Your Canva monogram**.
+3. Set **Monogram size**, then nudge it up/down or left/right. Both pieces move
+   together.
+4. Tune **Rotation speed** — expressed as seconds per turn, so bigger is calmer.
+5. Tune **Breathing amount** and **Breathing speed** for the centre piece.
+6. Set **How long should we see just the venue?**
+7. Press **Play full experience**, or simply tap the monogram in the preview.
+8. Save or export a look when it feels right.
+
+The same-canvas rule is the whole trick: identical artboards mean identical
+centres, so the two layers register without any per-layer nudging. The studio
+gives them one sized box and moves that box, so there is only one transform
+that could ever be wrong. Measured across every tested screen from 320px to
+2560px, the two centres differ by 0.000px.
+
+### What replaces what
+
+Choosing **Canva monogram** replaces the old E&L mark, its green disc and the
+word _Open_ completely — they are removed, not covered over. **Built-in mark**
+brings the old treatment back for comparison. Either way the whole monogram is
+a real `<button>` labelled "Open invitation", so it works by keyboard and to a
+screen reader; the SVG layers themselves are decorative.
+
+## The entrance
+
+One timeline, defined in `lib/entrance-machine.ts`, runs:
+
+```
+closed → acknowledge → opening → venue → material → content → functional → still
+```
+
+Nothing schedules itself piecemeal. `buildEntrance()` turns the studio's
+seconds into one ordered list of steps and the controller walks it, which is
+what makes replay, cancellation and reset the same operation — and what will
+let a reverse choreography read the same timeline backwards later.
+
+**The venue moment is the point.** Once the cover clears, the film is genuinely
+alone: no frost, no wording, no countdown, for however long
+_How long should we see just the venue?_ is set to. Then the material develops,
+the wording resolves, and the countdown and calendar follow.
+
+The entrance animates opacity only. The frost it settles into is whatever
+height, blur, strength and edge softness are currently set below — there is no
+separate "animation frost" that could drift from the real composition.
+
+**Arrival order** offers the two comparisons worth making: frost first then
+wording, or both together. Not a timeline editor.
+
+Under `prefers-reduced-motion` the sequence is deliberately re-authored rather
+than sped up to nothing: the cover still clears and the venue still gets a
+brief beat, so the interaction remains legible, but nothing loops and nothing
+lingers.
+
+### Playback
+
+**Play full experience** and **Replay** both reset first, so two presses can
+never stack two timelines — and the monogram itself ignores a second tap once
+opening has begun. **Closed / Venue moment / Finished** jump straight to a
+state, so monogram size or frost can be judged without sitting through the
+sequence each time.
+
+### The cover's material
+
+The studio renders its own cover rather than production's `OpeningCover`,
+because this iteration removes the old centre treatment outright. Two things
+had to be solved that production gets for free:
+
+- Production's cover sits on an opaque invitation surface, which the frosted-band
+  work removes. Each panel therefore carries its own tint, tunable with
+  **How solid is the closed cover?** and **Cover frost**.
+- Production paints `--cover-atmos` across the two panels as one 200%-wide
+  image, centring a light glow at the 50% mark. Each half drew that centre
+  against the seam and the two doubled into a measurable ~34px bright stripe on
+  a phone. The atmosphere now sits on the container and is drawn once.
+
+Neither panel carries `will-change: transform`. It promotes each to its own
+composited layer, which interacts badly with the cover's backdrop blur; the
+panels animate smoothly without it.
+
+### Starting monogram
+
+`public/studio/starting-monogram-outer.svg` and `-inner.svg` are deliberate
+engineering placeholders on a shared 540×540 artboard — an obvious ring and an
+obvious centre mark, chosen so rotation and registration are easy to see. They
+are not a design proposal. Replacing those two files changes the bundled
+starting pair; nothing in the code refers to their contents.
+
 ## Artwork mode
 
 The studio has two artwork sources. **Canva SVG** is the primary one; **built-in
@@ -244,6 +339,21 @@ couple's design. The frame also accepts `?artwork=<url>`, which is how those scr
 are captured reproducibly.
 
 ## For Emily and Lawrence
+
+### The cover, in one minute
+
+- **Upload outer piece** and **Upload centre piece** — both exported from the
+  same Canva canvas, same size, transparent background.
+- **Monogram size** makes the whole thing bigger or smaller. The two pieces
+  always stay lined up.
+- **Rotation speed** is how long one full turn takes, so a bigger number is
+  slower and calmer.
+- **Breathing** is the gentle grow-and-settle of the centre piece. Keep it
+  small — it should be barely noticeable.
+- **How long should we see just the venue?** is the pause after the cover opens
+  before the invitation appears. This is the Ocean Pavilion's moment.
+- **Play full experience** watches the whole thing. **Replay** does it again.
+  You can also just tap the monogram yourself.
 
 **To edit the design**
 
