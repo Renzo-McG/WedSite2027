@@ -12,7 +12,26 @@ const DB_NAME = "eandl.save-the-date-studio";
 const DB_VERSION = 1;
 const STORE = "artwork";
 
-export type ArtworkSlot = "current" | "previous";
+/**
+ * Four live slots plus their previous counterparts. The monogram is
+ * conceptually one asset in two layers, so both pieces are versioned together
+ * by `stashMonogramPair()` — replacing one layer never leaves the studio
+ * showing a mismatched outer from today and inner from last week.
+ */
+export type ArtworkSlot =
+  | "current"
+  | "previous"
+  | "monogram-outer"
+  | "monogram-inner"
+  | "monogram-outer-previous"
+  | "monogram-inner-previous";
+
+export const MONOGRAM_SLOTS = {
+  outer: "monogram-outer",
+  inner: "monogram-inner",
+  outerPrevious: "monogram-outer-previous",
+  innerPrevious: "monogram-inner-previous",
+} as const;
 
 export interface StoredArtwork {
   slot: ArtworkSlot;
@@ -93,6 +112,46 @@ export async function putCurrentArtwork(
     approved: false,
     origin,
   });
+}
+
+/**
+ * Copies whichever monogram layers are present into their previous slots, so
+ * the pair can be compared as a set. Called once before either layer is
+ * replaced, never per-layer.
+ */
+export async function stashMonogramPair(): Promise<void> {
+  const outer = await readArtwork(MONOGRAM_SLOTS.outer);
+  const inner = await readArtwork(MONOGRAM_SLOTS.inner);
+  if (outer) await writeArtwork({ ...outer, slot: MONOGRAM_SLOTS.outerPrevious });
+  if (inner) await writeArtwork({ ...inner, slot: MONOGRAM_SLOTS.innerPrevious });
+}
+
+/** Stores one monogram layer, having already stashed the outgoing pair. */
+export async function putMonogramLayer(
+  layer: "outer" | "inner",
+  source: string,
+  fileName: string,
+  origin: "local" | "imported" = "local",
+): Promise<void> {
+  await writeArtwork({
+    slot: layer === "outer" ? MONOGRAM_SLOTS.outer : MONOGRAM_SLOTS.inner,
+    source,
+    fileName,
+    savedAt: new Date().toISOString(),
+    approved: false,
+    origin,
+  });
+}
+
+/** Removes both monogram layers, returning the studio to the starting pair. */
+export async function clearMonogram(): Promise<void> {
+  for (const slot of [MONOGRAM_SLOTS.outer, MONOGRAM_SLOTS.inner]) {
+    try {
+      await tx("readwrite", (store) => store.delete(slot));
+    } catch {
+      // Nothing to do: the caller falls back to the bundled starting pair.
+    }
+  }
 }
 
 export async function markCurrentApproved(): Promise<void> {
