@@ -15,6 +15,16 @@ import { SETTINGS_VERSION, coerceSettings, type Settings } from "./type-preview-
 
 export const SHARE_PARAM = "look";
 
+/**
+ * The monogram pair bundled with the studio, used until a real Canva pair is
+ * uploaded. Swapping the design later is a matter of replacing these two
+ * files — nothing in the code refers to their contents.
+ */
+export const STARTING_MONOGRAM = {
+  outer: "studio/starting-monogram-outer.svg",
+  inner: "studio/starting-monogram-inner.svg",
+} as const;
+
 export interface SharePayload {
   /** Bumped when the encoding itself changes, not when a control is added. */
   v: number;
