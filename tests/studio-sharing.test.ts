@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { defaultSettings, coerceSettings } from "../src/lib/type-preview-settings";
+import {
+  SETTINGS_VERSION,
+  coerceSettings,
+  defaultSettings,
+} from "../src/lib/type-preview-settings";
 import {
   SHARE_PARAM,
   decodeLook,
@@ -80,7 +84,12 @@ describe("share links", () => {
   it("never carries the artwork itself", () => {
     const encoded = encodeLook({ ...defaultSettings(), artworkMode: "svg" }, defaultSettings());
     const decodedText = atob(encoded.replace(/-/g, "+").replace(/_/g, "/"));
-    expect(decodedText).toBe('{"v":2,"s":{"artworkMode":"svg"}}');
+    // Version-agnostic: the point is that only the changed setting travels,
+    // never any artwork, whatever the current schema version happens to be.
+    expect(JSON.parse(decodedText)).toEqual({
+      v: SETTINGS_VERSION,
+      s: { artworkMode: "svg" },
+    });
     expect(decodedText).not.toContain("<");
     expect(decodedText).not.toContain("path");
     expect(decodedText).not.toContain("viewBox");

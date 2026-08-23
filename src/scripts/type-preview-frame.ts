@@ -5,6 +5,15 @@ import {
   cssValue,
   type Settings,
 } from "../lib/type-preview-settings";
+import {
+  DEFAULT_TIMING,
+  REDUCED_TIMING,
+  buildEntrance,
+  checkpointPhase,
+  monogramVars,
+  type EntrancePhase,
+  type EntranceTiming,
+} from "../lib/entrance-machine";
 
 /**
  * Preview-frame side of the studio.
@@ -24,7 +33,126 @@ function applySettings(settings: Settings): void {
   // Mode drives which layer is visible, so it is an attribute rather than a
   // custom property — CSS cannot branch on a variable's value.
   document.body.dataset.artworkMode = String(settings.artworkMode ?? "native");
+  document.body.dataset.coverMode = String(settings.coverMode ?? "monogram");
+
+  // Idle motion is derived rather than read straight from the controls: the
+  // machine turns direction and amount into the exact custom properties the
+  // keyframes expect, so the same values drive the preview and the tests.
+  for (const [name, value] of Object.entries(
+    monogramVars({
+      rotate: settings.outerRotation !== "off",
+      rotationSeconds: Number(settings.rotationSeconds ?? 46),
+      direction: settings.rotationDirection === "ccw" ? "ccw" : "cw",
+      startAngle: 0,
+      breathe: settings.innerBreathing !== "off",
+      breathAmount: Number(settings.breathAmount ?? 1.6),
+      breathSeconds: Number(settings.breathSeconds ?? 6.5),
+    }),
+  )) {
+    root.style.setProperty(name, value);
+  }
+
+  // The monogram is sized against the invitation's own width, so one value
+  // holds from a 320px phone to the desktop card without a second setting.
+  root.style.setProperty("--tp-mono-size", `${Number(settings.monogramScale ?? 38)}cqw`);
+
+  currentTiming = timingFrom(settings);
   positionVeil();
+}
+
+/* ------------------------------------------------------------ entrance */
+
+/**
+ * Studio settings are authored in seconds because that is how a person thinks
+ * about pacing; the machine works in milliseconds.
+ */
+function timingFrom(settings: Settings): EntranceTiming {
+  return {
+    acknowledge: DEFAULT_TIMING.acknowledge,
+    coverOpen: Number(settings.coverOpenSeconds ?? 1.4) * 1000,
+    venueHold: Number(settings.venueHoldSeconds ?? 1.5) * 1000,
+    frostArrival: Number(settings.frostArrivalSeconds ?? 0.9) * 1000,
+    artworkArrival: Number(settings.artworkArrivalSeconds ?? 0.9) * 1000,
+    functionalDelay: Number(settings.functionalDelaySeconds ?? 0.45) * 1000,
+    arrivalMode: settings.arrivalMode === "together" ? "together" : "sequential",
+  };
+}
+
+function prefersReducedMotion(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+let currentTiming: EntranceTiming = DEFAULT_TIMING;
+let entranceTimers: number[] = [];
+let entrancePhase: EntrancePhase = "closed";
+
+function setEntrancePhase(phase: EntrancePhase): void {
+  entrancePhase = phase;
+  document.body.dataset.entrance = phase;
+  window.parent.postMessage({ type: "tp:entrance-phase", phase }, window.location.origin);
+}
+
+function clearEntranceTimers(): void {
+  for (const timer of entranceTimers) window.clearTimeout(timer);
+  entranceTimers = [];
+}
+
+/**
+ * Returns to the closed cover: timers cancelled, film rewound to its poster
+ * moment, idle motion resumed. Replay is this followed by a fresh play, so
+ * the two can never drift apart.
+ */
+function resetEntrance(): void {
+  clearEntranceTimers();
+  setEntrancePhase("closed");
+  const video = document.querySelector<HTMLVideoElement>("[data-stage-video]");
+  if (video) {
+    video.pause();
+    try {
+      video.currentTime = 0;
+    } catch {
+      /* A source that never loaded is already showing its poster. */
+    }
+  }
+}
+
+/**
+ * Plays the entrance from wherever it currently is, always starting by
+ * resetting so a second press cannot stack two timelines. The film is released
+ * as the cover begins to travel, matching the production model.
+ */
+function playEntrance(): void {
+  clearEntranceTimers();
+  const timing = prefersReducedMotion() ? REDUCED_TIMING : currentTiming;
+
+  setEntrancePhase("acknowledge");
+  for (const step of buildEntrance(timing)) {
+    if (step.at === 0) continue;
+    entranceTimers.push(
+      window.setTimeout(() => {
+        setEntrancePhase(step.phase);
+        if (step.phase === "opening") releaseFilm();
+      }, step.at),
+    );
+  }
+}
+
+/** Starts the venue film once, letting it rest on its final frame. */
+function releaseFilm(): void {
+  const video = document.querySelector<HTMLVideoElement>("[data-stage-video]");
+  if (!video) return;
+  const promise = video.play();
+  if (promise) promise.catch(() => undefined);
+}
+
+function wireOpener(): void {
+  const opener = document.querySelector<HTMLButtonElement>("[data-cover-opener]");
+  opener?.addEventListener("click", () => {
+    // Only the closed cover opens. Rapid double taps, or a click arriving
+    // mid-sequence, are ignored rather than restarting the timeline.
+    if (entrancePhase !== "closed") return;
+    playEntrance();
+  });
 }
 
 /**
@@ -178,6 +306,34 @@ function reportGeometry(): void {
   );
 }
 
+const monogramUrls: Record<string, string | null> = { outer: null, inner: null };
+
+/** Bundled pair, used until the panel posts an uploaded one. */
+const STARTING_MONOGRAM = {
+  outer: new URL("../starting-monogram-outer.svg", document.baseURI).pathname,
+  inner: new URL("../starting-monogram-inner.svg", document.baseURI).pathname,
+} as const;
+
+/** Swaps one monogram layer, revoking the object URL it replaces. */
+function setMonogram(layer: "outer" | "inner", url: string | null): void {
+  const image = document.querySelector<HTMLImageElement>(
+    layer === "outer" ? "[data-monogram-outer]" : "[data-monogram-inner]",
+  );
+  if (!image) return;
+
+  const previous = monogramUrls[layer];
+  if (previous) URL.revokeObjectURL(previous);
+  monogramUrls[layer] = null;
+
+  // Falling back rather than clearing keeps the cover from ever going blank.
+  if (!url) {
+    image.src = STARTING_MONOGRAM[layer];
+    return;
+  }
+  monogramUrls[layer] = url;
+  image.src = url;
+}
+
 function setReference(url: string | null): void {
   const layer = document.querySelector<HTMLElement>("[data-reference]");
   if (!layer) return;
@@ -231,6 +387,8 @@ interface FrameMessage {
   url?: string | null;
   opacity?: number;
   blend?: string;
+  layer?: string;
+  checkpoint?: string;
 }
 
 /** Re-measure after layout settles, so warnings track the real composition. */
@@ -258,6 +416,30 @@ window.addEventListener("message", (event: MessageEvent) => {
     case "tp:geometry":
       scheduleGeometry();
       break;
+    case "tp:monogram":
+      setMonogram(message.layer === "inner" ? "inner" : "outer", message.url ?? null);
+      break;
+    case "tp:entrance-play":
+      playEntrance();
+      break;
+    case "tp:entrance-reset":
+      resetEntrance();
+      break;
+    case "tp:entrance-checkpoint": {
+      // Jumping straight to a state so monogram size or frost can be judged
+      // without sitting through the whole sequence each time.
+      clearEntranceTimers();
+      const target = checkpointPhase(
+        message.checkpoint === "venue"
+          ? "venue"
+          : message.checkpoint === "finished"
+            ? "finished"
+            : "closed",
+      );
+      setEntrancePhase(target);
+      if (target === "closed") resetEntrance();
+      break;
+    }
     case "tp:seek":
       seekFilm(typeof message.fraction === "number" ? message.fraction : 0);
       break;
@@ -289,6 +471,10 @@ const artworkParam = new URLSearchParams(window.location.search).get("artwork");
 if (artworkParam) setArtwork(artworkParam);
 
 seekFilm(0.06);
+wireOpener();
+setMonogram("outer", null);
+setMonogram("inner", null);
+setEntrancePhase("closed");
 window.addEventListener("resize", scheduleGeometry);
 scheduleGeometry();
 

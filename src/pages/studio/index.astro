@@ -69,6 +69,59 @@ function controlsFor(group: string) {
         </div>
       </header>
 
+      {/* ---------------------------------------------------------- cover */}
+      <details class="tps__section" open data-group-section="cover-upload">
+        <summary>Your Canva monogram</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">
+            The closed invitation is opened by a two-piece monogram. Canva makes the shapes; the
+            website makes them move.
+          </p>
+          <p class="tps__note">
+            Export both pieces from the same Canva canvas without changing the canvas size. That is
+            what keeps them perfectly lined up when the website layers them.
+          </p>
+
+          <div
+            class="tps__drop"
+            data-mono-drop="outer"
+            tabindex="0"
+            role="button"
+            aria-label="Upload outer monogram"
+          >
+            <strong data-mono-title="outer">Upload outer piece</strong>
+            <span>This layer slowly turns. Drop the SVG here, or click to choose it.</span>
+            <input type="file" accept=".svg,image/svg+xml" hidden data-mono-file="outer" />
+          </div>
+          <div class="tps__check" data-mono-check="outer" hidden></div>
+
+          <div
+            class="tps__drop"
+            data-mono-drop="inner"
+            tabindex="0"
+            role="button"
+            aria-label="Upload inner monogram"
+          >
+            <strong data-mono-title="inner">Upload centre piece</strong>
+            <span>
+              This layer stays put, breathes gently, and answers your tap. Drop the SVG here, or
+              click to choose it.
+            </span>
+            <input type="file" accept=".svg,image/svg+xml" hidden data-mono-file="inner" />
+          </div>
+          <div class="tps__check" data-mono-check="inner" hidden></div>
+
+          <div class="tps__row" data-mono-actions hidden>
+            <button class="tps__btn tps__btn--tiny" type="button" data-mono-compare>
+              Compare with previous
+            </button>
+            <button class="tps__btn tps__btn--tiny tps__btn--danger" type="button" data-mono-remove>
+              Back to starting monogram
+            </button>
+          </div>
+        </div>
+      </details>
+
       {/* -------------------------------------------------------- artwork */}
       <details class="tps__section" open>
         <summary>Your Canva design</summary>
@@ -116,6 +169,38 @@ function controlsFor(group: string) {
               Fit artwork safely
             </button>
           </div>
+        </div>
+      </details>
+
+      {/* -------------------------------------------------------- playback */}
+      <details class="tps__section" open>
+        <summary>Play the experience</summary>
+        <div class="tps__section-body">
+          <p class="tps__blurb">
+            Watch the whole thing from the closed invitation through to the finished Save the Date.
+            You can also just tap the monogram in the preview yourself.
+          </p>
+          <div class="tps__row" style="margin-bottom:.6rem">
+            <button class="tps__btn tps__btn--primary" type="button" data-play-experience>
+              Play full experience
+            </button>
+            <button class="tps__btn" type="button" data-replay-experience>Replay</button>
+          </div>
+          <div class="tps__row">
+            <button class="tps__btn tps__btn--tiny" type="button" data-checkpoint="closed">
+              Closed
+            </button>
+            <button class="tps__btn tps__btn--tiny" type="button" data-checkpoint="venue">
+              Venue moment
+            </button>
+            <button class="tps__btn tps__btn--tiny" type="button" data-checkpoint="finished">
+              Finished
+            </button>
+          </div>
+          <p class="tps__help">
+            Jump straight to a moment so you can judge the monogram or the frost without replaying
+            everything each time.
+          </p>
         </div>
       </details>
 

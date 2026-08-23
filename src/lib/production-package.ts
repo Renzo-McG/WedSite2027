@@ -161,6 +161,9 @@ export function buildZip(files: readonly PackageFile[]): Uint8Array {
 export interface PackageInput {
   /** Raw SVG source, or null when the built-in wording is the approved look. */
   artworkSvg: string | null;
+  /** The approved monogram pair, when one has been supplied. */
+  monogramOuter?: string | null;
+  monogramInner?: string | null;
   settingsJson: string;
   artworkDimensions: string;
   exportedAt: string;
@@ -183,6 +186,19 @@ export function productionPackage(input: PackageInput): PackageFile[] {
     });
   }
 
+  if (input.monogramOuter) {
+    files.push({
+      name: "save-the-date-approved/monogram-outer.svg",
+      content: input.monogramOuter,
+    });
+  }
+  if (input.monogramInner) {
+    files.push({
+      name: "save-the-date-approved/monogram-inner.svg",
+      content: input.monogramInner,
+    });
+  }
+
   files.push({ name: "save-the-date-approved/settings.json", content: input.settingsJson });
 
   const readme = [
@@ -190,6 +206,11 @@ export function productionPackage(input: PackageInput): PackageFile[] {
     "",
     `Exported: ${input.exportedAt}`,
     `Artwork:  ${input.artworkSvg ? input.artworkDimensions : "built-in wording (no SVG)"}`,
+    `Monogram: ${
+      input.monogramOuter && input.monogramInner
+        ? "outer and centre pieces included"
+        : "not supplied — still using the studio's starting pair"
+    }`,
     "",
     "settings.json holds the placement, frost and functional-zone values chosen",
     "in the Save the Date Studio. Sizes and gaps are a percentage of the",
@@ -289,7 +310,7 @@ export async function readZip(buffer: ArrayBuffer): Promise<ReadFile[]> {
 
 /* ------------------------------------------------------- complete look */
 
-export const LOOK_SCHEMA_VERSION = 1;
+export const LOOK_SCHEMA_VERSION = 2;
 
 export interface LookManifest {
   schemaVersion: number;
@@ -297,17 +318,52 @@ export interface LookManifest {
   settings: Record<string, number | string>;
 }
 
+/** The artwork a look or package can carry. Any piece may be absent. */
+export interface LookArtwork {
+  invitation: string | null;
+  monogramOuter: string | null;
+  monogramInner: string | null;
+}
+
+const EMPTY_ARTWORK: LookArtwork = {
+  invitation: null,
+  monogramOuter: null,
+  monogramInner: null,
+};
+
 /**
  * The shareable look: the artwork and the settings that place it, together.
  * Distinct from the production package, which is the handover to whoever
  * builds the final site.
  */
 export function completeLookPackage(
-  artworkSvg: string | null,
+  artwork: LookArtwork | string | null,
   manifest: LookManifest,
 ): PackageFile[] {
+  // v1 callers passed the invitation SVG alone; accept that shape so older
+  // code paths and tests keep working while the pair becomes the norm.
+  const pieces: LookArtwork =
+    typeof artwork === "string" || artwork === null
+      ? { ...EMPTY_ARTWORK, invitation: artwork }
+      : artwork;
+
   const files: PackageFile[] = [];
-  if (artworkSvg) files.push({ name: "invitation-artwork.svg", content: artworkSvg });
+  const present: string[] = [];
+  const missing: string[] = [];
+
+  const add = (svg: string | null, name: string, label: string): void => {
+    if (svg) {
+      files.push({ name, content: svg });
+      present.push(`- ${label}`);
+    } else {
+      missing.push(`- ${label} (not supplied yet)`);
+    }
+  };
+
+  add(pieces.invitation, "invitation-artwork.svg", "Invitation artwork");
+  add(pieces.monogramOuter, "monogram-outer.svg", "Monogram — outer piece");
+  add(pieces.monogramInner, "monogram-inner.svg", "Monogram — centre piece");
+
   files.push({ name: "settings.json", content: JSON.stringify(manifest, null, 2) });
   files.push({
     name: "README.txt",
@@ -315,8 +371,9 @@ export function completeLookPackage(
       "Emily & Lawrence — Save the Date Studio Look",
       "",
       "Contains:",
-      "- Canva SVG artwork",
+      ...present,
       "- Studio visual settings",
+      ...(missing.length > 0 ? ["", "Not included:", ...missing] : []),
       "",
       "To use:",
       "1. Open the shared Save the Date Studio.",
@@ -329,7 +386,14 @@ export function completeLookPackage(
 }
 
 export type LookImport =
-  | { ok: true; artworkSvg: string | null; settings: Record<string, number | string> }
+  | {
+      ok: true;
+      artworkSvg: string | null;
+      monogramOuter: string | null;
+      monogramInner: string | null;
+      schemaVersion: number;
+      settings: Record<string, number | string>;
+    }
   | { ok: false; reason: string };
 
 /**
@@ -366,10 +430,30 @@ export function parseLookFiles(files: readonly ReadFile[]): LookImport {
     return { ok: false, reason: "That look does not contain any design settings." };
   }
 
-  const artworkFile = find(".svg");
+  // Matched by name so a v1 package — which only ever held one SVG — still
+  // restores its invitation artwork, and simply brings no monogram with it.
+  const byName = (needle: string): string | null => {
+    const hit = files.find((file) => file.name.toLowerCase().endsWith(needle));
+    return hit ? decoder.decode(hit.bytes) : null;
+  };
+
+  const outer = byName("monogram-outer.svg");
+  const inner = byName("monogram-inner.svg");
+  const invitation =
+    byName("invitation-artwork.svg") ??
+    // A v1 export used whatever the single SVG was called.
+    files
+      .filter((file) => file.name.toLowerCase().endsWith(".svg"))
+      .filter((file) => !/monogram-(outer|inner)\.svg$/i.test(file.name))
+      .map((file) => decoder.decode(file.bytes))[0] ??
+    null;
+
   return {
     ok: true,
-    artworkSvg: artworkFile ? decoder.decode(artworkFile.bytes) : null,
+    artworkSvg: invitation,
+    monogramOuter: outer,
+    monogramInner: inner,
+    schemaVersion: manifest.schemaVersion,
     settings: manifest.settings,
   };
 }

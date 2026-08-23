@@ -17,18 +17,42 @@
  * implementation.
  */
 
-export const SETTINGS_VERSION = 2;
+export const SETTINGS_VERSION = 3;
 export const SETTINGS_STORAGE_KEY = "eandl.type-preview.settings:v1";
 export const PRESETS_STORAGE_KEY = "eandl.type-preview.presets:v1";
 
 export type ControlGroupId =
-  "artwork" | "position" | "size" | "script" | "date" | "material" | "functional" | "fonts";
+  | "cover"
+  | "entrance"
+  | "artwork"
+  | "position"
+  | "size"
+  | "script"
+  | "date"
+  | "material"
+  | "functional"
+  | "fonts";
 
 export type ArtworkMode = "svg" | "native";
+export type CoverMode = "monogram" | "builtin";
 
-/** Limits a control to one artwork mode; absent means "always shown". */
+/**
+ * Limits a control to one mode; absent means "always shown". Keyed by the
+ * choice control it depends on, so a control is hidden exactly when the mode
+ * that gives it meaning is not active. Hidden controls keep their values.
+ */
 export interface ControlVisibility {
-  artworkMode: ArtworkMode;
+  artworkMode?: ArtworkMode;
+  coverMode?: CoverMode;
+}
+
+/** True when every mode named by `showWhen` currently matches. */
+export function controlIsVisible(control: Control, settings: Settings): boolean {
+  const when = control.showWhen;
+  if (!when) return true;
+  if (when.artworkMode !== undefined && settings.artworkMode !== when.artworkMode) return false;
+  if (when.coverMode !== undefined && settings.coverMode !== when.coverMode) return false;
+  return true;
 }
 
 export interface ControlGroup {
@@ -40,6 +64,16 @@ export interface ControlGroup {
 }
 
 export const CONTROL_GROUPS: readonly ControlGroup[] = [
+  {
+    id: "cover",
+    title: "Cover & monogram",
+    blurb: "The closed invitation, and how your monogram sits and moves on it.",
+  },
+  {
+    id: "entrance",
+    title: "Entrance timing",
+    blurb: "How the invitation opens, and how long the venue gets on its own.",
+  },
   {
     id: "artwork",
     title: "Artwork",
@@ -126,6 +160,296 @@ export type Control = SliderControl | ChoiceControl;
  * checked against the overlay.
  */
 export const CONTROLS: readonly Control[] = [
+  /* --------------------------------------------------------- cover */
+  {
+    kind: "choice",
+    id: "coverMode",
+    group: "cover",
+    label: "What should the closed invitation show?",
+    help: "Your two-piece Canva monogram, or the built-in mark the site shipped with. Choosing the monogram replaces the old mark, its green circle and the word Open completely.",
+    cssVar: "--tp-cover-mode",
+    value: "monogram",
+    options: [
+      { value: "monogram", label: "Canva monogram" },
+      { value: "builtin", label: "Built-in mark" },
+    ],
+  },
+  {
+    kind: "slider",
+    id: "coverStrength",
+    group: "cover",
+    label: "How solid is the closed cover?",
+    help: "How much the closed invitation hides the venue behind it. Lower lets more of the film show through before it is opened.",
+    cssVar: "--tp-cover-strength",
+    min: 30,
+    max: 100,
+    step: 1,
+    unit: "",
+    value: 82,
+    display: "%",
+  },
+  {
+    kind: "slider",
+    id: "coverBlur",
+    group: "cover",
+    label: "Cover frost",
+    help: "How blurred the venue looks through the closed cover.",
+    cssVar: "--tp-cover-blur",
+    min: 0,
+    max: 40,
+    step: 1,
+    unit: "px",
+    value: 14,
+    display: "px",
+  },
+  {
+    kind: "slider",
+    id: "monogramScale",
+    group: "cover",
+    label: "Monogram size",
+    help: "Makes the complete monogram larger or smaller. Both pieces scale together and stay perfectly lined up.",
+    cssVar: "--tp-mono-scale",
+    min: 10,
+    max: 90,
+    step: 0.5,
+    unit: "%",
+    value: 38,
+    display: "%",
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "slider",
+    id: "monogramY",
+    group: "cover",
+    label: "Move monogram up / down",
+    help: "Moves both monogram pieces together, higher or lower on the closed invitation.",
+    cssVar: "--tp-mono-y",
+    min: -40,
+    max: 40,
+    step: 0.25,
+    unit: "%",
+    value: 0,
+    display: "%",
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "slider",
+    id: "monogramX",
+    group: "cover",
+    label: "Move monogram left / right",
+    help: "Nudges both monogram pieces together, sideways.",
+    cssVar: "--tp-mono-x",
+    min: -40,
+    max: 40,
+    step: 0.25,
+    unit: "%",
+    value: 0,
+    display: "%",
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "choice",
+    id: "outerRotation",
+    group: "cover",
+    label: "Outer piece turns",
+    help: "Whether the outer part of the monogram slowly rotates while the invitation waits to be opened.",
+    cssVar: "--tp-mono-rotate-on",
+    value: "on",
+    options: [
+      { value: "on", label: "On" },
+      { value: "off", label: "Off" },
+    ],
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "slider",
+    id: "rotationSeconds",
+    group: "cover",
+    label: "Rotation speed",
+    help: "How long the outer monogram takes to complete one full turn while waiting. Higher numbers are slower and calmer.",
+    cssVar: "--tp-mono-rotate-seconds",
+    min: 12,
+    max: 120,
+    step: 1,
+    unit: "s",
+    value: 46,
+    display: "s per turn",
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "choice",
+    id: "rotationDirection",
+    group: "cover",
+    label: "Rotation direction",
+    help: "Which way the outer monogram turns.",
+    cssVar: "--tp-mono-rotate-dir",
+    value: "cw",
+    options: [
+      { value: "cw", label: "Clockwise" },
+      { value: "ccw", label: "Anticlockwise" },
+    ],
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "choice",
+    id: "innerBreathing",
+    group: "cover",
+    label: "Centre piece breathes",
+    help: "Whether the centre of the monogram gently grows and settles while the invitation waits.",
+    cssVar: "--tp-mono-breath-on",
+    value: "on",
+    options: [
+      { value: "on", label: "On" },
+      { value: "off", label: "Off" },
+    ],
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "slider",
+    id: "breathAmount",
+    group: "cover",
+    label: "Breathing amount",
+    help: "How much the centre mark gently grows and settles. Deliberately small — this should be barely noticeable rather than a pulse.",
+    cssVar: "--tp-mono-breath-amount",
+    min: 0.2,
+    max: 4,
+    step: 0.1,
+    unit: "",
+    value: 1.6,
+    display: "%",
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "slider",
+    id: "breathSeconds",
+    group: "cover",
+    label: "Breathing speed",
+    help: "How long one gentle grow-and-settle takes. Higher numbers feel calmer.",
+    cssVar: "--tp-mono-breath-seconds",
+    min: 3,
+    max: 14,
+    step: 0.5,
+    unit: "s",
+    value: 6.5,
+    display: "s",
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "slider",
+    id: "pressResponse",
+    group: "cover",
+    label: "Press response",
+    help: "How strongly the centre mark answers your tap, just before the invitation starts to open.",
+    cssVar: "--tp-mono-press",
+    min: 0,
+    max: 8,
+    step: 0.25,
+    unit: "",
+    value: 3,
+    display: "%",
+    showWhen: { coverMode: "monogram" },
+  },
+  {
+    kind: "slider",
+    id: "monogramLight",
+    group: "cover",
+    label: "Monogram light",
+    help: "A subtle sense of light behind the monogram. Leave low — this is atmosphere, not a glow.",
+    cssVar: "--tp-mono-light",
+    min: 0,
+    max: 100,
+    step: 1,
+    unit: "%",
+    value: 22,
+    display: "%",
+    showWhen: { coverMode: "monogram" },
+  },
+
+  /* ------------------------------------------------------ entrance */
+  {
+    kind: "slider",
+    id: "coverOpenSeconds",
+    group: "entrance",
+    label: "How long the cover takes to open",
+    help: "The physical movement of the cover clearing away from the invitation.",
+    cssVar: "--tp-cover-open-seconds",
+    min: 0.4,
+    max: 3.5,
+    step: 0.05,
+    unit: "s",
+    value: 1.4,
+    display: "s",
+  },
+  {
+    kind: "slider",
+    id: "venueHoldSeconds",
+    group: "entrance",
+    label: "How long should we see just the venue?",
+    help: "The pause between the cover opening and the invitation beginning to appear. This is the moment the Ocean Pavilion film gets to itself.",
+    cssVar: "--tp-venue-hold-seconds",
+    min: 0,
+    max: 5,
+    step: 0.1,
+    unit: "s",
+    value: 1.5,
+    display: "s",
+  },
+  {
+    kind: "choice",
+    id: "arrivalMode",
+    group: "entrance",
+    label: "How the invitation arrives",
+    help: "Whether the wording waits for the frosted material to develop, or the two arrive together.",
+    cssVar: "--tp-arrival-mode",
+    value: "sequential",
+    options: [
+      { value: "sequential", label: "Frost first, then wording" },
+      { value: "together", label: "Frost and wording together" },
+    ],
+  },
+  {
+    kind: "slider",
+    id: "frostArrivalSeconds",
+    group: "entrance",
+    label: "Frost arrival speed",
+    help: "How quickly the invitation material develops over the venue, settling into the exact frost you have chosen below.",
+    cssVar: "--tp-frost-arrival-seconds",
+    min: 0.2,
+    max: 3,
+    step: 0.05,
+    unit: "s",
+    value: 0.9,
+    display: "s",
+  },
+  {
+    kind: "slider",
+    id: "artworkArrivalSeconds",
+    group: "entrance",
+    label: "Invitation artwork arrival",
+    help: "How quickly the Canva wording resolves once it starts to appear.",
+    cssVar: "--tp-artwork-arrival-seconds",
+    min: 0.2,
+    max: 3,
+    step: 0.05,
+    unit: "s",
+    value: 0.9,
+    display: "s",
+  },
+  {
+    kind: "slider",
+    id: "functionalDelaySeconds",
+    group: "entrance",
+    label: "Countdown & calendar delay",
+    help: "How long the countdown and Save to Calendar wait after the wording begins to appear. Zero brings them in together.",
+    cssVar: "--tp-functional-delay-seconds",
+    min: 0,
+    max: 2.5,
+    step: 0.05,
+    unit: "s",
+    value: 0.45,
+    display: "s",
+  },
+
   /* ------------------------------------------------------- artwork */
   {
     kind: "choice",
