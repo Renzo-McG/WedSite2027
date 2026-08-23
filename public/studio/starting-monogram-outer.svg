@@ -1,0 +1,17 @@
+<svg width="540" height="540" viewBox="0 0 540 540" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Engineering placeholder for the OUTER monogram layer, not a design proposal.
+    Exported on the same 540x540 artboard as the inner piece so the two share a
+    centre and overlay exactly. Replace via the studio's upload, or swap this
+    file to change the bundled starting pair.
+    The deliberate asymmetry (one heavier arc, four ticks) makes rotation
+    obvious during QA — a perfect ring would hide a wobbling centre.
+  -->
+  <circle cx="270" cy="270" r="196" stroke="#E8E4D8" stroke-opacity="0.55" stroke-width="1.5"/>
+  <circle cx="270" cy="270" r="214" stroke="#E8E4D8" stroke-opacity="0.28" stroke-width="1"/>
+  <path d="M270 56 A214 214 0 0 1 421 118" stroke="#E8E4D8" stroke-opacity="0.85" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="268.5" y="34" width="3" height="22" rx="1.5" fill="#E8E4D8" fill-opacity="0.8"/>
+  <rect x="268.5" y="484" width="3" height="22" rx="1.5" fill="#E8E4D8" fill-opacity="0.5"/>
+  <rect x="34" y="268.5" width="22" height="3" rx="1.5" fill="#E8E4D8" fill-opacity="0.5"/>
+  <rect x="484" y="268.5" width="22" height="3" rx="1.5" fill="#E8E4D8" fill-opacity="0.5"/>
+</svg>

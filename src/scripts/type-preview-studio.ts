@@ -4,6 +4,7 @@ import {
   PRESETS_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
   coerceSettings,
+  controlIsVisible,
   defaultSettings,
   estimateContrast,
   exportPayload,
@@ -15,11 +16,15 @@ import {
 import { downloadBlob } from "../lib/browser-download";
 import { inspectSvg, type ArtworkInspection } from "../lib/svg-artwork";
 import {
+  MONOGRAM_SLOTS,
   artworkObjectUrl,
   clearArtwork,
+  clearMonogram,
   markCurrentApproved,
   putCurrentArtwork,
+  putMonogramLayer,
   readArtwork,
+  stashMonogramPair,
   type ArtworkSlot,
 } from "../lib/artwork-store";
 import {
@@ -70,6 +75,10 @@ let openedFromSharedLink = false;
 
 /** The design bundled with the deployed studio, used before anyone uploads. */
 const STARTING_ARTWORK_URL = new URL("starting-artwork.svg", document.baseURI).pathname;
+const STARTING_MONOGRAM_URL = {
+  outer: new URL("starting-monogram-outer.svg", document.baseURI).pathname,
+  inner: new URL("starting-monogram-inner.svg", document.baseURI).pathname,
+} as const;
 
 /* ----------------------------------------------------------- persistence */
 
@@ -162,11 +171,10 @@ function syncControl(control: Control): void {
  * the built-in wording restores exactly what was there before.
  */
 function applyModeVisibility(): void {
-  const mode = String(settings.artworkMode ?? "native");
   for (const control of CONTROLS) {
     const node = document.querySelector<HTMLElement>(`[data-control="${control.id}"]`);
     if (!node) continue;
-    node.hidden = control.showWhen !== undefined && control.showWhen.artworkMode !== mode;
+    node.hidden = !controlIsVisible(control, settings);
   }
 
   // A whole section disappears when every control in it is irrelevant.
@@ -474,11 +482,15 @@ function wireSharing(): void {
             .catch(() => null);
         }
 
-        const files = completeLookPackage(artworkSvg, {
-          schemaVersion: LOOK_SCHEMA_VERSION,
-          exportedAt: new Date().toISOString(),
-          settings: coerceSettings(settings),
-        });
+        const pieces = await collectMonogramSources();
+        const files = completeLookPackage(
+          { invitation: artworkSvg, ...pieces },
+          {
+            schemaVersion: LOOK_SCHEMA_VERSION,
+            exportedAt: new Date().toISOString(),
+            settings: coerceSettings(settings),
+          },
+        );
         const blob = new Blob([buildZip(files) as BlobPart], { type: "application/zip" });
         const result = downloadBlob(blob, FILENAME);
         if (!result.ok) throw result.error ?? new Error("download failed");
@@ -566,10 +578,268 @@ async function importLook(file: File): Promise<void> {
     artworkSource = "imported";
     await showArtwork("current");
   }
+
+  // A v1 package carries no monogram; the existing pair is then left exactly
+  // as it was rather than being wiped by an older look.
+  const importedPair = [
+    ["outer", parsed.monogramOuter],
+    ["inner", parsed.monogramInner],
+  ] as const;
+
+  if (importedPair.some(([, svg]) => svg)) {
+    await stashMonogramPair();
+    for (const [layer, svg] of importedPair) {
+      if (!svg) continue;
+      if (!inspectSvg(svg).ok) continue;
+      await putMonogramLayer(layer, svg, `imported-monogram-${layer}.svg`, "imported");
+    }
+    await showMonogramPair("current");
+    await refreshMonogramUi();
+  }
+
   openedFromSharedLink = false;
   await refreshArtworkUi();
   refreshStatus();
-  reportImport("Imported. Your saved versions on this device were left alone.", "ok");
+  reportImport(
+    parsed.schemaVersion < LOOK_SCHEMA_VERSION
+      ? "Imported an older look. Anything it did not include kept your current settings."
+      : "Imported. Your saved versions on this device were left alone.",
+    "ok",
+  );
+}
+
+/* ------------------------------------------------------------ monogram */
+
+type MonogramLayer = "outer" | "inner";
+
+const monogramUrls: Record<MonogramLayer, string | null> = { outer: null, inner: null };
+let monogramShowing: "current" | "previous" = "current";
+
+/**
+ * Points a monogram layer at its stored artwork, or at the bundled starting
+ * piece when nothing has been uploaded — so the cover is never empty and the
+ * upload slots can be tried immediately.
+ */
+async function showMonogramLayer(
+  layer: MonogramLayer,
+  slotSet: "current" | "previous",
+): Promise<void> {
+  const slot =
+    layer === "outer"
+      ? slotSet === "current"
+        ? MONOGRAM_SLOTS.outer
+        : MONOGRAM_SLOTS.outerPrevious
+      : slotSet === "current"
+        ? MONOGRAM_SLOTS.inner
+        : MONOGRAM_SLOTS.innerPrevious;
+
+  const record = await readArtwork(slot);
+  const previousUrl = monogramUrls[layer];
+  if (previousUrl) URL.revokeObjectURL(previousUrl);
+
+  if (record) {
+    const url = artworkObjectUrl(record.source);
+    monogramUrls[layer] = url;
+    postToFrame({ type: "tp:monogram", layer, url });
+    return;
+  }
+
+  monogramUrls[layer] = null;
+  postToFrame({
+    type: "tp:monogram",
+    layer,
+    url: slotSet === "current" ? STARTING_MONOGRAM_URL[layer] : null,
+  });
+}
+
+async function showMonogramPair(slotSet: "current" | "previous" = monogramShowing): Promise<void> {
+  monogramShowing = slotSet;
+  await showMonogramLayer("outer", slotSet);
+  await showMonogramLayer("inner", slotSet);
+}
+
+async function refreshMonogramUi(): Promise<void> {
+  const outer = await readArtwork(MONOGRAM_SLOTS.outer);
+  const inner = await readArtwork(MONOGRAM_SLOTS.inner);
+  const previous = await readArtwork(MONOGRAM_SLOTS.outerPrevious);
+
+  for (const [layer, record] of [
+    ["outer", outer],
+    ["inner", inner],
+  ] as const) {
+    const title = document.querySelector<HTMLElement>(`[data-mono-title="${layer}"]`);
+    if (title) {
+      title.textContent = record
+        ? `Replace ${layer === "outer" ? "outer" : "centre"} piece`
+        : `Upload ${layer === "outer" ? "outer" : "centre"} piece`;
+    }
+  }
+
+  const actions = document.querySelector<HTMLElement>("[data-mono-actions]");
+  if (actions) actions.hidden = !outer && !inner;
+  const compare = document.querySelector<HTMLButtonElement>("[data-mono-compare]");
+  if (compare) {
+    compare.hidden = !previous;
+    compare.textContent =
+      monogramShowing === "current" ? "Compare with previous" : "Back to latest";
+  }
+}
+
+function renderMonogramCheck(layer: MonogramLayer, inspection: ArtworkInspection | null): void {
+  const box = document.querySelector<HTMLElement>(`[data-mono-check="${layer}"]`);
+  if (!box) return;
+  if (!inspection) {
+    box.hidden = true;
+    box.replaceChildren();
+    return;
+  }
+  box.hidden = false;
+  const lines: HTMLElement[] = [];
+  for (const pass of inspection.passed) {
+    const row = document.createElement("p");
+    row.className = "ok";
+    row.textContent = `✓ ${pass}`;
+    lines.push(row);
+  }
+  for (const warning of inspection.warnings) {
+    const row = document.createElement("p");
+    row.className = warning.blocking ? "bad" : "warn";
+    row.textContent = `⚠ ${warning.message}`;
+    lines.push(row);
+  }
+  box.replaceChildren(...lines);
+}
+
+/**
+ * Accepts one monogram layer. The outgoing pair is stashed as a set before
+ * either layer changes, so "previous" is always a coherent pair rather than a
+ * mix of two uploads.
+ */
+async function acceptMonogramFile(layer: MonogramLayer, file: File): Promise<void> {
+  if (!/\.svg$/i.test(file.name) && file.type !== "image/svg+xml") {
+    showToast("That is not an SVG. Export the monogram from Canva as SVG.");
+    return;
+  }
+
+  const source = await file.text();
+  const inspection = inspectSvg(source);
+  renderMonogramCheck(layer, inspection);
+  if (!inspection.ok) {
+    showToast("That file was not loaded — see the check above.");
+    return;
+  }
+
+  if (monogramShowing === "previous") monogramShowing = "current";
+  await stashMonogramPair();
+  await putMonogramLayer(layer, source, file.name);
+  settings.coverMode = "monogram";
+  saveSettings();
+  syncAllControls();
+  pushSettings();
+  await showMonogramPair("current");
+  await refreshMonogramUi();
+  showToast(`Loaded ${file.name}. Your settings are unchanged.`);
+}
+
+function wireMonogram(): void {
+  for (const layer of ["outer", "inner"] as const) {
+    const drop = document.querySelector<HTMLElement>(`[data-mono-drop="${layer}"]`);
+    const input = document.querySelector<HTMLInputElement>(`[data-mono-file="${layer}"]`);
+
+    drop?.addEventListener("click", () => input?.click());
+    drop?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        input?.click();
+      }
+    });
+    input?.addEventListener("change", () => {
+      const file = input.files?.[0];
+      if (file) void acceptMonogramFile(layer, file);
+      input.value = "";
+    });
+    for (const name of ["dragenter", "dragover"]) {
+      drop?.addEventListener(name, (event) => {
+        event.preventDefault();
+        drop.dataset.active = "true";
+      });
+    }
+    for (const name of ["dragleave", "drop"]) {
+      drop?.addEventListener(name, (event) => {
+        event.preventDefault();
+        delete drop.dataset.active;
+      });
+    }
+    drop?.addEventListener("drop", (event) => {
+      const file = (event as DragEvent).dataTransfer?.files?.[0];
+      if (file) void acceptMonogramFile(layer, file);
+    });
+  }
+
+  document
+    .querySelector<HTMLButtonElement>("[data-mono-compare]")
+    ?.addEventListener("click", () => {
+      void showMonogramPair(monogramShowing === "current" ? "previous" : "current").then(() => {
+        showToast(monogramShowing === "current" ? "Showing the latest." : "Showing the previous.");
+        return refreshMonogramUi();
+      });
+    });
+
+  document.querySelector<HTMLButtonElement>("[data-mono-remove]")?.addEventListener("click", () => {
+    if (!window.confirm("Remove your uploaded monogram and go back to the starting one?")) return;
+    void clearMonogram().then(async () => {
+      renderMonogramCheck("outer", null);
+      renderMonogramCheck("inner", null);
+      await showMonogramPair("current");
+      await refreshMonogramUi();
+      showToast("Back to the starting monogram.");
+    });
+  });
+}
+
+/**
+ * The monogram pair to ship in an export. Falls back to the bundled starting
+ * pieces so a look always opens with a working cover on the other machine,
+ * and the README says plainly which artwork is real and which is a stand-in.
+ */
+async function collectMonogramSources(): Promise<{
+  monogramOuter: string | null;
+  monogramInner: string | null;
+}> {
+  const read = async (layer: MonogramLayer): Promise<string | null> => {
+    const slot = layer === "outer" ? MONOGRAM_SLOTS.outer : MONOGRAM_SLOTS.inner;
+    const record = await readArtwork(slot);
+    if (record) return record.source;
+    return fetch(STARTING_MONOGRAM_URL[layer])
+      .then((response) => (response.ok ? response.text() : null))
+      .catch(() => null);
+  };
+
+  return { monogramOuter: await read("outer"), monogramInner: await read("inner") };
+}
+
+/* ------------------------------------------------------------ playback */
+
+function wirePlayback(): void {
+  document
+    .querySelector<HTMLButtonElement>("[data-play-experience]")
+    ?.addEventListener("click", () => {
+      postToFrame({ type: "tp:entrance-reset" });
+      window.setTimeout(() => postToFrame({ type: "tp:entrance-play" }), 120);
+    });
+
+  document
+    .querySelector<HTMLButtonElement>("[data-replay-experience]")
+    ?.addEventListener("click", () => {
+      postToFrame({ type: "tp:entrance-reset" });
+      window.setTimeout(() => postToFrame({ type: "tp:entrance-play" }), 120);
+    });
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-checkpoint]")) {
+    button.addEventListener("click", () => {
+      postToFrame({ type: "tp:entrance-checkpoint", checkpoint: button.dataset.checkpoint });
+    });
+  }
 }
 
 /* ------------------------------------------------------------ viewport */
@@ -1019,8 +1289,11 @@ function wireExport(): void {
         const dimensions = currentInspection?.width
           ? `${Math.round(currentInspection.width)} × ${Math.round(currentInspection.height ?? 0)} SVG`
           : "SVG";
+        const pieces = await collectMonogramSources();
         const files = productionPackage({
           artworkSvg: record?.source ?? null,
+          monogramOuter: pieces.monogramOuter,
+          monogramInner: pieces.monogramInner,
           settingsJson: JSON.stringify(exportPayload(settings), null, 2),
           artworkDimensions: dimensions,
           exportedAt: new Date().toISOString(),
@@ -1067,6 +1340,7 @@ window.addEventListener("message", (event: MessageEvent) => {
     frameReady = true;
     pushSettings();
     void showArtwork(showingSlot).then(refreshArtworkUi);
+    void showMonogramPair("current").then(refreshMonogramUi);
     window.setTimeout(requestLuminance, 400);
   }
 
@@ -1135,6 +1409,8 @@ wireControls();
 wirePreviewAids();
 wireCustomViewport();
 wireArtwork();
+wireMonogram();
+wirePlayback();
 wireSharing();
 wireExport();
 renderPresets();

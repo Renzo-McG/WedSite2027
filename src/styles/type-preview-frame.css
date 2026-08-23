@@ -362,3 +362,413 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
 }
+
+/* ================================================== cover & entrance */
+
+/* The studio's own cover. The production one is left alone; this exists so
+   the monogram can genuinely replace the old mark, disc and "Open" text
+   rather than being layered over them. Colours come from production tokens,
+   so the material still reads as the same invitation. */
+
+/* The blur lives here, on one element spanning the whole card, rather than on
+   the two halves. Two abutting backdrop-filtered layers each sample their own
+   backdrop, which leaves a visible unfiltered seam down the middle where they
+   meet — one surface has no seam to leave. It also means the blur can lift as
+   the panels travel, so opening genuinely exposes the film. */
+
+.tp-frame .tp-cover {
+  position: absolute;
+  z-index: 5;
+  border-radius: inherit;
+  backdrop-filter: blur(var(--tp-cover-blur, 14px)) saturate(0.86);
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: backdrop-filter var(--tp-cover-open-seconds, 1.4s) var(--ease-aperture);
+  -webkit-backdrop-filter: blur(var(--tp-cover-blur, 14px)) saturate(0.86);
+}
+
+/* Blur lifts with the panels, over the same duration. */
+
+.tp-frame:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .tp-cover {
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+}
+
+/* The studio neutralises `.invitation__surface` so the frosted band can be a
+   band, which leaves the cover with nothing behind it. Each half therefore
+   carries its own tint under production's own two-piece gradient; the blur
+   sits on the cover container above. The venue stays faintly present behind
+   the sealed cover, exactly as it does in production.
+
+   Deliberately no `will-change: transform` on the halves. It promotes each to
+   its own composited layer, and against the cover's backdrop-filter that left
+   a bright unfiltered stripe down the seam on mobile. The panels still animate
+   smoothly without it, so the hint bought nothing and cost a rendering bug. */
+
+/* Production paints `--cover-atmos` across the two halves as one 200%-wide
+   gradient. That relies on an opaque invitation surface underneath, which the
+   studio removes so the frost can be a band — and worse, the gradient's bright
+   centre sits at the 50% mark, which each half then draws at the seam,
+   doubling it into a hard vertical stripe. The studio therefore gives each
+   half its own calm, symmetrical treatment and lets the monogram's own light
+   provide the centre interest. */
+
+/* The sliding panels carry only a flat tint and a soft vertical fall.
+
+   Production paints `--cover-atmos` across the pair as one 200%-wide image,
+   which relies on an opaque invitation surface the studio has removed. It also
+   centres a light glow at the gradient's 50% mark, so each half draws that
+   bright centre against the seam and the two double into a hard stripe —
+   measurably ~34px wide and centred on the join. Keeping the atmosphere on the
+   container below, drawn once across the whole card, removes the doubling by
+   construction rather than by tuning. */
+
+.tp-frame .tp-cover__half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.2%;
+  background-color: rgba(9, 16, 12, calc(var(--tp-cover-strength, 82) / 100));
+  background-image: linear-gradient(178deg, rgba(28, 42, 34, 0.3) 0%, rgba(7, 13, 10, 0.46) 100%);
+  transition: transform var(--tp-cover-open-seconds, 1.4s) var(--ease-aperture);
+}
+
+.tp-frame .tp-cover__half--left {
+  left: 0;
+}
+
+.tp-frame .tp-cover__half--right {
+  right: 0;
+}
+
+/* One continuous atmosphere beneath both panels, so the centre glow is drawn
+   once. Fades with the blur as the cover travels. */
+
+.tp-frame .tp-cover__atmos {
+  position: absolute;
+  background: var(--cover-atmos);
+  inset: 0;
+  pointer-events: none;
+  transition: opacity var(--tp-cover-open-seconds, 1.4s) var(--ease-aperture);
+}
+
+.tp-frame:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .tp-cover__atmos {
+  opacity: 0;
+}
+
+/* Seam segments stop short of the monogram, so no line ever crosses it. */
+
+.tp-frame .tp-cover__seam {
+  position: absolute;
+  left: 50%;
+  width: var(--seam-width, 1px);
+  background: linear-gradient(180deg, transparent, rgba(232, 228, 216, 0.34), transparent);
+  transform: translateX(-50%);
+  transition: opacity 260ms var(--ease-local);
+}
+
+.tp-frame .tp-cover__seam--top {
+  top: 0;
+  height: calc(50% - var(--tp-mono-seam-gap, 22%));
+}
+
+.tp-frame .tp-cover__seam--bottom {
+  bottom: 0;
+  height: calc(50% - var(--tp-mono-seam-gap, 22%));
+}
+
+/* ------------------------------------------------------------ opener */
+
+.tp-frame .tp-opener {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  inset: 0;
+  place-content: center;
+  transition: opacity 420ms var(--ease-material);
+}
+
+.tp-frame .tp-opener:focus-visible {
+  outline: 2px solid rgba(240, 239, 230, 0.9);
+  outline-offset: 6px;
+  border-radius: 50%;
+}
+
+/* One box for both layers. Size and position are applied here, so the two
+   images can never drift apart — there is only one transform to get wrong. */
+
+.tp-frame .tp-mono {
+  position: relative;
+  display: block;
+  width: var(--tp-mono-size, 38cqw);
+  aspect-ratio: 1;
+  transform: translate(var(--tp-mono-x, 0%), var(--tp-mono-y, 0%));
+}
+
+/* Both layers fill the same box from the same origin. Because the two SVGs
+   are exported from one Canva artboard, identical boxes mean identical
+   centres — which is what stops the outer orbiting or the inner drifting. */
+
+.tp-frame .tp-mono__layer {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  transform-origin: 50% 50%;
+  pointer-events: none;
+}
+
+.tp-frame .tp-mono__layer--outer {
+  animation: tp-mono-spin var(--tp-mono-rotate-duration, 46s) linear infinite;
+  animation-play-state: var(--tp-mono-rotate-state, running);
+}
+
+.tp-frame .tp-mono__layer--inner {
+  animation: tp-mono-breathe var(--tp-mono-breath-duration, 6.5s) ease-in-out infinite;
+  animation-play-state: var(--tp-mono-breath-state, running);
+}
+
+@keyframes tp-mono-spin {
+  from {
+    rotate: var(--tp-mono-rotate-from, 0deg);
+  }
+  to {
+    rotate: var(--tp-mono-rotate-to, 360deg);
+  }
+}
+
+/* Scale only — never translate — so breathing cannot shift the centre. */
+
+@keyframes tp-mono-breathe {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: var(--tp-mono-breath-scale, 1.016);
+  }
+}
+
+.tp-frame .tp-mono__light {
+  position: absolute;
+  background: radial-gradient(
+    circle,
+    rgba(226, 208, 176, calc(var(--tp-mono-light, 22%) / 100 * 0.5)) 0%,
+    transparent 68%
+  );
+  content: "";
+  inset: -34%;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------- cover modes */
+
+/* Monogram mode hides the old treatment outright rather than stacking the new
+   artwork on top of it: no E&L mark, no green disc, no "Open" word. */
+
+.tp-frame[data-cover-mode="monogram"] .tp-opener__builtin {
+  display: none;
+}
+
+.tp-frame[data-cover-mode="builtin"] .tp-mono {
+  display: none;
+}
+
+.tp-frame .tp-opener__builtin {
+  display: grid;
+  gap: 0.9rem;
+  justify-items: center;
+}
+
+.tp-frame .tp-opener__assembly {
+  position: relative;
+  display: grid;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  background: var(--glass-sheen);
+  place-items: center;
+}
+
+.tp-frame .tp-opener__assembly::before {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(42, 56, 47, 0.98) 0 72%,
+    rgba(34, 48, 40, 0.94) 80%,
+    rgba(20, 32, 26, 0.46) 89%,
+    transparent 100%
+  );
+  content: "";
+  inset: -0.85rem;
+}
+
+.tp-frame .tp-opener__ring {
+  position: absolute;
+  border: 1px solid rgba(232, 228, 216, 0.5);
+  border-radius: 50%;
+}
+
+.tp-frame .tp-opener__ring--outer {
+  inset: 0;
+}
+
+.tp-frame .tp-opener__ring--inner {
+  inset: 14%;
+  border-color: rgba(232, 228, 216, 0.28);
+}
+
+.tp-frame .tp-opener__mark {
+  position: relative;
+  color: #e8e4d8;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+}
+
+.tp-frame .tp-opener__label {
+  color: rgba(232, 228, 216, 0.72);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------- entrance staging */
+
+/* Every stage is driven by one attribute on the frame root, so the whole
+   sequence is inspectable and reversible from a single place. */
+
+.tp-frame .tp-frost,
+.tp-frame .tp-veil,
+.tp-frame .tp-artwork,
+.tp-frame .tp-editorial,
+.tp-frame .tp-functional {
+  transition:
+    opacity var(--tp-stage-fade, 900ms) var(--ease-material),
+    transform var(--tp-stage-fade, 900ms) var(--ease-material);
+}
+
+/* Closed through venue: the film is on its own. No material, no wording, no
+   countdown — this is what gives the Ocean Pavilion its moment. */
+
+.tp-frame[data-entrance="closed"] :is(.tp-frost, .tp-veil),
+.tp-frame[data-entrance="acknowledge"] :is(.tp-frost, .tp-veil),
+.tp-frame[data-entrance="opening"] :is(.tp-frost, .tp-veil),
+.tp-frame[data-entrance="venue"] :is(.tp-frost, .tp-veil) {
+  opacity: 0;
+}
+
+.tp-frame[data-entrance="closed"] :is(.tp-artwork, .tp-editorial, .tp-functional),
+.tp-frame[data-entrance="acknowledge"] :is(.tp-artwork, .tp-editorial, .tp-functional),
+.tp-frame[data-entrance="opening"] :is(.tp-artwork, .tp-editorial, .tp-functional),
+.tp-frame[data-entrance="venue"] :is(.tp-artwork, .tp-editorial, .tp-functional),
+.tp-frame[data-entrance="material"] :is(.tp-artwork, .tp-editorial, .tp-functional) {
+  opacity: 0;
+}
+
+/* The material develops toward whatever frost the studio is currently set to
+   — the entrance animates opacity only, so the user's own height, blur,
+   strength and edge softness remain the final composition. */
+
+.tp-frame[data-entrance="material"] :is(.tp-frost, .tp-veil) {
+  opacity: 1;
+  transition-duration: var(--tp-frost-arrival-seconds, 0.9s);
+}
+
+.tp-frame[data-entrance="content"] :is(.tp-frost, .tp-veil),
+.tp-frame[data-entrance="functional"] :is(.tp-frost, .tp-veil),
+.tp-frame[data-entrance="still"] :is(.tp-frost, .tp-veil) {
+  opacity: 1;
+}
+
+.tp-frame[data-entrance="content"] :is(.tp-artwork, .tp-editorial) {
+  opacity: 1;
+  transition-duration: var(--tp-artwork-arrival-seconds, 0.9s);
+}
+
+.tp-frame[data-entrance="content"] .tp-functional {
+  opacity: 0;
+}
+
+.tp-frame[data-entrance="functional"] :is(.tp-artwork, .tp-editorial, .tp-functional),
+.tp-frame[data-entrance="still"] :is(.tp-artwork, .tp-editorial, .tp-functional) {
+  opacity: 1;
+  transition-duration: var(--tp-artwork-arrival-seconds, 0.9s);
+}
+
+/* Cover travel. Only the closed and acknowledge states hold the panels shut;
+   from `opening` onwards they clear and stay clear. */
+
+.tp-frame[data-entrance="closed"] .tp-cover__half--left,
+.tp-frame[data-entrance="acknowledge"] .tp-cover__half--left {
+  transform: translateX(0);
+}
+
+.tp-frame[data-entrance="closed"] .tp-cover__half--right,
+.tp-frame[data-entrance="acknowledge"] .tp-cover__half--right {
+  transform: translateX(0);
+}
+
+.tp-frame:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .tp-cover__half--left {
+  transform: translateX(-101%);
+}
+
+.tp-frame:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .tp-cover__half--right {
+  transform: translateX(101%);
+}
+
+/* The opener leaves with the cover and stops taking input. */
+
+.tp-frame:not([data-entrance="closed"]):not([data-entrance="acknowledge"])
+  :is(.tp-opener, .tp-cover__seam) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Press acknowledgement: a small compression of the centre mark that reads as
+   the invitation answering, immediately, before the cover starts to travel. */
+
+.tp-frame[data-entrance="acknowledge"] .tp-mono__layer--inner {
+  animation-play-state: paused;
+  scale: calc(1 - var(--tp-mono-press, 3) / 100);
+  transition: scale 180ms var(--ease-local);
+}
+
+.tp-frame[data-entrance="acknowledge"] .tp-mono__layer--outer {
+  animation-duration: calc(var(--tp-mono-rotate-duration, 46s) / 3);
+}
+
+/* Once composed, nothing entrance-specific keeps moving. */
+
+.tp-frame[data-entrance="still"] .tp-mono__layer {
+  animation-play-state: paused;
+}
+
+/* ------------------------------------------------------ reduced motion */
+
+/* A deliberately authored short version rather than every duration set to
+   nearly zero: the cover still clears and the venue still gets a brief beat,
+   so the interaction stays legible, but nothing loops and nothing lingers. */
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-frame .tp-mono__layer--outer,
+  .tp-frame .tp-mono__layer--inner {
+    animation: none;
+  }
+
+  .tp-frame .tp-cover__half {
+    transition-duration: 220ms;
+  }
+
+  .tp-frame :is(.tp-frost, .tp-veil, .tp-artwork, .tp-editorial, .tp-functional) {
+    transition-duration: 200ms;
+  }
+}

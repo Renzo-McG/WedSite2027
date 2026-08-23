@@ -1,0 +1,53 @@
+---
+/**
+ * The studio's closed cover and its two-piece monogram.
+ *
+ * Deliberately not the production `OpeningCover` component. That one carries
+ * the E&L mark, its green disc and the word "Open" baked into the markup, and
+ * this iteration is specifically about replacing all three. Rather than layer
+ * a new monogram over the old one, the studio renders its own cover so the
+ * monogram mode can be genuinely clean, while the built-in mode keeps a
+ * like-for-like version of the old treatment for comparison.
+ *
+ * Both SVG layers are decorative `<img>` elements — same safe object-URL
+ * handling as the editorial artwork, never injected markup. The button around
+ * them owns all the interaction semantics.
+ */
+import { wedding } from "../../config/wedding";
+
+const mark = `${wedding.couple.first.charAt(0)}&${wedding.couple.second.charAt(0)}`;
+const openLabel = "Open invitation";
+---
+
+<div class="tp-cover" aria-hidden="true" data-cover>
+  <span class="tp-cover__atmos"></span>
+  <span class="tp-cover__half tp-cover__half--left"></span>
+  <span class="tp-cover__half tp-cover__half--right"></span>
+  <span class="tp-cover__seam tp-cover__seam--top"></span>
+  <span class="tp-cover__seam tp-cover__seam--bottom"></span>
+</div>
+
+<button class="tp-opener" type="button" data-cover-opener aria-label={openLabel}>
+  {
+    /* One assembly so size and position move both layers as a unit; the two
+    images share this box exactly, which is what keeps them registered. */
+  }
+  <span class="tp-mono" aria-hidden="true" data-monogram>
+    <span class="tp-mono__light"></span>
+    <img class="tp-mono__layer tp-mono__layer--outer" alt="" data-monogram-outer />
+    <img class="tp-mono__layer tp-mono__layer--inner" alt="" data-monogram-inner />
+  </span>
+
+  {
+    /* The previous cover treatment, kept for side-by-side comparison. Hidden
+    outright in monogram mode — not stacked underneath it. */
+  }
+  <span class="tp-opener__builtin" aria-hidden="true">
+    <span class="tp-opener__assembly">
+      <span class="tp-opener__ring tp-opener__ring--outer"></span>
+      <span class="tp-opener__ring tp-opener__ring--inner"></span>
+      <span class="tp-opener__mark">{mark}</span>
+    </span>
+    <span class="tp-opener__label">Open</span>
+  </span>
+</button>
