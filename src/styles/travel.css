@@ -1,0 +1,1440 @@
+/*
+ * Travel & Stay (/travel/).
+ *
+ * A long-form companion to the invitation. It opens on the frame the venue film
+ * rests on, under the same warm frosted paper-glass, then settles into a calm
+ * reading surface. Its one expressive device is the honest diagram: flights
+ * drawn to their flying time, and places plotted from their real positions.
+ * Everything else stays quiet.
+ *
+ * Tokens are scoped to .tas so nothing leaks into the invitation, the Studio or
+ * the Design Lab.
+ */
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/instrument-serif-400-latin.woff2") format("woff2");
+}
+
+.tas {
+  /* Shared with the invitation. */
+  --paper: #f2efe7;
+  --paper-deep: #e8e4d9;
+  --paper-highlight: #fbf9f3;
+  --ink: #171c18;
+  --ink-soft: #464f49;
+  --sage: #91a191;
+  --sage-soft: #c9d2c7;
+  --sage-deep: #4e6157;
+  --champagne: #bca47d;
+  --pavilion: #16221c;
+  --stage-deep: #0d1512;
+
+  /* The one new colour: taken from the water in the venue film. It marks
+     journeys and geography, and nothing else. 5.3:1 on --paper. */
+  --lagoon: #2c6b68;
+  --lagoon-soft: rgba(44, 107, 104, 0.16);
+
+  --line: rgba(23, 28, 24, 0.14);
+  --line-strong: rgba(23, 28, 24, 0.3);
+
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Plus Jakarta Sans", "Helvetica Neue", system-ui, sans-serif;
+  --font-script: "Sirivennela", "Segoe Script", cursive;
+
+  --t-fine: 0.8125rem;
+  --t-small: 0.875rem;
+  --t-body: 1.0625rem;
+  --t-lead: clamp(1.125rem, 1.02rem + 0.45vw, 1.3125rem);
+  --t-h3: clamp(1.625rem, 1.35rem + 1.1vw, 2.125rem);
+  --t-h2: clamp(2.625rem, 1.9rem + 3vw, 4.5rem);
+  --t-display: clamp(3.5rem, 2.4rem + 5vw, 6.5rem);
+  --t-statement: clamp(1.875rem, 1.3rem + 2.5vw, 3.5rem);
+
+  --pad: clamp(1.25rem, 5vw, 4rem);
+  --max: 78rem;
+  --measure: 38rem;
+  --section-space: clamp(4.5rem, 9vw, 8.5rem);
+  --radius: 0.75rem;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 220ms;
+
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  font-synthesis: none;
+  font-variant-numeric: lining-nums;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+.tas-page {
+  margin: 0;
+  min-width: 320px;
+  background: var(--pavilion, #16221c);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.tas) {
+    scroll-behavior: smooth;
+  }
+}
+
+.tas *,
+.tas *::before,
+.tas *::after {
+  box-sizing: border-box;
+}
+
+.tas :where(h1, h2, h3, h4, p, dl, dd, ul, ol, figure) {
+  margin: 0;
+}
+
+.tas :where(ul, ol) {
+  padding: 0;
+  list-style: none;
+}
+
+:where(.tas) a {
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tas :focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}
+
+.tas strong {
+  font-weight: 600;
+}
+
+.tas-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tas-skip {
+  position: absolute;
+  z-index: 10;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  color: var(--paper-highlight);
+  background: var(--pavilion);
+  font-size: var(--t-small);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.tas-skip:focus {
+  transform: none;
+}
+
+.tas :target,
+.tas [id] {
+  scroll-margin-top: 1.5rem;
+}
+
+/* ------------------------------------------------------------------- hero */
+
+/* The page opens on the frame the invitation's venue film comes to rest on,
+   so arriving here from the invitation feels like continuing the same view. */
+
+.tas-hero {
+  position: relative;
+  display: grid;
+  align-content: start;
+  padding-top: clamp(12rem, 40svh, 22rem);
+  color: var(--ink);
+  background: var(--paper);
+  isolation: isolate;
+  overflow: clip;
+}
+
+/* On phones the picture fills only the band above the panel, cropped to the
+   Ocean Pavilion, so the venue is what you see first. */
+.tas-hero__image {
+  position: absolute;
+  z-index: -2;
+  inset: 0 0 auto;
+  width: 100%;
+  height: calc(clamp(12rem, 40svh, 22rem) + 4rem);
+  object-fit: cover;
+  object-position: 30% 68%;
+}
+
+.tas-hero__wash {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 17, 13, 0.46) 0%, rgba(10, 17, 13, 0) 26%);
+  pointer-events: none;
+}
+
+.tas-home {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  left: var(--pad);
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--paper-highlight);
+  text-decoration: none;
+  text-shadow: 0 1px 12px rgba(6, 12, 9, 0.45);
+}
+
+.tas-home__names {
+  font-family: var(--font-script);
+  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tas-home:focus-visible {
+  outline-color: var(--paper-highlight);
+}
+
+/* Warm frosted paper-glass, as on the invitation. On phones it rises from the
+   bottom edge and develops into the reading surface below, so the hand-off
+   from picture to page has no seam. */
+
+.tas-hero__panel {
+  position: relative;
+  display: grid;
+  gap: 1.25rem;
+  padding: 2rem var(--pad) 2.5rem;
+  border-radius: 1.25rem 1.25rem 0 0;
+  background:
+    url("../assets/materials/grain.svg") 0 0 / 180px 180px,
+    linear-gradient(
+      180deg,
+      rgba(244, 241, 232, 0.8) 0%,
+      rgba(242, 239, 231, 0.97) 78%,
+      var(--paper) 100%
+    );
+  background-blend-mode: multiply, normal;
+  -webkit-backdrop-filter: blur(20px) saturate(0.9);
+  backdrop-filter: blur(20px) saturate(0.9);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.tas-hero__title {
+  font-family: var(--font-serif);
+  font-size: var(--t-display);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.015em;
+}
+
+.tas-hero__lead {
+  max-width: 24ch;
+  font-size: var(--t-lead);
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.tas-glance {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.tas-glance > div {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.tas-glance dt {
+  color: var(--ink-soft);
+}
+
+.tas-glance dd {
+  font-weight: 500;
+}
+
+.tas-contents ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+.tas-contents a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--sage-deep);
+  font-size: var(--t-small);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(78, 97, 87, 0.4);
+  transition: text-decoration-color var(--dur) var(--ease);
+}
+
+.tas-contents a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Portrait tablets keep the phone composition: a floating panel that wide
+   would cover the Pavilion. */
+@media (min-width: 48rem) and (orientation: landscape), (min-width: 64rem) {
+  /* The panel sits to the right so the Ocean Pavilion stays in view. */
+  .tas-hero {
+    min-height: 100vh;
+    min-height: 100svh;
+    align-content: end;
+    justify-content: end;
+    padding: clamp(6rem, 16svh, 12rem) var(--pad) var(--pad);
+  }
+
+  .tas-hero {
+    background: var(--pavilion);
+  }
+
+  .tas-hero__image {
+    inset: 0;
+    height: 100%;
+    object-position: 40% 62%;
+  }
+
+  .tas-hero__panel {
+    width: min(100%, 36rem);
+    padding: clamp(2rem, 3.5vw, 3rem);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 1.25rem;
+    background:
+      url("../assets/materials/grain.svg") 0 0 / 180px 180px,
+      linear-gradient(214deg, rgba(255, 253, 247, 0.2) 0%, transparent 42%),
+      rgba(244, 241, 232, 0.82);
+    background-blend-mode: multiply, normal, normal;
+    box-shadow:
+      0 2rem 5rem rgba(2, 8, 5, 0.3),
+      0 0.25rem 1rem rgba(2, 8, 5, 0.16);
+  }
+}
+
+@media (min-width: 90rem) {
+  .tas-hero {
+    padding-right: max(var(--pad), calc((100vw - var(--max)) / 2));
+  }
+
+  .tas-home {
+    left: max(var(--pad), calc((100vw - var(--max)) / 2));
+  }
+}
+
+/* --------------------------------------------------------------- sections */
+
+.tas-main {
+  background: var(--paper);
+}
+
+.tas-section {
+  width: min(100%, calc(var(--max) + 2 * var(--pad)));
+  margin-inline: auto;
+  padding: var(--section-space) var(--pad) 0;
+}
+
+.tas-section:last-child {
+  padding-bottom: var(--section-space);
+}
+
+.tas-intro {
+  display: grid;
+  gap: 1rem;
+  max-width: var(--measure);
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.tas-title {
+  font-family: var(--font-serif);
+  font-size: var(--t-h2);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.tas-intro p {
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.tas-fine {
+  max-width: 46rem;
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+  line-height: 1.55;
+}
+
+.tas-intro .tas-fine {
+  color: var(--ink-soft);
+}
+
+.tas-checked {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.tas-section__foot {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  margin-top: 2.5rem;
+}
+
+/* ------------------------------------------------------------------ links */
+
+.tas-link {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.4rem;
+  min-height: 2.75rem;
+  padding-block: 0.625rem;
+  color: var(--sage-deep);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.tas-link__text {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(78, 97, 87, 0.4);
+  transition: text-decoration-color var(--dur) var(--ease);
+}
+
+.tas-link:hover .tas-link__text {
+  text-decoration-color: currentColor;
+}
+
+.tas-link__site {
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+  font-weight: 400;
+}
+
+.tas-link__icon {
+  align-self: center;
+  width: 0.625rem;
+  height: 0.625rem;
+  flex: none;
+  transition: transform var(--dur) var(--ease);
+}
+
+.tas-link:hover .tas-link__icon {
+  transform: translate(1px, -1px);
+}
+
+/* The primary link borrows the invitation's material control. */
+.tas-link--primary {
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius);
+  color: var(--paper-highlight);
+  background: rgba(43, 65, 52, 0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0.5rem 1.25rem rgba(19, 31, 24, 0.16);
+  transition:
+    background-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.tas-link--primary .tas-link__text {
+  text-decoration: none;
+}
+
+.tas-link--primary .tas-link__site {
+  color: rgba(251, 249, 243, 0.74);
+}
+
+.tas-link--primary:hover {
+  background: rgba(35, 54, 43, 0.97);
+}
+
+.tas-link--primary:active {
+  transform: scale(0.985);
+}
+
+/* -------------------------------------------------------------- flights */
+
+.route {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 2.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.route--featured {
+  gap: 1.5rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.route__title {
+  display: grid;
+  gap: 0.35rem;
+  font-family: var(--font-serif);
+  font-size: var(--t-h3);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.route--featured .route__title {
+  font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+.route__via {
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: var(--t-small);
+  line-height: 1.45;
+}
+
+.route__facts {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.route__fact {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.route__fact dt {
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+}
+
+.route__fact dd {
+  font-weight: 500;
+}
+
+.route__fact--journey dd {
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.route--featured .route__fact--journey dd {
+  font-size: clamp(1.875rem, 1.5rem + 1.4vw, 2.5rem);
+}
+
+.route__sub {
+  display: block;
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: var(--t-fine);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.route__why {
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+.route > .tas-link {
+  justify-self: start;
+}
+
+.route-alternatives {
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .route__facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .route__fact {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    align-content: start;
+  }
+}
+
+/* A route drawn to time. Every route shares one scale, so their lengths can be
+   compared directly; the track stops where the flying stops. */
+
+.route-line {
+  padding: 1.75rem 0 2.25rem;
+}
+
+.route-line__track {
+  display: flex;
+  align-items: center;
+  width: var(--route-share);
+  min-width: 14rem;
+  max-width: 100%;
+}
+
+.route-line__leg {
+  position: relative;
+  flex-basis: 0;
+  height: 2px;
+  background: var(--lagoon);
+}
+
+.route--featured .route-line__leg {
+  height: 3px;
+}
+
+.route-line__time {
+  position: absolute;
+  bottom: 0.625rem;
+  left: 50%;
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.route-line__node {
+  position: relative;
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--lagoon);
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.route-line__node--start,
+.route-line__node--end {
+  background: var(--lagoon);
+}
+
+.route-line__place {
+  position: absolute;
+  top: 1.2rem;
+  right: -0.125rem;
+  color: var(--ink);
+  font-size: var(--t-small);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.route-line__node--start .route-line__place {
+  right: auto;
+  left: -0.125rem;
+}
+
+/* --------------------------------------------------------------- arrival */
+
+.tas-arrival__statement {
+  max-width: 22ch;
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  font-family: var(--font-serif);
+  font-size: var(--t-statement);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.tas-arrival__options {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.tas-arrival__option {
+  display: grid;
+  gap: 0.35rem;
+  max-width: var(--measure);
+}
+
+.tas-arrival__option dt {
+  font-weight: 600;
+}
+
+.tas-arrival__option dd {
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+@media (min-width: 56rem) {
+  .tas-arrival__options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem;
+  }
+}
+
+/* ---------------------------------------------------------- where to stay */
+
+.tas-stay__layout {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.tas-stay__list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 64rem) {
+  .tas-stay__layout {
+    grid-template-columns: minmax(0, 11fr) minmax(0, 10fr);
+    gap: clamp(2.5rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  .tas-stay__plot {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
+/* The orientation plot. */
+
+.stay-plot {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.stay-plot__canvas {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius);
+  background:
+    radial-gradient(120% 90% at 70% 40%, rgba(255, 255, 255, 0.4), transparent 70%),
+    var(--paper-deep);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.stay-plot__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.stay-plot__ring {
+  fill: none;
+  stroke: var(--sage);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.stay-plot__arrival {
+  stroke: var(--lagoon);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.stay-plot__airport {
+  fill: var(--ink);
+}
+
+.stay-plot__point circle {
+  fill: var(--lagoon);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+.stay-plot__point--venue circle:not(.stay-plot__halo) {
+  fill: var(--champagne);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.stay-plot__point .stay-plot__halo {
+  fill: var(--lagoon-soft);
+  opacity: 0;
+}
+
+.stay-plot__point[data-active] .stay-plot__halo {
+  opacity: 1;
+  transform: scale(1.4);
+}
+
+.stay-plot__point[data-active] circle:not(.stay-plot__halo) {
+  transform: scale(1.3);
+}
+
+.stay-plot[data-has-active] .stay-plot__point:not([data-active]) {
+  opacity: 0.4;
+}
+
+.stay-plot__label {
+  position: absolute;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 1.5rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.3rem;
+  color: var(--ink);
+  background: rgba(251, 249, 243, 0.9);
+  box-shadow: 0 1px 0 var(--line);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+a.stay-plot__label:hover,
+.stay-plot__label[data-active] {
+  color: var(--paper-highlight);
+  background: var(--ink);
+}
+
+.stay-plot[data-has-active] a.stay-plot__label:not([data-active]) {
+  opacity: 0.55;
+}
+
+.stay-plot__label--right {
+  transform: translate(0.85rem, -50%);
+}
+
+.stay-plot__label--left {
+  transform: translate(calc(-100% - 0.85rem), -50%);
+}
+
+.stay-plot__label--above {
+  transform: translate(-50%, calc(-100% - 0.8rem));
+}
+
+.stay-plot__label--below {
+  transform: translate(-50%, 0.8rem);
+}
+
+.stay-plot__label--landmark {
+  color: var(--ink-soft);
+  background: transparent;
+  box-shadow: none;
+  font-weight: 500;
+}
+
+.stay-plot__venue-note {
+  color: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.stay-plot__city,
+.stay-plot__north,
+.stay-plot__scale {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+
+.stay-plot__city {
+  left: 0.625rem;
+  transform: translateY(-50%);
+}
+
+.stay-plot__city svg,
+.stay-plot__north svg {
+  width: 1rem;
+  height: 0.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.stay-plot__north {
+  top: 0.75rem;
+  right: 0.75rem;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stay-plot__north svg {
+  width: 0.625rem;
+  height: 0.875rem;
+}
+
+.stay-plot__scale {
+  right: 0.75rem;
+  bottom: 0.625rem;
+  flex-direction: column;
+  align-items: stretch;
+  width: var(--scale-width);
+  text-align: center;
+}
+
+.stay-plot__scale-bar {
+  height: 0.375rem;
+  border: 1px solid var(--ink-soft);
+  border-top: 0;
+}
+
+.stay-plot__caption {
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+  line-height: 1.55;
+}
+
+/* The hotel list. */
+
+.stay {
+  display: grid;
+  gap: 1rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--line);
+  outline: none;
+  transition: box-shadow var(--dur) var(--ease);
+}
+
+.stay:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.stay:focus-visible {
+  box-shadow: inset 3px 0 0 var(--sage-deep);
+}
+
+.stay[data-active] {
+  box-shadow: inset 2px 0 0 var(--lagoon);
+}
+
+@media (min-width: 64rem) {
+  .stay {
+    padding-left: 1.25rem;
+    margin-left: -1.25rem;
+  }
+}
+
+.stay__head {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.stay__name {
+  font-family: var(--font-serif);
+  font-size: var(--t-h3);
+  font-weight: 400;
+  line-height: 1.08;
+}
+
+.stay__kind {
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+}
+
+.stay__description {
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+.stay__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  font-size: 0.9375rem;
+}
+
+.stay__fact {
+  display: grid;
+  gap: 0.15rem;
+  align-content: start;
+}
+
+.stay__fact dt {
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+}
+
+.stay__fact dd {
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.stay__fact--suits {
+  grid-column: 1 / -1;
+}
+
+.stay__fact--suits dd {
+  font-weight: 400;
+}
+
+.stay__sub {
+  display: block;
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+  font-weight: 400;
+}
+
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .stay__facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.stay__note {
+  max-width: var(--measure);
+  padding: 0.75rem 1rem;
+  border-left: 2px solid var(--champagne);
+  background: rgba(188, 164, 125, 0.12);
+  font-size: var(--t-small);
+}
+
+.stay__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+  margin-top: -0.25rem;
+}
+
+/* ------------------------------------------------------------ trip length */
+
+.trip {
+  display: grid;
+  gap: 2rem;
+}
+
+.trip__control {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.trip__legend {
+  margin-bottom: 0.75rem;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+}
+
+.trip__options {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  width: min(100%, 26rem);
+  padding: 0.25rem;
+  border: 1px solid var(--line-strong);
+  border-radius: calc(var(--radius) + 0.25rem);
+}
+
+.trip__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.trip__option {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius);
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.trip__option-days {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.trip__option:hover {
+  color: var(--ink);
+}
+
+.trip__input:checked + .trip__option {
+  color: var(--paper-highlight);
+  background: rgba(43, 65, 52, 0.94);
+}
+
+.trip__input:focus-visible + .trip__option {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 2px;
+}
+
+.trip__shapes {
+  display: grid;
+  gap: 4rem;
+}
+
+.trip__shape {
+  display: grid;
+  gap: 2rem;
+  animation: trip-in 360ms var(--ease);
+}
+
+@supports selector(:has(*)) {
+  .trip .trip__shape {
+    display: none;
+  }
+
+  .trip:has(#trip-7:checked) [data-trip-shape="7"],
+  .trip:has(#trip-10:checked) [data-trip-shape="10"],
+  .trip:has(#trip-14:checked) [data-trip-shape="14"] {
+    display: grid;
+  }
+}
+
+@keyframes trip-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+.trip__head {
+  display: grid;
+  gap: 0.6rem;
+  max-width: var(--measure);
+}
+
+.trip__name {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.trip__nights {
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+  font-weight: 600;
+}
+
+/* Days: a list on phones, a proportional strip on wider screens. Each kind of
+   day has its own mark, and every segment is labelled in words. */
+
+.trip__days {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.trip__segment {
+  --mark: var(--sage-soft);
+  position: relative;
+  display: grid;
+  grid-template-columns: 5.25rem minmax(0, 1fr);
+  gap: 0 1rem;
+  padding: 0.6rem 0 0.6rem 1.125rem;
+}
+
+.trip__segment::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--mark);
+}
+
+.trip__range {
+  grid-row: span 2;
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+
+.trip__label {
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.trip__detail {
+  color: var(--ink-soft);
+  font-size: var(--t-fine);
+}
+
+.trip__segment--travel {
+  --mark: repeating-linear-gradient(180deg, var(--line-strong) 0 4px, transparent 4px 8px);
+}
+
+.trip__segment--rest {
+  --mark: var(--sage-soft);
+}
+
+.trip__segment--explore {
+  --mark: var(--lagoon);
+}
+
+.trip__segment--wedding-around {
+  --mark: var(--sage-deep);
+}
+
+.trip__segment--wedding {
+  --mark: var(--champagne);
+  background: rgba(188, 164, 125, 0.14);
+}
+
+.trip__segment--wedding .trip__label {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+@media (min-width: 60rem) {
+  .trip__days {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .trip__segment {
+    flex-basis: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    align-content: start;
+    min-width: 0;
+    padding: 1.25rem 0.5rem 0.75rem;
+  }
+
+  .trip__segment::before {
+    right: 0;
+    bottom: auto;
+    width: auto;
+    height: 5px;
+  }
+
+  .trip__segment--travel {
+    --mark: repeating-linear-gradient(90deg, var(--line-strong) 0 4px, transparent 4px 8px);
+  }
+
+  .trip__range {
+    grid-row: auto;
+  }
+
+  .trip__label {
+    font-size: var(--t-small);
+    overflow-wrap: anywhere;
+  }
+}
+
+.trip__ideas {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.trip__idea {
+  display: grid;
+  gap: 0.4rem;
+  max-width: var(--measure);
+}
+
+.trip__idea-title {
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.trip__idea p {
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+@media (min-width: 48rem) {
+  .trip__ideas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
+  }
+}
+
+/* ---------------------------------------------------------- good to know */
+
+.tas-essentials__list {
+  display: grid;
+  gap: 2rem;
+}
+
+.tas-essentials__item {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+}
+
+.tas-essentials__item dt {
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
+  line-height: 1.1;
+}
+
+.tas-essentials__item dd {
+  display: grid;
+  justify-items: start;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.tas-essentials__item .tas-link {
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 40rem) {
+  .tas-essentials__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem 3rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .tas-essentials__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------------------------------------------------------- still to come */
+
+/* The page closes on the stage's own deep green, where the invitation began. */
+
+.tas-coda {
+  color: var(--paper);
+  background:
+    radial-gradient(70% 90% at 80% 0%, rgba(126, 152, 130, 0.18), transparent 70%), var(--pavilion);
+}
+
+.tas-coda__inner {
+  display: grid;
+  gap: 1.25rem;
+  justify-items: start;
+  width: min(100%, calc(var(--max) + 2 * var(--pad)));
+  margin-inline: auto;
+  padding: var(--section-space) var(--pad) max(var(--section-space), env(safe-area-inset-bottom));
+}
+
+.tas-coda__inner > p {
+  max-width: var(--measure);
+  color: rgba(242, 239, 231, 0.86);
+}
+
+.tas-coda__list {
+  display: grid;
+  gap: 0.9rem;
+  max-width: var(--measure);
+  margin-block: 0.75rem 1rem;
+}
+
+.tas-coda__list li {
+  position: relative;
+  padding-left: 1.5rem;
+  font-size: var(--t-lead);
+  line-height: 1.4;
+}
+
+.tas-coda__list li::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid var(--champagne);
+  border-radius: 50%;
+}
+
+.tas-coda .tas-coda__checked {
+  color: rgba(242, 239, 231, 0.72);
+  font-size: var(--t-fine);
+}
+
+.tas-coda__sign {
+  margin-top: 2rem;
+}
+
+.tas-coda__names {
+  font-family: var(--font-script);
+  font-size: clamp(2.75rem, 2rem + 3vw, 4.5rem);
+  line-height: 1;
+  color: var(--paper-highlight);
+}
+
+.tas-coda__back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--paper);
+  font-size: var(--t-small);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(242, 239, 231, 0.4);
+}
+
+.tas-coda__back:hover {
+  text-decoration-color: currentColor;
+}
+
+.tas-coda :focus-visible {
+  outline-color: var(--paper-highlight);
+}
+
+/* --------------------------------------------------------- reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .tas *,
+  .tas *::before,
+  .tas *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+html[data-reduced-motion] .tas *,
+html[data-reduced-motion] .tas *::before,
+html[data-reduced-motion] .tas *::after {
+  animation: none !important;
+  transition: none !important;
+}

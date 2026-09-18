@@ -1,0 +1,95 @@
+---
+import { stays } from "../../data/travel";
+import ExternalLink from "./ExternalLink.astro";
+
+const maps = (query: string) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+const directions = (origin: string, destination: string) =>
+  `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+
+const venue = stays.find((stay) => stay.isVenue)!;
+---
+
+<ul class="stay-list" data-stay-list>
+  {
+    stays.map((stay) => (
+      <li
+        class:list={["stay", stay.isVenue && "stay--venue"]}
+        id={`stay-${stay.id}`}
+        data-stay={stay.id}
+        tabindex="-1"
+      >
+        <header class="stay__head">
+          <h3 class="stay__name">{stay.name}</h3>
+          <p class="stay__kind">{stay.kind}</p>
+        </header>
+        <p class="stay__description">{stay.description}</p>
+
+        <dl class="stay__facts">
+          <div class="stay__fact stay__fact--venue">
+            <dt>To the wedding</dt>
+            <dd>
+              {stay.toVenueLabel}
+              {stay.toVenue && (
+                <span class="stay__sub">
+                  {stay.toVenue.km < 1 ? `${stay.toVenue.km * 1000} m` : `${stay.toVenue.km} km`} by
+                  road
+                </span>
+              )}
+            </dd>
+          </div>
+          <div class="stay__fact">
+            <dt>From the airport</dt>
+            <dd>
+              {stay.fromAirport.minutes} minutes
+              <span class="stay__sub">{stay.fromAirport.km} km by road</span>
+            </dd>
+          </div>
+          <div class="stay__fact stay__fact--price">
+            <dt>Rooms from</dt>
+            <dd>
+              around £{stay.priceFrom}
+              <span class="stay__sub">a night, for two</span>
+            </dd>
+          </div>
+          <div class="stay__fact stay__fact--suits">
+            <dt>Good for</dt>
+            <dd>{stay.suits}</dd>
+          </div>
+        </dl>
+
+        {stay.note && <p class="stay__note">{stay.note}</p>}
+
+        <ul class="stay__links">
+          <li>
+            <ExternalLink href={stay.officialUrl} site={stay.officialSite}>
+              Hotel website
+            </ExternalLink>
+          </li>
+          <li>
+            <ExternalLink href={maps(stay.mapsQuery)} site="google.com/maps">
+              View on map
+            </ExternalLink>
+          </li>
+          <li>
+            {stay.isVenue ? (
+              <ExternalLink
+                href={directions("Mactan-Cebu International Airport", stay.mapsQuery)}
+                site="google.com/maps"
+              >
+                Directions from the airport
+              </ExternalLink>
+            ) : (
+              <ExternalLink
+                href={directions(stay.mapsQuery, venue.mapsQuery)}
+                site="google.com/maps"
+              >
+                Directions to Shangri-La
+              </ExternalLink>
+            )}
+          </li>
+        </ul>
+      </li>
+    ))
+  }
+</ul>

@@ -1,0 +1,29 @@
+---
+/**
+ * Every outbound link on Travel & Stay goes through here, so each one names its
+ * destination, opens in a new tab, says so to screen readers, and carries no
+ * referrer or tracking parameters.
+ */
+interface Props {
+  href: string;
+  site: string;
+  variant?: "primary" | "quiet";
+  class?: string;
+}
+
+const { href, site, variant = "quiet", class: className = "" } = Astro.props;
+---
+
+<a
+  class:list={["tas-link", `tas-link--${variant}`, className]}
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <span class="tas-link__text"><slot /></span>
+  <span class="tas-link__site" aria-hidden="true">{site}</span>
+  <svg class="tas-link__icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+    <path d="M4.5 2.5h5v5M9.5 2.5 3 9" fill="none" stroke="currentColor" stroke-width="1.2"></path>
+  </svg>
+  <span class="tas-visually-hidden">(opens {site} in a new tab)</span>
+</a>

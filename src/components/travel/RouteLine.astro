@@ -1,0 +1,56 @@
+---
+/**
+ * A route drawn to time: each flight is a line whose length is its scheduled
+ * flying time, on a scale shared by every route on the page, so the lines can
+ * be compared at a glance. The change of plane is a node, not a gap, because
+ * connection times vary by day and are not drawn to scale.
+ */
+import type { FlightRoute } from "../../data/travel";
+
+interface Props {
+  route: FlightRoute;
+  /** Longest total flying time on the page, in minutes. */
+  scaleMinutes: number;
+}
+
+const { route, scaleMinutes } = Astro.props;
+const flying = route.legs.reduce((sum, leg) => sum + leg.minutes, 0);
+const share = (flying / scaleMinutes) * 100;
+
+function duration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h}h` : `${h}h ${String(m).padStart(2, "0")}`;
+}
+
+function spoken(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h} hours` : `${h} hours ${m} minutes`;
+}
+
+const summary = route.legs
+  .map((leg) => `${leg.from} to ${leg.to}, ${spoken(leg.minutes)} flying`)
+  .join("; ");
+---
+
+<figure class="route-line" style={`--route-share: ${share.toFixed(2)}%`}>
+  <div class="route-line__track" aria-hidden="true">
+    {
+      route.legs.map((leg, index) => (
+        <>
+          <span class:list={["route-line__node", index === 0 && "route-line__node--start"]}>
+            <span class="route-line__place">{leg.from}</span>
+          </span>
+          <span class="route-line__leg" style={`flex-grow: ${leg.minutes}`}>
+            <span class="route-line__time">{duration(leg.minutes)}</span>
+          </span>
+        </>
+      ))
+    }
+    <span class="route-line__node route-line__node--end">
+      <span class="route-line__place">Cebu</span>
+    </span>
+  </div>
+  <figcaption class="tas-visually-hidden">{summary}.</figcaption>
+</figure>
