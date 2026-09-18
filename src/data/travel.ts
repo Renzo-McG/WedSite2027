@@ -204,6 +204,27 @@ export interface Stay {
   /** Google Maps search text; also the directions origin. */
   mapsQuery: string;
   note?: string;
+  /** A short factual tag shown on the card. */
+  badge: string;
+  image: GuideImage;
+}
+
+/**
+ * Every photograph on the guide, with where it came from. `status` gates
+ * deployment: "official-unconfirmed" images come from the hotel's own site or
+ * CDN and need the hotel's permission before the site goes live.
+ */
+export interface GuideImage {
+  /** File stem in public/assets/guide/, written as `${name}-${width}.webp`. */
+  name: string;
+  widths: number[];
+  /** Intrinsic aspect of the largest file, for layout reservation. */
+  aspect: [number, number];
+  alt: string;
+  credit: string;
+  source: string;
+  status: "venue-film" | "licensed" | "official-unconfirmed";
+  licence?: { name: string; url: string };
 }
 
 export const stays: Stay[] = [
@@ -227,6 +248,16 @@ export const stays: Stay[] = [
     officialSite: "shangri-la.com",
     mapsQuery: "Shangri-La Mactan, Cebu",
     note: "Wedding accommodation details and any preferred rate will be added once confirmed.",
+    badge: "Wedding venue",
+    image: {
+      name: "stay-shangri-la",
+      widths: [700, 1200],
+      aspect: [16, 9],
+      alt: "Shangri-La Mactan from the air: the Ocean Pavilion, the jetty and the resort beyond",
+      credit: "Shangri-La Mactan",
+      source: "Shangri-La Mactan Event Spaces film",
+      status: "venue-film",
+    },
   },
   {
     id: "movenpick",
@@ -247,6 +278,16 @@ export const stays: Stay[] = [
       "https://movenpick.accor.com/en/asia/philippines/cebu/hotel-mactan-island-cebu.html",
     officialSite: "movenpick.accor.com",
     mapsQuery: "Mövenpick Hotel Mactan Island Cebu",
+    badge: "Next door",
+    image: {
+      name: "stay-movenpick",
+      widths: [700, 1200],
+      aspect: [16, 9],
+      alt: "Mövenpick's seafront pool at sunset",
+      credit: "Mövenpick Hotel Mactan Island Cebu",
+      source: "https://movenpick.accor.com/en/asia/philippines/cebu/hotel-mactan-island-cebu.html",
+      status: "official-unconfirmed",
+    },
   },
   {
     id: "sheraton",
@@ -267,6 +308,17 @@ export const stays: Stay[] = [
       "https://www.marriott.com/en-us/hotels/cebsi-sheraton-cebu-mactan-resort/overview/",
     officialSite: "marriott.com",
     mapsQuery: "Sheraton Cebu Mactan Resort",
+    badge: "Beachfront",
+    image: {
+      name: "stay-sheraton",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "Sheraton Cebu Mactan Resort seen from the water, with its beach and palms",
+      credit: "Marriott International",
+      source:
+        "https://activities.marriott.com/asia/philippines/cebu/hotels/sheraton_cebu_mactan_resort-CEBSI",
+      status: "official-unconfirmed",
+    },
   },
   {
     id: "dusit",
@@ -286,6 +338,16 @@ export const stays: Stay[] = [
     officialUrl: "https://www.dusit.com/dusitthani-mactancebu/",
     officialSite: "dusit.com",
     mapsQuery: "Dusit Thani Mactan Cebu",
+    badge: "Lowest resort rate",
+    image: {
+      name: "stay-dusit",
+      widths: [700, 1200],
+      aspect: [32, 15],
+      alt: "Dusit Thani Mactan Cebu at dusk, its curved building lit above the infinity pool",
+      credit: "Dusit Thani Mactan Cebu",
+      source: "https://www.dusit.com/dusitthani-mactancebu/",
+      status: "official-unconfirmed",
+    },
   },
   {
     id: "crimson",
@@ -305,6 +367,16 @@ export const stays: Stay[] = [
     officialUrl: "https://www.crimsonhotel.com/mactan",
     officialSite: "crimsonhotel.com",
     mapsQuery: "Crimson Resort and Spa Mactan",
+    badge: "Pool villas",
+    image: {
+      name: "stay-crimson",
+      widths: [530],
+      aspect: [1, 1],
+      alt: "Crimson's infinity pool running out towards the sea between two pavilions",
+      credit: "Crimson Resort & Spa Mactan",
+      source: "https://www.crimsonhotel.com/mactan",
+      status: "official-unconfirmed",
+    },
   },
   {
     id: "fairfield",
@@ -312,7 +384,7 @@ export const stays: Stay[] = [
     shortName: "Fairfield",
     kind: "City hotel near the airport",
     description:
-      "A practical, brand-new hotel (opened December 2025) five minutes from the airport. No beach, but comfortable, simple and easy on the budget.",
+      "One of Mactan's newest hotels, five minutes from the airport on the Mactan Channel. No beach, but comfortable, simple and easy on the budget.",
     suits: "Keeping costs down, or a first or last night close to your flight.",
     isVenue: false,
     toVenue: { km: 6.5, minutes: 11 },
@@ -324,6 +396,17 @@ export const stays: Stay[] = [
     officialUrl: "https://www.marriott.com/en-us/hotels/cebfi-fairfield-cebu-mactan/overview/",
     officialSite: "marriott.com",
     mapsQuery: "Fairfield by Marriott Cebu Mactan",
+    badge: "5 min from the airport",
+    image: {
+      name: "stay-fairfield",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "The Fairfield by Marriott Cebu Mactan lobby, as published by Marriott",
+      credit: "Marriott International",
+      source:
+        "https://activities.marriott.com/asia/philippines/cebu/hotels/fairfield_cebu_mactan-CEBFI",
+      status: "official-unconfirmed",
+    },
   },
 ];
 
@@ -359,13 +442,95 @@ export interface TripSegment {
   detail?: string;
 }
 
+export interface TripIdea {
+  id: string;
+  title: string;
+  where: string;
+  detail: string;
+  image: GuideImage;
+}
+
+export const tripIdeas: TripIdea[] = [
+  {
+    id: "nalusuan",
+    title: "Island hopping",
+    where: "From Mactan, by boat",
+    detail:
+      "A half or full day by traditional banca boat to the marine sanctuaries at Hilutungan and Nalusuan for snorkelling. Boats leave from the resorts and jetties on Mactan.",
+    image: {
+      name: "idea-nalusuan",
+      widths: [700, 1200],
+      aspect: [16, 9],
+      alt: "Nalusuan island's resort on stilts across clear blue water",
+      credit: "Martin Michlmayr",
+      source: "https://commons.wikimedia.org/wiki/File:Nalusuan_dive_trip_June_2025_067.jpg",
+      status: "licensed",
+      licence: { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" },
+    },
+  },
+  {
+    id: "bohol",
+    title: "Bohol",
+    where: "2 hours by fast ferry",
+    detail:
+      "Two hours by fast ferry from Cebu City to Tagbilaran. Rolling Chocolate Hills, tiny tarsiers and the beaches of Panglao.",
+    image: {
+      name: "idea-bohol",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "The Chocolate Hills of Bohol rising out of green forest",
+      credit: "Wolfgang Hägele",
+      source: "https://commons.wikimedia.org/wiki/File:Chocolate_Hills_Carmen_Bohol_2019.jpg",
+      status: "licensed",
+      licence: { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" },
+    },
+  },
+  {
+    id: "moalboal",
+    title: "Moalboal",
+    where: "2½–3 hours by road",
+    detail:
+      "Cebu's south-west coast, where you can snorkel with huge shoals of sardines and sea turtles just off the beach, with Kawasan Falls nearby.",
+    image: {
+      name: "idea-moalboal",
+      widths: [700, 1200],
+      aspect: [16, 9],
+      alt: "A shoal of sardines swirling over the seafloor at Moalboal",
+      credit: "Iampjanz",
+      source:
+        "https://commons.wikimedia.org/wiki/File:Sardine_run_over_seafloor_in_Moalboal_04.jpg",
+      status: "licensed",
+      licence: { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" },
+    },
+  },
+  {
+    id: "elnido",
+    title: "El Nido, Palawan",
+    where: "About 1 h 50 m by air",
+    detail:
+      "Limestone islands and lagoons, reached by a direct flight from Cebu, with no need to go back through Manila.",
+    image: {
+      name: "idea-elnido",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "A turquoise lagoon between limestone cliffs in Bacuit Bay, El Nido",
+      credit: "Vyacheslav Argenberg",
+      source:
+        "https://commons.wikimedia.org/wiki/File:Island_lagoon_in_Bacuit_Bay,_El_Nido,_Palawan,_Philippines.jpg",
+      status: "licensed",
+      licence: { name: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
+    },
+  },
+];
+
 export interface TripShape {
   days: 7 | 10 | 14;
   name: string;
   summary: string;
   nightsInCebu: string;
   segments: TripSegment[];
-  ideas: { title: string; detail: string }[];
+  /** Ids from `tripIdeas`, in the order they are shown. */
+  ideas: string[];
 }
 
 /**
@@ -390,13 +555,7 @@ export const tripShapes: TripShape[] = [
       { days: 1, label: "Day after", kind: "wedding-around", detail: "Monday" },
       { days: 1, label: "Fly home", kind: "travel" },
     ],
-    ideas: [
-      {
-        title: "Island hopping from Mactan",
-        detail:
-          "A half or full day by traditional banca boat to the marine sanctuaries at Hilutungan and Nalusuan for snorkelling. Boats leave from the resorts and jetties on Mactan.",
-      },
-    ],
+    ideas: ["nalusuan"],
   },
   {
     days: 10,
@@ -414,18 +573,7 @@ export const tripShapes: TripShape[] = [
       { days: 3, label: "Bohol or Moalboal", kind: "explore" },
       { days: 1, label: "Fly home", kind: "travel" },
     ],
-    ideas: [
-      {
-        title: "Bohol",
-        detail:
-          "Two hours by fast ferry from Cebu City to Tagbilaran. Rolling Chocolate Hills, tiny tarsiers and the beaches of Panglao.",
-      },
-      {
-        title: "Moalboal",
-        detail:
-          "Two and a half to three hours' drive to Cebu's south-west coast, where you can snorkel with huge shoals of sardines and sea turtles just off the beach.",
-      },
-    ],
+    ideas: ["nalusuan", "bohol", "moalboal"],
   },
   {
     days: 14,
@@ -444,18 +592,7 @@ export const tripShapes: TripShape[] = [
       { days: 1, label: "Back to Cebu", kind: "rest" },
       { days: 1, label: "Fly home", kind: "travel" },
     ],
-    ideas: [
-      {
-        title: "El Nido, Palawan",
-        detail:
-          "Limestone islands and lagoons, reached by a direct flight from Cebu of about 1 hour 50 minutes, with no need to go back through Manila.",
-      },
-      {
-        title: "Bohol and Moalboal",
-        detail:
-          "Or stay in the Visayas: a few days on Bohol, then Cebu's south-west coast for the sardine run and Kawasan Falls.",
-      },
-    ],
+    ideas: ["nalusuan", "elnido", "bohol", "moalboal"],
   },
 ];
 

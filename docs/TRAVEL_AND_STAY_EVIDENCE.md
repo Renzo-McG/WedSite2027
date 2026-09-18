@@ -139,3 +139,12 @@ for w in 1920 1080; do
     public/assets/travel/ocean-pavilion-rest-$w.webp
 done
 ```
+
+## Round 2 additions (19 September 2026)
+
+| Fact on page                                                                                             | Source                                                                       | Confidence / limitation                                                                                       |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Fairfield: "One of Mactan's newest hotels … on the Mactan Channel", in Mahi Center, MEPZ 1, Barangay Ibo | Cebu Daily News, Philstar, AppleOne Group                                    | Medium. Sources disagree on the opening date (19 Dec 2025 vs 15 Apr 2026), so the page no longer gives a date |
+| Mactan's coastline, runway and islands on the maps                                                       | OpenStreetMap, fetched 18 Sep 2026 (see the asset register)                  | High for shape at this scale. A test confirms every hotel and the airport sit inside Mactan's coastline       |
+| Cebu is 7 hours ahead on the wedding weekend and 8 after 31 Oct 2027                                     | Computed live from the `Europe/London` and `Asia/Manila` time zones (tested) | High                                                                                                          |
+| Trip idea photos (Nalusuan, Bohol, Moalboal, El Nido), airport photo                                     | Wikimedia Commons, CC BY / CC BY-SA, credited on screen                      | High (licences recorded in the asset register)                                                                |
