@@ -1,9 +1,10 @@
 # Emily & Lawrence Wedding Site
 
-The repository holds two things:
+The repository holds three things:
 
 1. **The public Save the Date** at `/` — the production page guests see. See [docs/SAVE_THE_DATE_V1_2.md](docs/SAVE_THE_DATE_V1_2.md).
-2. **The Design Lab** at `/design-lab/` — an internal creative-direction environment for shaping, comparing, documenting, and exporting a visual and motion system. It is not the wedding site and is intentionally absent from public navigation.
+2. **The guest companion** at `/welcome/`, `/travel/`, `/stay/`, `/trip/` and `/wedding/` — the Wedding website as a small app (in review, not yet linked from the Save the Date). See [docs/TRAVEL_AND_STAY.md](docs/TRAVEL_AND_STAY.md).
+3. **The Design Lab** at `/design-lab/` — an internal creative-direction environment for shaping, comparing, documenting, and exporting a visual and motion system. It is not the wedding site and is intentionally absent from public navigation.
 
 The Save the Date is now the reference for the production system. The Design Lab's own preview deliberately still shows the earlier exploration; realigning it to the production system is a later task.
 
