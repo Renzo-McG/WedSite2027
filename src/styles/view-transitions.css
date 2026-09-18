@@ -1,0 +1,83 @@
+/*
+ * Cross-document View Transitions for the guest companion. Inlined into every
+ * page's <head> (see layouts/AppShell.astro) so the opt-in exists from the
+ * first byte, even before the main stylesheet has arrived.
+ *
+ * The screen moves in the direction of travel through the tab order (types
+ * "forward" / "back" are set in the pagereveal handler); the bars stay put;
+ * the active-tab indicator morphs from the old tab to the new one.
+ */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(screen) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html:active-view-transition-type(forward)::view-transition-old(screen) {
+  animation: 200ms cubic-bezier(0.23, 1, 0.32, 1) both vt-out-left;
+}
+
+html:active-view-transition-type(forward)::view-transition-new(screen) {
+  animation: 320ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in-right;
+}
+
+html:active-view-transition-type(back)::view-transition-old(screen) {
+  animation: 200ms cubic-bezier(0.23, 1, 0.32, 1) both vt-out-right;
+}
+
+html:active-view-transition-type(back)::view-transition-new(screen) {
+  animation: 320ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in-left;
+}
+
+::view-transition-group(tab-pill),
+::view-transition-group(rail-pill) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes vt-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes vt-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+@keyframes vt-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes vt-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
+/* Reduced motion: navigation is a direct swap. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+html[data-reduced-motion]::view-transition-group(*),
+html[data-reduced-motion]::view-transition-old(*),
+html[data-reduced-motion]::view-transition-new(*) {
+  animation: none !important;
+}

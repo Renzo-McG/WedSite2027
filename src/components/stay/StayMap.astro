@@ -1,0 +1,109 @@
+---
+/**
+ * The Stay map: Mactan's real coastline with a pin for every hotel, the
+ * airport and the venue. The active hotel's pin grows, its name shows, and a
+ * line draws from it to the Ocean Pavilion with the measured drive time. Lines
+ * are connectors, not road routes; the caption says so.
+ */
+import MactanMap from "../app/MactanMap.astro";
+import Icon from "../app/Icon.astro";
+import { landmarks, stays } from "../../data/travel";
+import { UNITS_PER_KM, frameFor, toKm } from "../../lib/travel-plot";
+
+const venue = stays.find((s) => s.isVenue)!;
+const fit = [...stays.map((s) => s.location), landmarks.airport.location];
+const margin = 0.8;
+const frame = frameFor(fit, margin);
+const px = (p: { lat: number; lng: number }) => {
+  const { x, y } = toKm(frame, p);
+  return { x: x * UNITS_PER_KM, y: y * UNITS_PER_KM };
+};
+const pct = (p: { lat: number; lng: number }) => {
+  const { x, y } = toKm(frame, p);
+  return {
+    left: ((x / frame.widthKm) * 100).toFixed(2),
+    top: ((y / frame.heightKm) * 100).toFixed(2),
+  };
+};
+const v = px(venue.location);
+const links = stays
+  .filter((s) => !s.isVenue)
+  .map((s) => {
+    const h = px(s.location);
+    const dx = v.x - h.x;
+    const dy = v.y - h.y;
+    // A gentle arc: the control point sits off the midpoint, perpendicular.
+    const bend = 0.18;
+    const c = { x: (h.x + v.x) / 2 - dy * bend, y: (h.y + v.y) / 2 + dx * bend };
+    const mid = { x: (h.x + 2 * c.x + v.x) / 4, y: (h.y + 2 * c.y + v.y) / 4 };
+    return {
+      id: s.id,
+      d: `M${h.x.toFixed(1)} ${h.y.toFixed(1)} Q${c.x.toFixed(1)} ${c.y.toFixed(1)} ${v.x.toFixed(1)} ${v.y.toFixed(1)}`,
+      label: s.toVenue?.minutes ? `${s.toVenue.minutes} min drive` : "Next door",
+      mid: {
+        left: ((mid.x / (frame.widthKm * UNITS_PER_KM)) * 100).toFixed(2),
+        top: ((mid.y / (frame.heightKm * UNITS_PER_KM)) * 100).toFixed(2),
+      },
+    };
+  });
+const airport = pct(landmarks.airport.location);
+---
+
+<figure class="stay-map" id="stay-map" data-stay-map>
+  <MactanMap
+    fit={fit}
+    marginKm={margin}
+    class="stay-map__map"
+    label="Map of Mactan Island with the six hotels, the airport and Shangri-La Mactan, the wedding venue. Use the hotel list to choose a hotel."
+  >
+    <g slot="svg" class="stay-map__links">
+      {links.map((l) => <path class="stay-link" data-link={l.id} d={l.d} pathLength="1" />)}
+    </g>
+
+    {
+      links.map((l) => (
+        <span
+          class="stay-link-label"
+          data-link-label={l.id}
+          style={`left: ${l.mid.left}%; top: ${l.mid.top}%`}
+        >
+          <Icon name="car" size={13} />
+          {l.label}
+        </span>
+      ))
+    }
+
+    <span
+      class="map-marker map-marker--airport"
+      style={`left: ${airport.left}%; top: ${airport.top}%`}
+    >
+      <span class="map-marker__dot"><Icon name="plane" size={14} /></span>
+      <span class="map-marker__label">Airport</span>
+    </span>
+
+    {
+      stays.map((s) => {
+        const p = pct(s.location);
+        return (
+          <button
+            class:list={["pin", s.isVenue && "pin--venue"]}
+            type="button"
+            style={`left: ${p.left}%; top: ${p.top}%`}
+            data-pin={s.id}
+            aria-pressed="false"
+            aria-label={`Show ${s.name}`}
+          >
+            <span class="pin__dot">
+              {s.isVenue ? <Icon name="pavilion" size={14} /> : <Icon name="bed" size={13} />}
+            </span>
+            <span class="pin__label">{s.shortName}</span>
+          </button>
+        );
+      })
+    }
+  </MactanMap>
+  <figcaption class="stay-map__caption">
+    Pins are at each hotel's real position. Lines join a hotel to the venue with the measured drive
+    time; they are not road routes.
+  </figcaption>
+</figure>

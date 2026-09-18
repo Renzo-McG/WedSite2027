@@ -1,0 +1,274 @@
+---
+/**
+ * The Wedding website's product shell. Every destination is its own static
+ * page (so links, back and refresh all work without JavaScript); the shell
+ * makes them behave like one app:
+ *
+ * - desktop: a persistent side rail;
+ * - phones and tablets: a top app bar, a floating bottom tab bar, and a menu
+ *   sheet (native popover) holding the full site structure;
+ * - cross-document View Transitions move the screen in the direction of travel
+ *   through the tab order, and morph the active-tab indicator between tabs.
+ */
+import BaseLayout from "./BaseLayout.astro";
+import Icon from "../components/app/Icon.astro";
+import Monogram from "../components/app/Monogram.astro";
+import { comingLater, destinations, type Destination } from "../data/site";
+import { googleCalendarUrl } from "../lib/calendar";
+import manropeFont from "../assets/fonts/manrope-400-600-latin.woff2?url";
+import viewTransitionCss from "../styles/view-transitions.css?raw";
+import "../styles/app.css";
+import "../styles/app-screens.css";
+
+interface Props {
+  screen: Destination["id"];
+  title: string;
+  description: string;
+  preload?: { srcset: string; sizes: string }[];
+}
+
+const { screen, title, description, preload = [] } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const current = destinations.find((d) => d.id === screen)!;
+const order = destinations.map((d) => d.id);
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  noindex
+  themeColor="#f2f5f3"
+  className="app-page"
+>
+  <Fragment slot="head">
+    <script is:inline define:vars={{ order, screen }}>
+      // Runs before first paint: reduced-motion flag, and the direction of
+      // travel for the incoming page transition.
+      const root = document.documentElement;
+      root.dataset.screen = screen;
+      root.classList.add("js");
+      if (new URLSearchParams(location.search).get("motion") === "reduced") {
+        root.setAttribute("data-reduced-motion", "");
+      }
+      window.addEventListener("pageswap", (event) => {
+        event.viewTransition?.finished.catch(() => {});
+        try {
+          sessionStorage.setItem("guide:from", screen);
+        } catch {
+          /* storage unavailable: transitions fall back to a crossfade */
+        }
+      });
+      window.addEventListener("pagereveal", (event) => {
+        if (!event.viewTransition) return;
+        // A skipped transition is fine (the page simply appears); keep it quiet.
+        event.viewTransition.ready.catch(() => {});
+        event.viewTransition.finished.catch(() => {});
+        const from = (() => {
+          try {
+            return sessionStorage.getItem("guide:from");
+          } catch {
+            return null;
+          }
+        })();
+        const a = order.indexOf(from);
+        const b = order.indexOf(screen);
+        event.viewTransition.types.add(a === -1 || a === b ? "same" : a < b ? "forward" : "back");
+      });
+    </script>
+    <style is:inline set:html={viewTransitionCss}></style>
+    <link rel="preload" href={manropeFont} as="font" type="font/woff2" crossorigin />
+    {
+      preload.map((p) => (
+        <link
+          rel="preload"
+          as="image"
+          type="image/webp"
+          imagesrcset={p.srcset}
+          imagesizes={p.sizes}
+        />
+      ))
+    }
+  </Fragment>
+
+  <div class="app" data-screen={screen}>
+    <a class="skip" href="#screen">Skip to content</a>
+
+    <!-- Desktop side rail -->
+    <aside class="rail">
+      <a class="rail__brand" href={`${base}welcome/`}>
+        <Monogram />
+        <span class="rail__brand-text">
+          <span class="rail__names">Emily &amp; Lawrence</span>
+          <span class="rail__meta">Cebu · 24 October 2027</span>
+        </span>
+      </a>
+
+      <nav class="rail__nav" aria-label="Main">
+        <ul>
+          {
+            destinations.map((d) => (
+              <li>
+                <a
+                  class="rail__link"
+                  href={`${base}${d.path}`}
+                  aria-current={d.id === screen ? "page" : undefined}
+                >
+                  {d.id === screen && <span class="rail__pill" aria-hidden="true" />}
+                  <Icon name={d.icon} size={22} />
+                  <span>{d.label}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="rail__later">
+        <p class="rail__heading" id="rail-later">Coming later</p>
+        <ul aria-labelledby="rail-later">
+          {
+            comingLater.map((item) => (
+              <li class="rail__soon">
+                <span>{item.label}</span>
+                <span class="soon-badge">Soon</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="rail__foot">
+        <div class="clocks" data-clocks>
+          <div class="clock">
+            <span class="clock__place">London</span>
+            <span class="clock__time" data-clock="Europe/London">&nbsp;</span>
+          </div>
+          <div class="clock clock--cebu">
+            <span class="clock__place">Cebu</span>
+            <span class="clock__time" data-clock="Asia/Manila">&nbsp;</span>
+          </div>
+          <p class="clock__note" data-clock-note>Cebu is 7 hours ahead of the UK in summer.</p>
+        </div>
+        <a class="rail__std" href={base}>
+          <Icon name="chevron-left" size={16} />
+          <span>Back to the Save the Date</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Phone and tablet app bar -->
+    <header class="appbar" data-appbar>
+      <a class="appbar__brand" href={`${base}welcome/`} aria-label="Emily & Lawrence, home">
+        <Monogram size="sm" />
+      </a>
+      <p class="appbar__title" data-appbar-title>{current.title}</p>
+      <button class="appbar__menu" type="button" popovertarget="site-menu" aria-label="Open menu">
+        <Icon name="menu" />
+      </button>
+    </header>
+
+    <main class="screen" id="screen" tabindex="-1">
+      <slot />
+    </main>
+
+    <!-- Phone and tablet tab bar -->
+    <nav class="tabbar" aria-label="Main">
+      <ul>
+        {
+          destinations.map((d) => (
+            <li>
+              <a
+                class="tabbar__tab"
+                href={`${base}${d.path}`}
+                aria-current={d.id === screen ? "page" : undefined}
+              >
+                {d.id === screen && <span class="tabbar__pill" aria-hidden="true" />}
+                <Icon name={d.icon} size={22} />
+                <span class="tabbar__label">{d.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <!-- Menu sheet: the whole site structure, including what is coming later -->
+    <div class="sheet" id="site-menu" popover aria-label="Menu">
+      <div class="sheet__head">
+        <Monogram size="sm" />
+        <div>
+          <p class="sheet__names">Emily &amp; Lawrence</p>
+          <p class="sheet__meta">Sunday 24 October 2027 · Shangri-La Mactan</p>
+        </div>
+        <button
+          class="sheet__close"
+          type="button"
+          popovertarget="site-menu"
+          popovertargetaction="hide"
+          aria-label="Close menu"
+        >
+          <Icon name="close" />
+        </button>
+      </div>
+
+      <nav aria-label="Site">
+        <ul class="sheet__nav">
+          {
+            destinations.map((d) => (
+              <li>
+                <a
+                  class="sheet__link"
+                  href={`${base}${d.path}`}
+                  aria-current={d.id === screen ? "page" : undefined}
+                >
+                  <span class="sheet__icon">
+                    <Icon name={d.icon} size={20} />
+                  </span>
+                  <span>{d.title === "Emily & Lawrence" ? "Home" : d.title}</span>
+                  <Icon name="chevron-right" size={18} class="sheet__chev" />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <p class="sheet__heading" id="sheet-later">Coming later</p>
+      <ul class="sheet__later" aria-labelledby="sheet-later">
+        {
+          comingLater.map((item) => (
+            <li>
+              <span>
+                <span class="sheet__later-label">{item.label}</span>
+                <span class="sheet__later-detail">{item.detail}</span>
+              </span>
+              <span class="soon-badge">Soon</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="sheet__actions">
+        <a class="button button--secondary" href={`${base}emily-lawrence-wedding.ics`} download>
+          <Icon name="calendar" size={18} />
+          Add to calendar
+        </a>
+        <a
+          class="button button--ghost"
+          href={googleCalendarUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Google Calendar
+          <Icon name="arrow-out" size={16} />
+          <span class="visually-hidden">(opens google.com in a new tab)</span>
+        </a>
+        <a class="sheet__std" href={base}>Back to the Save the Date</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import "../scripts/app/shell";
+  </script>
+</BaseLayout>

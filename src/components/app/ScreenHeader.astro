@@ -1,0 +1,17 @@
+---
+/**
+ * Large screen title. When it scrolls under the app bar on phones, the bar
+ * takes over the title (see scripts/app/shell.ts).
+ */
+interface Props {
+  title: string;
+  lead?: string;
+}
+const { title, lead } = Astro.props;
+---
+
+<header class="screen-head">
+  <h1 class="screen-head__title" data-large-title>{title}</h1>
+  {lead && <p class="screen-head__lead">{lead}</p>}
+  <slot />
+</header>

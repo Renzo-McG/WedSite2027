@@ -1,0 +1,37 @@
+---
+/**
+ * Responsive image from the guide's image register. Dimensions are always
+ * reserved so nothing shifts while photographs load.
+ */
+import type { GuideImage } from "../../data/travel";
+
+interface Props {
+  image: GuideImage;
+  sizes: string;
+  class?: string;
+  priority?: boolean;
+  /** Used by cross-page transitions to morph one photograph into another. */
+  transitionName?: string;
+}
+
+const { image, sizes, class: className = "", priority = false, transitionName } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const largest = Math.max(...image.widths);
+const src = (w: number) => `${base}assets/guide/${image.name}-${w}.webp`;
+const srcset = image.widths.map((w) => `${src(w)} ${w}w`).join(", ");
+const height = Math.round((largest * image.aspect[1]) / image.aspect[0]);
+---
+
+<img
+  class={className}
+  src={src(largest)}
+  srcset={srcset}
+  sizes={sizes}
+  width={largest}
+  height={height}
+  alt={image.alt}
+  loading={priority ? "eager" : "lazy"}
+  fetchpriority={priority ? "high" : undefined}
+  decoding="async"
+  style={transitionName ? `view-transition-name: ${transitionName}` : undefined}
+/>

@@ -1,0 +1,72 @@
+---
+/**
+ * Before you fly: a real checklist. Ticks are native checkboxes, remembered on
+ * this device only (localStorage, best-effort), and the ring shows progress.
+ * Without JavaScript the boxes still tick; they just are not remembered.
+ */
+import Icon from "../app/Icon.astro";
+import ExternalLink from "../app/ExternalLink.astro";
+import { essentials } from "../../data/travel";
+import type { IconName } from "../../data/site";
+
+const icons: Record<string, IconName> = {
+  Passport: "passport",
+  Visa: "stamp",
+  eTravel: "qr",
+  Time: "clock",
+  Money: "money",
+  Weather: "sun",
+  Plugs: "plug",
+};
+const total = essentials.length;
+---
+
+<div class="prep" data-prep>
+  <div class="card prep__summary">
+    <svg class="prep__ring" viewBox="0 0 44 44" aria-hidden="true">
+      <circle class="prep__ring-track" cx="22" cy="22" r="19"></circle>
+      <circle class="prep__ring-fill" cx="22" cy="22" r="19" pathLength="100" data-prep-ring
+      ></circle>
+    </svg>
+    <div>
+      <p class="prep__count" aria-live="polite">
+        <span class="num" data-prep-count>0</span> of {total} ready
+      </p>
+      <p class="note">Tick things off as you go. Your ticks stay on this device only.</p>
+    </div>
+  </div>
+
+  <ul class="prep__list">
+    {
+      essentials.map((item) => (
+        <li class="card prep__item">
+          <input
+            class="prep__check"
+            type="checkbox"
+            id={`prep-${item.term.toLowerCase()}`}
+            data-prep-item={item.term.toLowerCase()}
+          />
+          <label class="prep__label" for={`prep-${item.term.toLowerCase()}`}>
+            <span class="prep__icon">
+              <Icon name={icons[item.term] ?? "info"} />
+            </span>
+            <span class="prep__text">
+              <span class="prep__term">{item.term}</span>
+              <span class="prep__detail">{item.detail}</span>
+            </span>
+            <span class="prep__box" aria-hidden="true">
+              <Icon name="check" size={16} />
+            </span>
+          </label>
+          {item.link && (
+            <div class="prep__link">
+              <ExternalLink href={item.link.href} site={item.link.site}>
+                {item.link.label}
+              </ExternalLink>
+            </div>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</div>

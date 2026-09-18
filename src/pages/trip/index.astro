@@ -1,0 +1,179 @@
+---
+import AppShell from "../../layouts/AppShell.astro";
+import ScreenHeader from "../../components/app/ScreenHeader.astro";
+import Icon from "../../components/app/Icon.astro";
+import Picture from "../../components/app/Picture.astro";
+import Credit from "../../components/app/Credit.astro";
+import { tripGuidance, tripIdeas, tripShapes, type SegmentKind } from "../../data/travel";
+import type { IconName } from "../../data/site";
+
+const kindIcon: Record<SegmentKind, IconName> = {
+  travel: "plane",
+  rest: "sun",
+  explore: "sparkle",
+  "wedding-around": "calendar",
+  wedding: "pavilion",
+};
+
+/** Expand segments into one entry per day, marking the first day of each. */
+const days = (shape: (typeof tripShapes)[number]) => {
+  const out: {
+    n: number;
+    label: string;
+    kind: SegmentKind;
+    detail?: string | undefined;
+    first: boolean;
+  }[] = [];
+  let n = 1;
+  for (const segment of shape.segments) {
+    for (let d = 0; d < segment.days; d++) {
+      out.push({
+        n,
+        label: segment.label,
+        kind: segment.kind,
+        detail: segment.detail,
+        first: d === 0,
+      });
+      n++;
+    }
+  }
+  return out;
+};
+const ideaById = new Map(tripIdeas.map((idea) => [idea.id, idea]));
+---
+
+<AppShell
+  screen="trip"
+  title="Your trip — Emily & Lawrence"
+  description="How long to come to Cebu for the wedding: 7, 10 and 14-day trip shapes, with ideas for the extra days."
+>
+  <ScreenHeader title="Your trip" lead={tripGuidance.anchor} />
+
+  <div class="callout callout--time">
+    <Icon name="clock" size={20} />
+    <p>{tripGuidance.jetLag}</p>
+  </div>
+
+  <div class="planner" data-planner>
+    <fieldset class="segmented planner__choose" style="--count: 3">
+      <legend class="visually-hidden">Trip length</legend>
+      <span class="segmented__thumb" aria-hidden="true"></span>
+      {
+        tripShapes.map((shape) => (
+          <>
+            <input
+              class="segmented__input"
+              type="radio"
+              name="trip-length"
+              id={`trip-${shape.days}`}
+              value={shape.days}
+              checked={shape.days === tripGuidance.defaultDays}
+            />
+            <label class="segmented__option" for={`trip-${shape.days}`}>
+              <span class="planner__days num">{shape.days}</span> days
+            </label>
+          </>
+        ))
+      }
+    </fieldset>
+
+    {
+      tripShapes.map((shape) => (
+        <section class="plan" data-plan={shape.days} aria-labelledby={`plan-${shape.days}`}>
+          <div class="card plan__card">
+            <header class="plan__head">
+              <div>
+                <h2 class="plan__name" id={`plan-${shape.days}`}>
+                  <span class="visually-hidden">{shape.days} days: </span>
+                  {shape.name}
+                </h2>
+                <p class="plan__summary">{shape.summary}</p>
+              </div>
+              <span class="chip chip--lagoon">
+                <Icon name="bed" size={14} />
+                {shape.nightsInCebu}
+              </span>
+            </header>
+
+            <ol class="days" aria-label={`${shape.days} days, day by day`}>
+              {days(shape).map((day, i) => (
+                <li
+                  class:list={["day", `day--${day.kind}`, !day.first && "day--cont"]}
+                  style={`--i: ${i}`}
+                >
+                  <span class="day__n num">Day {day.n}</span>
+                  <span class="day__icon" aria-hidden="true">
+                    <Icon name={kindIcon[day.kind]} size={18} />
+                  </span>
+                  {day.first ? (
+                    <span class="day__label">{day.label}</span>
+                  ) : (
+                    <span class="day__label day__label--cont">
+                      <span class="visually-hidden">{day.label}, </span>continued
+                    </span>
+                  )}
+                  {day.detail && <span class="day__detail">{day.detail}</span>}
+                </li>
+              ))}
+            </ol>
+
+            <ol class="agenda" aria-hidden="true">
+              {shape.segments.map((segment, i) => {
+                const start = shape.segments.slice(0, i).reduce((sum, seg) => sum + seg.days, 1);
+                const range =
+                  segment.days === 1 ? `Day ${start}` : `Days ${start}–${start + segment.days - 1}`;
+                return (
+                  <li class={`agenda__item agenda__item--${segment.kind} day--${segment.kind}`}>
+                    <span class="agenda__icon">
+                      <Icon name={kindIcon[segment.kind]} size={18} />
+                    </span>
+                    <span class="agenda__range">{range}</span>
+                    <span class="agenda__text">
+                      <span class="agenda__label">{segment.label}</span>
+                      {segment.detail && <span class="agenda__detail">{segment.detail}</span>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <ul class="legend" aria-hidden="true">
+              <li class="legend__item legend__item--travel">Travel</li>
+              <li class="legend__item legend__item--rest">Rest</li>
+              <li class="legend__item legend__item--explore">Explore</li>
+              <li class="legend__item legend__item--wedding-around">Around the wedding</li>
+              <li class="legend__item legend__item--wedding">Wedding</li>
+            </ul>
+          </div>
+
+          <h3 class="plan__ideas-title">Ideas for your extra days</h3>
+          <ul class="ideas">
+            {shape.ideas.map((id, i) => {
+              const idea = ideaById.get(id)!;
+              return (
+                <li class="idea card" style={`--i: ${i}`}>
+                  <div class="idea__media">
+                    <Picture
+                      image={idea.image}
+                      sizes="(min-width: 1024px) 30vw, 90vw"
+                      class="idea__img"
+                    />
+                  </div>
+                  <div class="idea__body">
+                    <p class="idea__where">
+                      <Icon name="pin" size={14} />
+                      {idea.where}
+                    </p>
+                    <h4 class="idea__title">{idea.title}</h4>
+                    <p class="idea__detail">{idea.detail}</p>
+                    <Credit image={idea.image} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</AppShell>

@@ -1,349 +1,92 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import ExternalLink from "../../components/travel/ExternalLink.astro";
-import RouteLine from "../../components/travel/RouteLine.astro";
-import StayList from "../../components/travel/StayList.astro";
-import StayPlot from "../../components/travel/StayPlot.astro";
-import TripLength from "../../components/travel/TripLength.astro";
-import {
-  arrival,
-  essentials,
-  flightGuidance,
-  flightRoutes,
-  stayGuidance,
-  stays,
-  stillToCome,
-  travelMeta,
-  tripGuidance,
-} from "../../data/travel";
-import plusJakartaFont from "../../assets/fonts/plus-jakarta-sans-latin.woff2?url";
-import instrumentSerifFont from "../../assets/fonts/instrument-serif-400-latin.woff2?url";
-import "../../styles/fonts.css";
-import "../../styles/travel.css";
+import AppShell from "../../layouts/AppShell.astro";
+import ScreenHeader from "../../components/app/ScreenHeader.astro";
+import Icon from "../../components/app/Icon.astro";
+import RouteExplorer from "../../components/travel/RouteExplorer.astro";
+import ArrivalPanel from "../../components/travel/ArrivalPanel.astro";
+import PrepChecklist from "../../components/travel/PrepChecklist.astro";
 
-const base = import.meta.env.BASE_URL;
-const hero = {
-  small: `${base}assets/travel/ocean-pavilion-rest-1080.webp`,
-  large: `${base}assets/travel/ocean-pavilion-rest-1920.webp`,
-};
-
-const featured = flightRoutes.find((route) => route.featured)!;
-const others = flightRoutes.filter((route) => !route.featured);
-const scaleMinutes = Math.max(
-  ...flightRoutes.map((route) => route.legs.reduce((sum, leg) => sum + leg.minutes, 0)),
-);
-const numberWords: Record<number, string> = { 4: "Four", 5: "Five", 6: "Six", 7: "Seven" };
-const gbp = (value: number) => `£${value.toLocaleString("en-GB")}`;
-
-const sections = [
-  { id: "getting-there", title: "Getting there" },
-  { id: "arriving", title: "Arriving" },
-  { id: "where-to-stay", title: "Where to stay" },
-  { id: "how-long", title: "How long to stay" },
-  { id: "good-to-know", title: "Good to know" },
-  { id: "still-to-come", title: "Still to come" },
+const tabs = [
+  { id: "flights", label: "Flights", icon: "plane" as const, heading: "Flights from London" },
+  { id: "arriving", label: "Arriving", icon: "pin" as const, heading: "Arriving in Cebu" },
+  { id: "prepare", label: "Before you fly", icon: "passport" as const, heading: "Before you fly" },
 ];
 ---
 
-<BaseLayout
-  title="Travel & Stay — Emily & Lawrence"
-  description="Planning your trip to Cebu for Emily and Lawrence's wedding at Shangri-La Mactan on Sunday 24 October 2027."
-  noindex
-  themeColor="#16221c"
-  className="tas-page"
+<AppShell
+  screen="travel"
+  title="Travel — Emily & Lawrence"
+  description="How to fly from London to Cebu for the wedding: three good routes, planning fares, arriving at Mactan-Cebu airport and what to do before you fly."
 >
-  <Fragment slot="head">
-    <script is:inline>
-      if (new URLSearchParams(window.location.search).get("motion") === "reduced") {
-        document.documentElement.setAttribute("data-reduced-motion", "");
+  <ScreenHeader
+    title="Travel"
+    lead="London to Cebu takes about 16½ to 19 hours, with one change on the way. Here is how to get there, and what happens when you land."
+  />
+
+  <div class="tabs" data-tabs>
+    <div
+      class="segmented tabs__list"
+      role="tablist"
+      aria-label="Travel"
+      style="--count: 3"
+      data-tablist
+    >
+      <span class="segmented__thumb" aria-hidden="true"></span>
+      {
+        tabs.map((tab, i) => (
+          <button
+            class="segmented__option"
+            role="tab"
+            type="button"
+            id={`tab-${tab.id}`}
+            aria-controls={tab.id}
+            aria-selected={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+            data-tab={tab.id}
+          >
+            <Icon name={tab.icon} size={18} />
+            <span>{tab.label}</span>
+          </button>
+        ))
       }
-    </script>
-    <link rel="preload" href={plusJakartaFont} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={instrumentSerifFont} as="font" type="font/woff2" crossorigin />
-    <link
-      rel="preload"
-      as="image"
-      type="image/webp"
-      imagesrcset={`${hero.small} 1080w, ${hero.large} 1920w`}
-      imagesizes="100vw"
-    />
-  </Fragment>
+    </div>
 
-  <div class="tas">
-    <a class="tas-skip" href="#getting-there">Skip to travel details</a>
+    <section
+      class="tabs__panel"
+      id="flights"
+      role="tabpanel"
+      aria-labelledby="tab-flights"
+      data-panel
+    >
+      <h2 class="tabs__heading">{tabs[0]!.heading}</h2>
+      <RouteExplorer />
+    </section>
 
-    <header class="tas-hero">
-      <img
-        class="tas-hero__image"
-        src={hero.large}
-        srcset={`${hero.small} 1080w, ${hero.large} 1920w`}
-        sizes="100vw"
-        width="1920"
-        height="1080"
-        alt="The Ocean Pavilion and its jetty at Shangri-La Mactan, seen from the air, with the resort and the sea beyond."
-        fetchpriority="high"
-        decoding="async"
-      />
-      <span class="tas-hero__wash" aria-hidden="true"></span>
+    <section
+      class="tabs__panel"
+      id="arriving"
+      role="tabpanel"
+      aria-labelledby="tab-arriving"
+      data-panel
+    >
+      <h2 class="tabs__heading">{tabs[1]!.heading}</h2>
+      <ArrivalPanel />
+    </section>
 
-      <a class="tas-home" href={base}>
-        <span class="tas-home__names">Emily &amp; Lawrence</span>
-        <span class="tas-visually-hidden">, back to the invitation</span>
-      </a>
-
-      <div class="tas-hero__panel">
-        <h1 class="tas-hero__title">Travel &amp; Stay</h1>
-        <p class="tas-hero__lead">Everything you need to start planning your trip to Cebu.</p>
-
-        <dl class="tas-glance">
-          <div>
-            <dt>Fly to</dt>
-            <dd>Mactan-Cebu International Airport (CEB)</dd>
-          </div>
-          <div>
-            <dt>From London</dt>
-            <dd>About 16½ to 19 hours, with one change</dd>
-          </div>
-          <div>
-            <dt>The wedding</dt>
-            <dd>
-              {travelMeta.wedding.dayLabel} at {travelMeta.wedding.venue}, about 20 minutes from the
-              airport
-            </dd>
-          </div>
-          <div>
-            <dt>Be there</dt>
-            <dd>At least the day before until the day after</dd>
-          </div>
-        </dl>
-
-        <nav class="tas-contents" aria-label="On this page">
-          <ul>
-            {
-              sections.map((section) => (
-                <li>
-                  <a href={`#${section.id}`}>{section.title}</a>
-                </li>
-              ))
-            }
-          </ul>
-        </nav>
-      </div>
-    </header>
-
-    <main class="tas-main">
-      <!-- ---------------------------------------------------- getting there -->
-      <section class="tas-section tas-flights" id="getting-there" aria-labelledby="flights-title">
-        <div class="tas-intro">
-          <h2 class="tas-title" id="flights-title">Getting to Cebu</h2>
-          <p>
-            {flightGuidance.noDirect} These are the three ways we would suggest from London. For planning,
-            allow roughly <strong
-              >{gbp(flightGuidance.budget.low)} to {gbp(flightGuidance.budget.high)}</strong
-            > return per person in economy.
-          </p>
-          <p class="tas-fine">{flightGuidance.budgetNote}</p>
-        </div>
-
-        <article class="route route--featured" aria-labelledby={`route-${featured.id}`}>
-          <header class="route__head">
-            <h3 class="route__title" id={`route-${featured.id}`}>
-              {featured.title}
-              <span class="route__via"
-                >London to Cebu via {featured.hub}, with {featured.airline}</span
-              >
-            </h3>
-          </header>
-          <RouteLine route={featured} scaleMinutes={scaleMinutes} />
-          <dl class="route__facts">
-            <div class="route__fact route__fact--journey">
-              <dt>Journey</dt>
-              <dd>{featured.journey}</dd>
-            </div>
-            <div class="route__fact">
-              <dt>Fares</dt>
-              <dd>
-                From around {gbp(featured.fareFrom)}
-                <span class="route__sub">{featured.fareNote}</span>
-              </dd>
-            </div>
-            <div class="route__fact">
-              <dt>Flights</dt>
-              <dd>
-                From {featured.londonAirports}
-                <span class="route__sub">{featured.frequency}</span>
-              </dd>
-            </div>
-          </dl>
-          <p class="route__why">{featured.why}</p>
-          <ExternalLink href={featured.link.href} site={featured.link.site} variant="primary">
-            {featured.link.label}
-          </ExternalLink>
-        </article>
-
-        <div class="route-alternatives">
-          {
-            others.map((route) => (
-              <article class="route" aria-labelledby={`route-${route.id}`}>
-                <header class="route__head">
-                  <h3 class="route__title" id={`route-${route.id}`}>
-                    {route.title}
-                    <span class="route__via">
-                      Via {route.hub}, with {route.airline}
-                    </span>
-                  </h3>
-                </header>
-                <RouteLine route={route} scaleMinutes={scaleMinutes} />
-                <dl class="route__facts">
-                  <div class="route__fact route__fact--journey">
-                    <dt>Journey</dt>
-                    <dd>{route.journey}</dd>
-                  </div>
-                  <div class="route__fact">
-                    <dt>Fares</dt>
-                    <dd>
-                      From around {gbp(route.fareFrom)}
-                      <span class="route__sub">{route.fareNote}</span>
-                    </dd>
-                  </div>
-                  <div class="route__fact">
-                    <dt>Flights</dt>
-                    <dd>
-                      From {route.londonAirports}
-                      <span class="route__sub">{route.frequency}</span>
-                    </dd>
-                  </div>
-                </dl>
-                <p class="route__why">{route.why}</p>
-                <ExternalLink href={route.link.href} site={route.link.site}>
-                  {route.link.label}
-                </ExternalLink>
-              </article>
-            ))
-          }
-        </div>
-
-        <footer class="tas-section__foot">
-          <p class="tas-fine">
-            <span class="tas-checked">Planning estimates, checked {travelMeta.checked}.</span>
-            {flightGuidance.notYetOnSale} Lines are drawn to flying time; time spent changing planes varies
-            by day and is not drawn.
-          </p>
-          <ExternalLink href={flightGuidance.compare.href} site={flightGuidance.compare.site}>
-            {flightGuidance.compare.label}
-          </ExternalLink>
-        </footer>
-      </section>
-
-      <!-- --------------------------------------------------------- arriving -->
-      <section class="tas-section tas-arrival" id="arriving" aria-labelledby="arrival-title">
-        <div class="tas-intro">
-          <h2 class="tas-title" id="arrival-title">Arriving in Cebu</h2>
-          <p>
-            You fly into {arrival.airport}, on Mactan Island itself. {arrival.terminal}
-          </p>
-        </div>
-        <p class="tas-arrival__statement">
-          Shangri-La is {arrival.toVenue.km} km from the airport, {arrival.toVenue.minutes} by car.
-        </p>
-        <dl class="tas-arrival__options">
-          {
-            arrival.options.map((option) => (
-              <div class="tas-arrival__option">
-                <dt>{option.name}</dt>
-                <dd>{option.detail}</dd>
-              </div>
-            ))
-          }
-        </dl>
-        <ExternalLink href={arrival.mapsLink.href} site={arrival.mapsLink.site}>
-          {arrival.mapsLink.label}
-        </ExternalLink>
-      </section>
-
-      <!-- ----------------------------------------------------- where to stay -->
-      <section class="tas-section tas-stay" id="where-to-stay" aria-labelledby="stay-title">
-        <div class="tas-intro">
-          <h2 class="tas-title" id="stay-title">Where to stay</h2>
-          <p>
-            {numberWords[stays.length] ?? stays.length} places we would happily recommend, all within
-            a short drive of the wedding and listed from nearest to furthest. Shangri-La is the venue
-            and a lovely place to stay, but it is one good choice among several.
-          </p>
-        </div>
-
-        <div class="tas-stay__layout">
-          <div class="tas-stay__plot">
-            <StayPlot />
-          </div>
-          <div class="tas-stay__list">
-            <StayList />
-            <p class="tas-fine">
-              <span class="tas-checked">Planning estimates, checked {travelMeta.checked}.</span>
-              {stayGuidance.priceNote}
-              {stayGuidance.driveNote}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- --------------------------------------------------------- how long -->
-      <section class="tas-section tas-trip" id="how-long" aria-labelledby="trip-title">
-        <div class="tas-intro">
-          <h2 class="tas-title" id="trip-title">How long to stay</h2>
-          <p>{tripGuidance.anchor}</p>
-          <p>{tripGuidance.jetLag}</p>
-        </div>
-        <TripLength />
-      </section>
-
-      <!-- ------------------------------------------------------ good to know -->
-      <section
-        class="tas-section tas-essentials"
-        id="good-to-know"
-        aria-labelledby="essentials-title"
-      >
-        <div class="tas-intro">
-          <h2 class="tas-title" id="essentials-title">Good to know before you fly</h2>
-        </div>
-        <dl class="tas-essentials__list">
-          {
-            essentials.map((item) => (
-              <div class="tas-essentials__item">
-                <dt>{item.term}</dt>
-                <dd>
-                  <p>{item.detail}</p>
-                  {item.link && (
-                    <ExternalLink href={item.link.href} site={item.link.site}>
-                      {item.link.label}
-                    </ExternalLink>
-                  )}
-                </dd>
-              </div>
-            ))
-          }
-        </dl>
-      </section>
-    </main>
-
-    <!-- ------------------------------------------------------- still to come -->
-    <footer class="tas-coda" id="still-to-come" aria-labelledby="coda-title">
-      <div class="tas-coda__inner">
-        <h2 class="tas-title" id="coda-title">Still to come</h2>
-        <p>We will add these here as plans are confirmed, so it is worth checking back.</p>
-        <ul class="tas-coda__list">
-          {stillToCome.map((item) => <li>{item}</li>)}
-        </ul>
-        <p class="tas-coda__checked">Travel details last checked {travelMeta.checked}.</p>
-        <p class="tas-coda__sign">
-          <span class="tas-coda__names">Emily &amp; Lawrence</span>
-        </p>
-        <a class="tas-coda__back" href={base}>Back to the invitation</a>
-      </div>
-    </footer>
+    <section
+      class="tabs__panel"
+      id="prepare"
+      role="tabpanel"
+      aria-labelledby="tab-prepare"
+      data-panel
+    >
+      <h2 class="tabs__heading">{tabs[2]!.heading}</h2>
+      <PrepChecklist />
+    </section>
   </div>
 
   <script>
-    import "../../scripts/travel";
+    import "../../scripts/app/tabs";
+    import "../../scripts/app/checklist";
   </script>
-</BaseLayout>
+</AppShell>

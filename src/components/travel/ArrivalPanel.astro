@@ -1,0 +1,110 @@
+---
+/**
+ * Arriving: the airport, the venue and the drive between them, on Mactan's
+ * real coastline. The line from the airport to Shangri-La draws when the panel
+ * is shown; it is a connector, labelled with the measured road distance, not a
+ * road route.
+ */
+import MactanMap from "../app/MactanMap.astro";
+import Picture from "../app/Picture.astro";
+import Credit from "../app/Credit.astro";
+import Icon from "../app/Icon.astro";
+import ExternalLink from "../app/ExternalLink.astro";
+import { arrival, landmarks, stays } from "../../data/travel";
+import { airportImage } from "../../data/site";
+import { UNITS_PER_KM, frameFor, toKm } from "../../lib/travel-plot";
+
+const venue = stays.find((s) => s.isVenue)!;
+const fit = [landmarks.airport.location, venue.location];
+const margin = 1.1;
+const frame = frameFor(fit, margin);
+const px = (p: { lat: number; lng: number }) => {
+  const { x, y } = toKm(frame, p);
+  return { x: x * UNITS_PER_KM, y: y * UNITS_PER_KM };
+};
+const pct = (p: { lat: number; lng: number }) => {
+  const { x, y } = toKm(frame, p);
+  return { left: (x / frame.widthKm) * 100, top: (y / frame.heightKm) * 100 };
+};
+const a = px(landmarks.airport.location);
+const v = px(venue.location);
+const mid = { x: (a.x + v.x) / 2, y: (a.y + v.y) / 2 - 60 };
+const route = `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${mid.x.toFixed(1)} ${mid.y.toFixed(1)} ${v.x.toFixed(1)} ${v.y.toFixed(1)}`;
+const airportPct = pct(landmarks.airport.location);
+const venuePct = pct(venue.location);
+const labelPct = {
+  left: ((a.x + 2 * mid.x + v.x) / 4 / (frame.widthKm * UNITS_PER_KM)) * 100,
+  top: ((a.y + 2 * mid.y + v.y) / 4 / (frame.heightKm * UNITS_PER_KM)) * 100,
+};
+const optionIcons = { Grab: "phone", "Metered taxi": "taxi", "Hotel car": "car" } as const;
+---
+
+<div class="arrive">
+  <div class="card arrive__map-card">
+    <MactanMap
+      fit={fit}
+      marginKm={margin}
+      class="arrive__map"
+      label="Map of Mactan Island showing Mactan-Cebu International Airport in the west and Shangri-La Mactan on the east coast, 9 km apart by road."
+    >
+      <path slot="svg" class="arrive__route" d={route} pathLength="1"></path>
+      <span
+        class="map-marker map-marker--airport"
+        style={`left: ${airportPct.left}%; top: ${airportPct.top}%`}
+      >
+        <span class="map-marker__dot"><Icon name="plane" size={14} /></span>
+        <span class="map-marker__label">Airport</span>
+      </span>
+      <span
+        class="map-marker map-marker--venue"
+        style={`left: ${venuePct.left}%; top: ${venuePct.top}%`}
+      >
+        <span class="map-marker__dot"><Icon name="pavilion" size={14} /></span>
+        <span class="map-marker__label">Shangri-La</span>
+      </span>
+      <span class="arrive__route-label" style={`left: ${labelPct.left}%; top: ${labelPct.top}%`}>
+        <Icon name="car" size={14} /> 9 km · ≤ 20 min
+      </span>
+    </MactanMap>
+    <dl class="stats stats--compact">
+      <div class="stat">
+        <dt>Distance</dt>
+        <dd class="num">{arrival.toVenue.km} km by road</dd>
+      </div>
+      <div class="stat">
+        <dt>Drive</dt>
+        <dd>No more than 20 min</dd>
+      </div>
+      <div class="stat">
+        <dt>You land at</dt>
+        <dd>Terminal 2 (CEB)</dd>
+      </div>
+    </dl>
+  </div>
+
+  <figure class="card arrive__photo">
+    <Picture image={airportImage} sizes="(min-width: 1024px) 380px, 100vw" class="arrive__img" />
+    <figcaption>
+      <span>{arrival.airport}, Terminal 2. {arrival.terminal}</span>
+      <Credit image={airportImage} />
+    </figcaption>
+  </figure>
+
+  <ul class="options">
+    {
+      arrival.options.map((option) => (
+        <li class="card option">
+          <span class="option__icon">
+            <Icon name={optionIcons[option.name as keyof typeof optionIcons] ?? "car"} />
+          </span>
+          <h3 class="option__title">{option.name}</h3>
+          <p class="option__detail">{option.detail}</p>
+        </li>
+      ))
+    }
+  </ul>
+
+  <ExternalLink href={arrival.mapsLink.href} site={arrival.mapsLink.site} variant="secondary">
+    {arrival.mapsLink.label}
+  </ExternalLink>
+</div>

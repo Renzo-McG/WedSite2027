@@ -1,0 +1,158 @@
+---
+import AppShell from "../../layouts/AppShell.astro";
+import Icon from "../../components/app/Icon.astro";
+import Picture from "../../components/app/Picture.astro";
+import Credit from "../../components/app/Credit.astro";
+import { readiness, venueImages } from "../../data/site";
+import { stays, tripGuidance } from "../../data/travel";
+
+const base = import.meta.env.BASE_URL;
+const cheapest = Math.min(...stays.map((s) => s.priceFrom));
+const hero = venueImages.aerial;
+const heroSizes = "(min-width: 1024px) calc(100vw - 360px), 100vw";
+
+const tiles = [
+  {
+    href: "travel/",
+    icon: "plane" as const,
+    title: "Getting there",
+    fact: "16½–19 h",
+    sub: "From London, with one change",
+  },
+  {
+    href: "stay/",
+    icon: "bed" as const,
+    title: "Where to stay",
+    fact: `${stays.length} hotels`,
+    sub: `From about £${cheapest} a night`,
+  },
+  {
+    href: "trip/",
+    icon: "calendar" as const,
+    title: "How long to come",
+    fact: "7–14 days",
+    sub: "At least Saturday to Monday",
+  },
+  {
+    href: "travel/#arriving",
+    icon: "car" as const,
+    title: "Arriving",
+    fact: "20 min",
+    sub: "Airport to the venue",
+  },
+];
+---
+
+<AppShell
+  screen="home"
+  title="Emily & Lawrence — Cebu 2027"
+  description="Travel, places to stay and trip planning for Emily and Lawrence's wedding at Shangri-La Mactan, Cebu, on Sunday 24 October 2027."
+  preload={[
+    {
+      srcset: hero.widths.map((w) => `${base}assets/guide/${hero.name}-${w}.webp ${w}w`).join(", "),
+      sizes: heroSizes,
+    },
+  ]}
+>
+  <section class="home-hero" aria-labelledby="home-title">
+    <Picture image={hero} sizes={heroSizes} class="home-hero__img" priority />
+    <span class="home-hero__shade" aria-hidden="true"></span>
+    <div class="home-hero__body">
+      <p class="home-hero__date">Sunday 24 October 2027</p>
+      <h1 class="home-hero__title" id="home-title" data-large-title>Emily &amp; Lawrence</h1>
+      <p class="home-hero__place">
+        <Icon name="pin" size={18} />
+        Shangri-La Mactan, Cebu, Philippines
+      </p>
+      <p class="countdown" data-countdown hidden>
+        <span class="countdown__days" data-countdown-days></span>
+        <span class="countdown__unit">days</span>
+        <span class="countdown__rest" data-countdown-rest></span>
+      </p>
+    </div>
+    <Credit image={hero} class="home-hero__credit" />
+  </section>
+
+  <section class="home-section" aria-labelledby="plan-title">
+    <div class="section-head">
+      <h2 class="section-head__title" id="plan-title">Plan your trip</h2>
+      <p class="section-head__lead">{tripGuidance.anchor}</p>
+    </div>
+    <ul class="tiles">
+      {
+        tiles.map((tile, i) => (
+          <li>
+            <a class="tile" href={`${base}${tile.href}`} style={`--i: ${i}`}>
+              <span class="tile__icon">
+                <Icon name={tile.icon} size={22} />
+              </span>
+              <span class="tile__title">{tile.title}</span>
+              <span class="tile__fact">{tile.fact}</span>
+              <span class="tile__sub">{tile.sub}</span>
+              <Icon name="arrow-right" size={18} class="tile__arrow" />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <div class="home-pair">
+    <section class="card time-card" aria-labelledby="time-title">
+      <h2 class="card__title" id="time-title">Right now</h2>
+      <div class="time-card__clocks">
+        <div class="time-card__clock">
+          <span class="time-card__place">London</span>
+          <span class="time-card__time" data-clock="Europe/London">--:--</span>
+        </div>
+        <span class="time-card__arrow" aria-hidden="true">
+          <Icon name="plane" size={20} />
+        </span>
+        <div class="time-card__clock time-card__clock--cebu">
+          <span class="time-card__place">Cebu</span>
+          <span class="time-card__time" data-clock="Asia/Manila">--:--</span>
+        </div>
+      </div>
+      <p class="time-card__note" data-clock-note>
+        Cebu is 7 hours ahead of the UK in summer and 8 in winter.
+      </p>
+    </section>
+
+    <section class="card ready-card" aria-labelledby="ready-title">
+      <h2 class="card__title" id="ready-title">What's here, and what's next</h2>
+      <ol class="ready">
+        {
+          readiness.map((item) => (
+            <li class={`ready__item ready__item--${item.state}`}>
+              <span class="ready__mark" aria-hidden="true">
+                {item.state === "done" && <Icon name="check" size={14} />}
+              </span>
+              <span class="ready__text">
+                <span class="ready__label">{item.label}</span>
+                <span class="ready__detail">{item.detail}</span>
+              </span>
+              <span class="ready__state">
+                {item.state === "done" ? "Done" : item.state === "now" ? "Here now" : "Coming"}
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </div>
+
+  <a class="wedding-teaser" href={`${base}wedding/`}>
+    <Picture
+      image={venueImages.pavilion}
+      sizes="(min-width: 1024px) 50vw, 100vw"
+      class="wedding-teaser__img"
+    />
+    <span class="wedding-teaser__body">
+      <span class="wedding-teaser__title">The wedding</span>
+      <span class="wedding-teaser__sub">Shangri-La Mactan · date, venue and calendar</span>
+    </span>
+    <span class="wedding-teaser__go" aria-hidden="true">
+      <Icon name="arrow-right" size={20} />
+    </span>
+  </a>
+</AppShell>

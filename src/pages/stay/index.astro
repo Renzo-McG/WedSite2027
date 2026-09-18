@@ -1,0 +1,75 @@
+---
+import AppShell from "../../layouts/AppShell.astro";
+import ScreenHeader from "../../components/app/ScreenHeader.astro";
+import Icon from "../../components/app/Icon.astro";
+import Freshness from "../../components/app/Freshness.astro";
+import HotelCard from "../../components/stay/HotelCard.astro";
+import StayMap from "../../components/stay/StayMap.astro";
+import { stayGuidance, stays } from "../../data/travel";
+
+const venue = stays.find((s) => s.isVenue)!;
+const furthest = Math.max(...stays.map((s) => s.toVenue?.minutes ?? 0));
+---
+
+<AppShell
+  screen="stay"
+  title="Where to stay — Emily & Lawrence"
+  description="Six places to stay near Shangri-La Mactan for Emily and Lawrence's wedding, with drive times, planning prices and a map."
+>
+  <ScreenHeader
+    title="Where to stay"
+    lead={`Six places within ${furthest} minutes of the wedding, from Shangri-La itself to a simple hotel by the airport. Shangri-La is the venue, and one good choice among several.`}
+  />
+
+  <div class="stay" data-stay>
+    <div class="stay__map">
+      <StayMap />
+    </div>
+
+    <div class="stay__list">
+      <div class="stay__toolbar">
+        <p class="stay__count" aria-live="polite" data-sort-status>
+          {stays.length} places, nearest first
+        </p>
+        <fieldset class="segmented segmented--compact stay__sort" style="--count: 2" data-sort>
+          <legend class="visually-hidden">Sort hotels</legend>
+          <span class="segmented__thumb" aria-hidden="true"></span>
+          <input
+            class="segmented__input"
+            type="radio"
+            name="sort"
+            id="sort-near"
+            value="distance"
+            checked
+          />
+          <label class="segmented__option" for="sort-near">
+            <Icon name="pin" size={16} /> Nearest
+          </label>
+          <input class="segmented__input" type="radio" name="sort" id="sort-price" value="price" />
+          <label class="segmented__option" for="sort-price">
+            <Icon name="money" size={16} /> Lowest price
+          </label>
+        </fieldset>
+      </div>
+
+      <ul class="hotels" data-hotels>
+        {stays.map((stay, i) => <HotelCard stay={stay} venueQuery={venue.mapsQuery} index={i} />)}
+      </ul>
+
+      <p class="stay__pager" aria-hidden="true">
+        <span data-pager-index>1</span> of {stays.length}
+        <span class="stay__pager-hint">Swipe for more</span>
+      </p>
+
+      <div class="callout callout--stack">
+        <Freshness label="Room prices are planning estimates" />
+        <p>{stayGuidance.priceNote}</p>
+        <p>{stayGuidance.driveNote}</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import "../../scripts/app/stay";
+  </script>
+</AppShell>
