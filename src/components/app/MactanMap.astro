@@ -3,10 +3,12 @@
  * A to-scale map of Mactan drawn from OpenStreetMap coastline data at build
  * time (src/data/mactan-geo.ts). No tiles, no API, no key: the SVG is part of
  * the page. Children render the interactive layer (pins, labels) positioned in
- * percentages of the same frame, via the `frame` exposed on each point.
+ * percentages of the same frame. The SVG and that layer sit in one "world"
+ * that a screen can zoom and pan as a camera (--z, --tx, --ty on the map);
+ * markers counter-scale so they stay the same size.
  */
 import { coastline } from "../../data/mactan-geo";
-import { UNITS_PER_KM, frameFor, toKm, type LatLng } from "../../lib/travel-plot";
+import { UNITS_PER_KM, frameFor, frameWithAspect, toKm, type LatLng } from "../../lib/travel-plot";
 
 interface Props {
   /** Points the frame must contain. */
@@ -14,10 +16,12 @@ interface Props {
   marginKm?: number;
   class?: string;
   label: string;
+  /** Force the frame to this width-to-height ratio (see frameWithAspect). */
+  aspect?: number;
 }
 
-const { fit, marginKm = 1, class: className = "", label } = Astro.props;
-const frame = frameFor(fit, marginKm);
+const { fit, marginKm = 1, class: className = "", label, aspect } = Astro.props;
+const frame = aspect ? frameWithAspect(fit, marginKm, aspect) : frameFor(fit, marginKm);
 const width = Math.round(frame.widthKm * UNITS_PER_KM);
 const height = Math.round(frame.heightKm * UNITS_PER_KM);
 
@@ -45,25 +49,26 @@ const clipId = `map-clip-${Math.abs(Math.round(frame.north * 1e5 + frame.west * 
   data-width-km={frame.widthKm}
   data-height-km={frame.heightKm}
 >
-  <svg
-    class="map__base"
-    viewBox={`0 0 ${width} ${height}`}
-    role="img"
-    aria-label={label}
-    focusable="false"
-  >
-    <defs>
-      <clipPath id={clipId}><rect width={width} height={height}></rect></clipPath>
-    </defs>
-    <g clip-path={`url(#${clipId})`}>
-      <rect class="map__sea" width={width} height={height}></rect>
-      <path class="map__land-shadow" d={land}></path>
-      <path class="map__land" d={land}></path>
-      <path class="map__runway" d={runway}></path>
-    </g>
-    <slot name="svg" />
-  </svg>
-  <slot />
+  <div class="map__world">
+    <svg
+      class="map__base"
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={label}
+      focusable="false"
+    >
+      <defs>
+        <clipPath id={clipId}><rect width={width} height={height}></rect></clipPath>
+      </defs>
+      <g clip-path={`url(#${clipId})`}>
+        <path class="map__shelf" d={land}></path>
+        <path class="map__land" d={land}></path>
+        <path class="map__runway" d={runway}></path>
+      </g>
+      <slot name="svg" />
+    </svg>
+    <slot />
+  </div>
   <span
     class="map__scale"
     aria-hidden="true"

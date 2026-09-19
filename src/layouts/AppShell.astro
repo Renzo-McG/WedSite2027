@@ -4,30 +4,33 @@
  * page (so links, back and refresh all work without JavaScript); the shell
  * makes them behave like one app:
  *
- * - desktop: a persistent side rail;
+ * - desktop: a calm, persistent side rail (identity and the five places);
  * - phones and tablets: a top app bar, a floating bottom tab bar, and a menu
- *   sheet (native popover) holding the full site structure;
- * - cross-document View Transitions move the screen in the direction of travel
- *   through the tab order, and morph the active-tab indicator between tabs.
+ *   sheet (native popover) holding the whole site;
+ * - cross-document View Transitions push the screen in the direction of travel
+ *   through the tab order, morph the active-tab indicator between tabs, and
+ *   carry a photograph across when one leads to the next screen (data-morph).
  */
 import BaseLayout from "./BaseLayout.astro";
 import Icon from "../components/app/Icon.astro";
 import Monogram from "../components/app/Monogram.astro";
-import { comingLater, destinations, type Destination } from "../data/site";
+import Coastline from "../components/app/Coastline.astro";
+import { destinations, type Destination } from "../data/site";
 import { googleCalendarUrl } from "../lib/calendar";
 import manropeFont from "../assets/fonts/manrope-400-600-latin.woff2?url";
 import viewTransitionCss from "../styles/view-transitions.css?raw";
 import "../styles/app.css";
-import "../styles/app-screens.css";
 
 interface Props {
   screen: Destination["id"];
   title: string;
   description: string;
   preload?: { srcset: string; sizes: string }[];
+  /** Screens whose first view is a full-bleed image let the app bar float over it. */
+  immersive?: boolean;
 }
 
-const { screen, title, description, preload = [] } = Astro.props;
+const { screen, title, description, preload = [], immersive = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const current = destinations.find((d) => d.id === screen)!;
 const order = destinations.map((d) => d.id);
@@ -37,42 +40,81 @@ const order = destinations.map((d) => d.id);
   title={title}
   description={description}
   noindex
-  themeColor="#f2f5f3"
+  themeColor="#f6f2ea"
   className="app-page"
 >
   <Fragment slot="head">
     <script is:inline define:vars={{ order, screen }}>
-      // Runs before first paint: reduced-motion flag, and the direction of
-      // travel for the incoming page transition.
+      // Runs before first paint: reduced-motion flag, the direction of travel
+      // for the incoming page transition, and any photograph handed across.
       const root = document.documentElement;
       root.dataset.screen = screen;
       root.classList.add("js");
       if (new URLSearchParams(location.search).get("motion") === "reduced") {
         root.setAttribute("data-reduced-motion", "");
       }
+      const store = (key, value) => {
+        try {
+          if (value === null) sessionStorage.removeItem(key);
+          else sessionStorage.setItem(key, value);
+        } catch {
+          /* storage unavailable: transitions fall back to a plain push */
+        }
+      };
+      const read = (key) => {
+        try {
+          return sessionStorage.getItem(key);
+        } catch {
+          return null;
+        }
+      };
+      // Home plays its full arrival once per visit, and a short return after.
+      if (screen === "home") {
+        root.dataset.arrival = read("guide:arrived") ? "return" : "first";
+        store("guide:arrived", "1");
+      }
+      // A link that carries a photograph (data-morph on the image inside it)
+      // names that photograph only for the navigation it starts.
+      let morph = null;
+      document.addEventListener(
+        "click",
+        (event) => {
+          const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+          morph = link ? link.querySelector("[data-morph]") : null;
+        },
+        true,
+      );
       window.addEventListener("pageswap", (event) => {
         event.viewTransition?.finished.catch(() => {});
-        try {
-          sessionStorage.setItem("guide:from", screen);
-        } catch {
-          /* storage unavailable: transitions fall back to a crossfade */
+        store("guide:from", screen);
+        if (event.viewTransition && morph) {
+          morph.style.viewTransitionName = "morph";
+          store("guide:morph", morph.dataset.morph);
+        } else {
+          store("guide:morph", null);
         }
       });
       window.addEventListener("pagereveal", (event) => {
+        const key = read("guide:morph");
+        store("guide:morph", null);
         if (!event.viewTransition) return;
         // A skipped transition is fine (the page simply appears); keep it quiet.
         event.viewTransition.ready.catch(() => {});
         event.viewTransition.finished.catch(() => {});
-        const from = (() => {
-          try {
-            return sessionStorage.getItem("guide:from");
-          } catch {
-            return null;
-          }
-        })();
-        const a = order.indexOf(from);
+        const a = order.indexOf(read("guide:from"));
         const b = order.indexOf(screen);
         event.viewTransition.types.add(a === -1 || a === b ? "same" : a < b ? "forward" : "back");
+        if (key) {
+          const target = document.querySelector(`[data-morph="${key}"]`);
+          if (target) {
+            target.style.viewTransitionName = "morph";
+            event.viewTransition.types.add("morph");
+            event.viewTransition.finished.then(
+              () => (target.style.viewTransitionName = ""),
+              () => (target.style.viewTransitionName = ""),
+            );
+          }
+        }
       });
     </script>
     <style is:inline set:html={viewTransitionCss}></style>
@@ -90,31 +132,31 @@ const order = destinations.map((d) => d.id);
     }
   </Fragment>
 
-  <div class="app" data-screen={screen}>
+  <div class:list={["app", immersive && "app--immersive"]} data-screen={screen}>
     <a class="skip" href="#screen">Skip to content</a>
 
-    <!-- Desktop side rail -->
-    <aside class="rail">
+    <!-- Desktop side rail: who, and where you can go. Nothing else. -->
+    <aside class="rail" aria-label="Emily & Lawrence">
       <a class="rail__brand" href={`${base}welcome/`}>
         <Monogram />
         <span class="rail__brand-text">
           <span class="rail__names">Emily &amp; Lawrence</span>
-          <span class="rail__meta">Cebu · 24 October 2027</span>
+          <span class="rail__meta">Cebu, 24 October 2027</span>
         </span>
       </a>
 
       <nav class="rail__nav" aria-label="Main">
         <ul>
           {
-            destinations.map((d) => (
-              <li>
+            destinations.map((d, i) => (
+              <li style={`--i: ${i}`}>
                 <a
                   class="rail__link"
                   href={`${base}${d.path}`}
                   aria-current={d.id === screen ? "page" : undefined}
                 >
                   {d.id === screen && <span class="rail__pill" aria-hidden="true" />}
-                  <Icon name={d.icon} size={22} />
+                  <Icon name={d.icon} size={20} draw={d.id === screen} />
                   <span>{d.label}</span>
                 </a>
               </li>
@@ -123,37 +165,17 @@ const order = destinations.map((d) => d.id);
         </ul>
       </nav>
 
-      <div class="rail__later">
-        <p class="rail__heading" id="rail-later">Coming later</p>
-        <ul aria-labelledby="rail-later">
-          {
-            comingLater.map((item) => (
-              <li class="rail__soon">
-                <span>{item.label}</span>
-                <span class="soon-badge">Soon</span>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-
       <div class="rail__foot">
-        <div class="clocks" data-clocks>
-          <div class="clock">
-            <span class="clock__place">London</span>
-            <span class="clock__time" data-clock="Europe/London">&nbsp;</span>
-          </div>
-          <div class="clock clock--cebu">
-            <span class="clock__place">Cebu</span>
-            <span class="clock__time" data-clock="Asia/Manila">&nbsp;</span>
-          </div>
-          <p class="clock__note" data-clock-note>Cebu is 7 hours ahead of the UK in summer.</p>
-        </div>
-        <a class="rail__std" href={base}>
+        <a class="rail__quiet" href={`${base}emily-lawrence-wedding.ics`} download>
+          <Icon name="calendar" size={16} />
+          Add to calendar
+        </a>
+        <a class="rail__quiet" href={base}>
           <Icon name="chevron-left" size={16} />
-          <span>Back to the Save the Date</span>
+          The Save the Date
         </a>
       </div>
+      <Coastline centre={{ lat: 10.3, lng: 123.985 }} radiusKm={7.5} class="rail__coast" />
     </aside>
 
     <!-- Phone and tablet app bar -->
@@ -163,7 +185,7 @@ const order = destinations.map((d) => d.id);
       </a>
       <p class="appbar__title" data-appbar-title>{current.title}</p>
       <button class="appbar__menu" type="button" popovertarget="site-menu" aria-label="Open menu">
-        <Icon name="menu" />
+        <span class="burger" aria-hidden="true"><span></span><span></span><span></span></span>
       </button>
     </header>
 
@@ -175,7 +197,7 @@ const order = destinations.map((d) => d.id);
     <nav class="tabbar" aria-label="Main">
       <ul>
         {
-          destinations.map((d) => (
+          destinations.map((d, i) => (
             <li>
               <a
                 class="tabbar__tab"
@@ -183,8 +205,11 @@ const order = destinations.map((d) => d.id);
                 aria-current={d.id === screen ? "page" : undefined}
               >
                 {d.id === screen && <span class="tabbar__pill" aria-hidden="true" />}
-                <Icon name={d.icon} size={22} />
-                <span class="tabbar__label">{d.label}</span>
+                {/* Named so it paints above the gliding pill during a transition. */}
+                <span class="tabbar__ink" style={`view-transition-name: tab-ink-${i}`}>
+                  <Icon name={d.icon} size={22} draw={d.id === screen} />
+                  <span class="tabbar__label">{d.label}</span>
+                </span>
               </a>
             </li>
           ))
@@ -192,13 +217,13 @@ const order = destinations.map((d) => d.id);
       </ul>
     </nav>
 
-    <!-- Menu sheet: the whole site structure, including what is coming later -->
+    <!-- Menu sheet: the whole site, and the calendar -->
     <div class="sheet" id="site-menu" popover aria-label="Menu">
       <div class="sheet__head">
         <Monogram size="sm" />
         <div>
           <p class="sheet__names">Emily &amp; Lawrence</p>
-          <p class="sheet__meta">Sunday 24 October 2027 · Shangri-La Mactan</p>
+          <p class="sheet__meta">Sunday 24 October 2027, Shangri-La Mactan</p>
         </div>
         <button
           class="sheet__close"
@@ -214,17 +239,20 @@ const order = destinations.map((d) => d.id);
       <nav aria-label="Site">
         <ul class="sheet__nav">
           {
-            destinations.map((d) => (
-              <li>
+            destinations.map((d, i) => (
+              <li style={`--i: ${i}`}>
                 <a
                   class="sheet__link"
                   href={`${base}${d.path}`}
                   aria-current={d.id === screen ? "page" : undefined}
                 >
                   <span class="sheet__icon">
-                    <Icon name={d.icon} size={20} />
+                    <Icon name={d.icon} size={22} />
                   </span>
-                  <span>{d.title === "Emily & Lawrence" ? "Home" : d.title}</span>
+                  <span class="sheet__text">
+                    <span class="sheet__label">{d.id === "home" ? "Home" : d.title}</span>
+                    <span class="sheet__blurb">{d.blurb}</span>
+                  </span>
                   <Icon name="chevron-right" size={18} class="sheet__chev" />
                 </a>
               </li>
@@ -233,22 +261,7 @@ const order = destinations.map((d) => d.id);
         </ul>
       </nav>
 
-      <p class="sheet__heading" id="sheet-later">Coming later</p>
-      <ul class="sheet__later" aria-labelledby="sheet-later">
-        {
-          comingLater.map((item) => (
-            <li>
-              <span>
-                <span class="sheet__later-label">{item.label}</span>
-                <span class="sheet__later-detail">{item.detail}</span>
-              </span>
-              <span class="soon-badge">Soon</span>
-            </li>
-          ))
-        }
-      </ul>
-
-      <div class="sheet__actions">
+      <div class="sheet__actions" style="--i: 5">
         <a class="button button--secondary" href={`${base}emily-lawrence-wedding.ics`} download>
           <Icon name="calendar" size={18} />
           Add to calendar
@@ -263,7 +276,10 @@ const order = destinations.map((d) => d.id);
           <Icon name="arrow-out" size={16} />
           <span class="visually-hidden">(opens google.com in a new tab)</span>
         </a>
-        <a class="sheet__std" href={base}>Back to the Save the Date</a>
+        <a class="sheet__std" href={base}>
+          <Icon name="chevron-left" size={16} />
+          Back to the Save the Date
+        </a>
       </div>
     </div>
   </div>

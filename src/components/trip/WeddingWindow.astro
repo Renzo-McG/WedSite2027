@@ -1,0 +1,49 @@
+---
+/**
+ * The wedding window: the three days we ask guests to keep, as calendar
+ * tiles. The neighbouring days fade away at either side, because everything
+ * beyond the window is the guest's own. When the strip comes into view the
+ * wedding day lands first, then Saturday and Monday close in beside it, and a
+ * bracket draws beneath all three.
+ */
+import Icon from "../app/Icon.astro";
+import { weddingWindow } from "../../data/travel";
+import "../../styles/window.css";
+
+interface Props {
+  /** Replaces a day's detail line, by role. */
+  details?: Partial<Record<"arrive" | "wedding" | "depart", string>>;
+  caption?: string;
+}
+
+const { details = {}, caption = "The days we ask you to keep" } = Astro.props;
+const first = weddingWindow[0]!;
+const last = weddingWindow.at(-1)!;
+---
+
+<div class="window" data-window>
+  <ol class="window__days">
+    <li class="window__edge" aria-hidden="true"><span>{first.day - 1}</span></li>
+    {
+      weddingWindow.map((day, i) => (
+        <li class:list={["window__day", `window__day--${day.role}`]} style={`--i: ${i}`}>
+          <time class="window__date" datetime={day.iso}>
+            <span class="window__weekday">{day.weekday}</span>
+            <span class="window__num num">{day.day}</span>
+            <span class="visually-hidden"> October 2027</span>
+          </time>
+          <span class="window__title">
+            {day.role === "wedding" && <Icon name="pavilion" size={16} />}
+            {day.title}
+          </span>
+          <span class="window__detail">{details[day.role] ?? day.detail}</span>
+        </li>
+      ))
+    }
+    <li class="window__edge" aria-hidden="true"><span>{last.day + 1}</span></li>
+  </ol>
+  <p class="window__bracket">
+    <span class="window__line" aria-hidden="true"></span>
+    <span class="window__caption">{caption}</span>
+  </p>
+</div>

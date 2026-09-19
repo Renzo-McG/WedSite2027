@@ -1,4 +1,8 @@
 ---
+/**
+ * Stay: the hotel ↔ map explorer. Cards and map are one state; on phones the
+ * map sits above a swipeable rail and the centred card drives it.
+ */
 import AppShell from "../../layouts/AppShell.astro";
 import ScreenHeader from "../../components/app/ScreenHeader.astro";
 import Icon from "../../components/app/Icon.astro";
@@ -6,6 +10,8 @@ import Freshness from "../../components/app/Freshness.astro";
 import HotelCard from "../../components/stay/HotelCard.astro";
 import StayMap from "../../components/stay/StayMap.astro";
 import { stayGuidance, stays } from "../../data/travel";
+import "../../styles/map.css";
+import "../../styles/screen-stay.css";
 
 const venue = stays.find((s) => s.isVenue)!;
 const furthest = Math.max(...stays.map((s) => s.toVenue?.minutes ?? 0));
@@ -18,7 +24,7 @@ const furthest = Math.max(...stays.map((s) => s.toVenue?.minutes ?? 0));
 >
   <ScreenHeader
     title="Where to stay"
-    lead={`Six places within ${furthest} minutes of the wedding, from Shangri-La itself to a simple hotel by the airport. Shangri-La is the venue, and one good choice among several.`}
+    lead={`Six places within ${furthest} minutes of the wedding. Shangri-La is the venue, and one good choice among several.`}
   />
 
   <div class="stay" data-stay>
@@ -57,17 +63,33 @@ const furthest = Math.max(...stays.map((s) => s.toVenue?.minutes ?? 0));
       </ul>
 
       <p class="stay__pager" aria-hidden="true">
-        <span data-pager-index>1</span> of {stays.length}
-        <span class="stay__pager-hint">Swipe for more</span>
+        {stays.map((s) => <span class="stay__dot" data-dot={s.id} />)}
       </p>
 
-      <div class="callout callout--stack">
+      <div class="stay__notes">
         <Freshness label="Room prices are planning estimates" />
         <p>{stayGuidance.priceNote}</p>
         <p>{stayGuidance.driveNote}</p>
       </div>
     </div>
   </div>
+
+  <!-- Hotel details: filled from the card, grown out of its photograph. -->
+  <dialog class="hotel-sheet" data-sheet aria-labelledby="sheet-title">
+    <div class="hotel-sheet__media" data-sheet-media></div>
+    <form method="dialog" class="hotel-sheet__close-form">
+      <button class="hotel-sheet__close" aria-label="Close">
+        <Icon name="close" />
+      </button>
+    </form>
+    <div class="hotel-sheet__body">
+      <p class="hotel-sheet__badge" data-sheet-badge></p>
+      <h2 class="hotel-sheet__title" id="sheet-title" data-sheet-title></h2>
+      <p class="hotel-sheet__kind" data-sheet-kind></p>
+      <div class="hotel-sheet__drive" data-sheet-drive></div>
+      <div class="hotel-sheet__more" data-sheet-more></div>
+    </div>
+  </dialog>
 
   <script>
     import "../../scripts/app/stay";

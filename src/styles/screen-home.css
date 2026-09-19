@@ -1,0 +1,689 @@
+/*
+ * Home: the arrival, and the four doors into the trip.
+ *
+ * Arrival timeline (first visit in a session, html[data-arrival="first"]):
+ *    150 ms  Mactan's coastline starts to draw on deep water
+ *   1150 ms  a pin lands on the Ocean Pavilion, and ripples once
+ *   1850 ms  the map zooms into the pin and dissolves while the photograph of
+ *            the Pavilion opens out from the same point
+ *   2700 ms  the date, then the names rise line by line, then the details
+ * The resting state is the default (no animation), so the page is complete
+ * without JavaScript, with reduced motion, and when a tap skips the arrival.
+ */
+
+.welcome {
+  --px: 58%; /* where the Pavilion sits in the photograph */
+  --py: 41%;
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: calc(100svh - var(--tabbar-h) - 16px);
+  margin: calc(-8px - var(--appbar-h) - env(safe-area-inset-top)) calc(var(--gutter) * -1) 0;
+  overflow: hidden;
+  color: #fff;
+  background: var(--deep);
+  isolation: isolate;
+}
+
+.welcome__stage {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(80% 60% at var(--px) var(--py), #0c4a45 0%, transparent 70%), var(--deep);
+}
+
+.welcome__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--px) var(--py);
+}
+
+.welcome__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(3, 26, 24, 0.5) 0%, rgba(3, 26, 24, 0) 22%),
+    linear-gradient(
+      0deg,
+      rgba(3, 26, 24, 0.9) 0%,
+      rgba(3, 26, 24, 0.55) 30%,
+      rgba(3, 26, 24, 0) 58%
+    );
+}
+
+/* The map is centred on the Pavilion, so the Pavilion is the pin. */
+.welcome__map {
+  position: absolute;
+  top: var(--py);
+  left: var(--px);
+  width: 150%;
+  aspect-ratio: 1;
+  opacity: 0;
+  translate: -50% -50%;
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .welcome__map {
+    width: 110%;
+  }
+}
+
+.welcome__coast {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.welcome__coast path {
+  vector-effect: non-scaling-stroke;
+}
+
+.welcome__coast .coast__main {
+  stroke: var(--shallows);
+  stroke-width: 2;
+  fill: rgba(125, 220, 207, 0.06);
+}
+
+.welcome__coast .coast__rest {
+  stroke: rgba(125, 220, 207, 0.45);
+  stroke-width: 1.2;
+}
+
+.welcome__coast .coast__runway {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 4;
+}
+
+.welcome__pin {
+  position: absolute;
+  top: var(--py);
+  left: var(--px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  translate: -19px -19px;
+}
+
+.welcome__pin-dot {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 2px solid #fff;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--timber);
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.5);
+}
+
+.welcome__pin-label {
+  padding: 4px 10px;
+  border-radius: var(--pill);
+  color: var(--ink);
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: var(--shadow-2);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.welcome__ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--shallows);
+  border-radius: var(--pill);
+  opacity: 0;
+}
+
+.welcome__body {
+  display: grid;
+  gap: 10px;
+  padding: 24px var(--gutter) 30px;
+}
+
+.welcome__date {
+  font-size: var(--t-sm);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--foam);
+}
+
+.welcome__names {
+  display: grid;
+  font-size: var(--t-display);
+  font-weight: 250;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+
+/* Each line is a window the words rise through. */
+.welcome__line {
+  display: block;
+  padding-bottom: 0.08em;
+  overflow: hidden;
+}
+
+.welcome__line > span {
+  display: inline-block;
+}
+
+.welcome__line:last-child {
+  font-weight: 600;
+}
+
+.welcome__place {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-weight: 550;
+}
+
+.welcome__now {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 6px;
+}
+
+.welcome__now > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-size: var(--t-sm);
+  font-weight: 550;
+}
+
+.welcome__now[hidden] {
+  display: none;
+}
+
+.welcome__now b {
+  font-weight: 750;
+}
+
+.welcome__days b {
+  font-size: var(--t-md);
+}
+
+.welcome__credit {
+  top: calc(var(--appbar-h) + env(safe-area-inset-top) + 6px);
+  bottom: auto;
+}
+
+@media (min-width: 1024px) {
+  .welcome__shade {
+    background:
+      linear-gradient(90deg, rgba(3, 26, 24, 0.55) 0%, rgba(3, 26, 24, 0) 55%),
+      linear-gradient(0deg, rgba(3, 26, 24, 0.75) 0%, rgba(3, 26, 24, 0) 50%);
+  }
+
+  .welcome {
+    min-height: min(78vh, 760px);
+    margin: 0;
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-2);
+  }
+
+  .welcome__body {
+    padding: 48px 52px 52px;
+  }
+
+  .welcome__credit {
+    top: 14px;
+  }
+}
+
+/* ------------------------------------------------------------ first arrival */
+
+html[data-arrival="first"] .welcome__map {
+  animation:
+    welcome-show 200ms linear both,
+    welcome-dive 1100ms var(--ease-in-out) 1850ms forwards;
+}
+
+html[data-arrival="first"] .welcome__coast path {
+  stroke-dasharray: 1;
+}
+
+html[data-arrival="first"] .welcome__coast .coast__main {
+  animation:
+    welcome-draw 1300ms var(--ease-in-out) 150ms both,
+    welcome-fill 600ms var(--ease-out) 1300ms both;
+}
+
+html[data-arrival="first"] .welcome__coast .coast__rest {
+  animation: welcome-draw 1500ms var(--ease-in-out) 350ms both;
+}
+
+html[data-arrival="first"] .welcome__coast .coast__runway {
+  animation: welcome-draw 500ms var(--ease-out) 1000ms both;
+}
+
+html[data-arrival="first"] .welcome__pin-dot {
+  animation: welcome-pin 520ms var(--ease-pop) 1150ms both;
+}
+
+html[data-arrival="first"] .welcome__ripple {
+  animation: welcome-ripple 1100ms var(--ease-out) 1350ms both;
+}
+
+html[data-arrival="first"] .welcome__pin-label {
+  animation: welcome-label 420ms var(--ease-out) 1450ms both;
+}
+
+html[data-arrival="first"] .welcome__photo {
+  animation:
+    welcome-open 1250ms var(--ease-in-out) 1850ms both,
+    welcome-settle 2000ms var(--ease-out) 1850ms both;
+}
+
+html[data-arrival="first"] .welcome__shade {
+  animation: welcome-fade 700ms var(--ease-out) 2400ms both;
+}
+
+html[data-arrival="first"] .welcome__date {
+  animation: welcome-rise 700ms var(--ease-out) 2650ms both;
+}
+
+html[data-arrival="first"] .welcome__line > span {
+  animation: welcome-line 1000ms var(--ease-out) both;
+  animation-delay: 2750ms;
+}
+
+html[data-arrival="first"] .welcome__line + .welcome__line > span {
+  animation-delay: 2880ms;
+}
+
+html[data-arrival="first"] .welcome__place {
+  animation: welcome-rise 700ms var(--ease-out) 3100ms both;
+}
+
+html[data-arrival="first"] .welcome__now {
+  animation: welcome-rise 700ms var(--ease-out) 3250ms both;
+}
+
+html[data-arrival="first"] .welcome__credit {
+  animation: welcome-fade 600ms var(--ease-out) 3000ms both;
+}
+
+/* ------------------------------------------------------------ later visits */
+
+html[data-arrival="return"] .welcome__photo {
+  animation: welcome-settle 1100ms var(--ease-out) both;
+}
+
+html[data-arrival="return"] .welcome__pin-dot {
+  animation: welcome-pin 480ms var(--ease-pop) 250ms both;
+}
+
+html[data-arrival="return"] .welcome__line > span {
+  animation: welcome-line 800ms var(--ease-out) 80ms both;
+}
+
+html[data-arrival="return"] .welcome__line + .welcome__line > span {
+  animation-delay: 160ms;
+}
+
+/* A tap, key or scroll skips straight to the resting state. */
+.welcome[data-skip] *,
+.welcome[data-skip] *::before {
+  animation: none !important;
+}
+
+@keyframes welcome-show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes welcome-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes welcome-fill {
+  from {
+    fill: rgba(125, 220, 207, 0);
+  }
+}
+
+@keyframes welcome-dive {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 5;
+  }
+}
+
+@keyframes welcome-pin {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.6);
+  }
+}
+
+@keyframes welcome-ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+@keyframes welcome-label {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+}
+
+@keyframes welcome-open {
+  from {
+    clip-path: circle(0% at var(--px) var(--py));
+  }
+  to {
+    clip-path: circle(150% at var(--px) var(--py));
+  }
+}
+
+@keyframes welcome-settle {
+  from {
+    scale: 1.28;
+  }
+}
+
+@keyframes welcome-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes welcome-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes welcome-line {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+/* ================================================================== doors */
+
+.doors {
+  display: grid;
+  gap: 16px;
+}
+
+.doors__title {
+  font-size: var(--t-xl);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.doors__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.door--travel,
+.door--wedding {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 900px) {
+  .doors__grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .door--travel,
+  .door--wedding {
+    grid-column: span 7;
+  }
+
+  .door--stay,
+  .door--trip {
+    grid-column: span 5;
+  }
+}
+
+.door__link {
+  position: relative;
+  display: grid;
+  align-content: end;
+  height: 100%;
+  min-height: 210px;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  color: #fff;
+  background: var(--deep);
+  box-shadow: var(--shadow-2);
+  isolation: isolate;
+  transition:
+    transform var(--d-base) var(--ease-out),
+    box-shadow var(--d-base) var(--ease-out);
+}
+
+.door__link:active {
+  transform: scale(0.98);
+}
+
+@media (min-width: 900px) {
+  .door__link {
+    min-height: 300px;
+  }
+}
+
+.door--wedding .door__link {
+  min-height: 250px;
+}
+
+.door__img {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: scale 900ms var(--ease-out);
+}
+
+.door--wedding .door__img {
+  object-position: 60% 40%;
+}
+
+.door--photo .door__link::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(3, 26, 24, 0.82) 0%, rgba(3, 26, 24, 0) 62%);
+}
+
+.door--wedding .door__link::before {
+  background:
+    linear-gradient(0deg, rgba(40, 18, 8, 0.78) 0%, rgba(40, 18, 8, 0) 62%),
+    linear-gradient(200deg, rgba(232, 135, 90, 0.28), transparent 50%);
+}
+
+.door__text {
+  display: grid;
+  gap: 3px;
+  padding: 18px 64px 18px 18px;
+}
+
+.door__label {
+  color: var(--foam);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.door--travel .door__label {
+  color: var(--shallows);
+}
+
+.door--wedding .door__label {
+  color: var(--sun);
+}
+
+.door__title {
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.door__sub {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--t-sm);
+}
+
+.door__go {
+  position: absolute;
+  right: 14px;
+  bottom: 16px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--pill);
+  color: var(--ink);
+  background: #fff;
+  transition: transform var(--d-base) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .door__link:hover {
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-3px);
+  }
+
+  .door__link:hover .door__img {
+    scale: 1.05;
+  }
+
+  .door__link:hover .door__go {
+    transform: translateX(3px);
+  }
+}
+
+/* The Travel door draws its own journey when it comes into view. */
+.door--travel .door__link {
+  align-content: space-between;
+  background:
+    radial-gradient(90% 90% at 100% 0%, rgba(125, 220, 207, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--deep-3) 0%, var(--deep) 70%);
+}
+
+.door-route {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  margin: 10px 0 0 4px;
+  overflow: visible;
+}
+
+.door-route__arc {
+  fill: none;
+  stroke: var(--shallows);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.012 0.012;
+}
+
+.js .door-route__arc {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.js .door--travel[data-seen] .door-route__arc {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 2600ms cubic-bezier(0.37, 0, 0.63, 1);
+}
+
+.door-route__end {
+  fill: #fff;
+}
+
+.door-route__end--cebu {
+  fill: var(--shallows);
+}
+
+.door-route__halo {
+  fill: none;
+  stroke: var(--shallows);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.door--travel[data-seen] .door-route__halo {
+  animation: welcome-ripple 1000ms var(--ease-out) 2500ms both;
+}
+
+.door-route__place {
+  fill: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.door-route__plane {
+  fill: #fff;
+  opacity: 0;
+}
+
+.door--travel[data-flying] .door-route__plane {
+  opacity: 1;
+}
+
+.door--travel[data-landed] .door-route__plane {
+  opacity: 0;
+  transition: opacity 400ms var(--ease-out);
+}
+
+.doors__credits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}

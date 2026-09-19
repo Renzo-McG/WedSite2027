@@ -1,10 +1,16 @@
 ---
+/**
+ * Travel: getting there. Three tabs (Flights, Arriving, Before you fly); the
+ * Flights tab opens straight onto the journey, the screen's signature object.
+ */
 import AppShell from "../../layouts/AppShell.astro";
 import ScreenHeader from "../../components/app/ScreenHeader.astro";
 import Icon from "../../components/app/Icon.astro";
-import RouteExplorer from "../../components/travel/RouteExplorer.astro";
+import FlightPlanner from "../../components/travel/FlightPlanner.astro";
 import ArrivalPanel from "../../components/travel/ArrivalPanel.astro";
 import PrepChecklist from "../../components/travel/PrepChecklist.astro";
+import "../../styles/screen-travel.css";
+import "../../styles/map.css";
 
 const tabs = [
   { id: "flights", label: "Flights", icon: "plane" as const, heading: "Flights from London" },
@@ -16,12 +22,9 @@ const tabs = [
 <AppShell
   screen="travel"
   title="Travel — Emily & Lawrence"
-  description="How to fly from London to Cebu for the wedding: three good routes, planning fares, arriving at Mactan-Cebu airport and what to do before you fly."
+  description="How to fly from London to Cebu for the wedding: three good routes compared, planning fares, arriving at Mactan-Cebu airport and what to do before you fly."
 >
-  <ScreenHeader
-    title="Travel"
-    lead="London to Cebu takes about 16½ to 19 hours, with one change on the way. Here is how to get there, and what happens when you land."
-  />
+  <ScreenHeader title="Travel" lead="London to Cebu, with one change on the way." />
 
   <div class="tabs" data-tabs>
     <div
@@ -59,7 +62,7 @@ const tabs = [
       data-panel
     >
       <h2 class="tabs__heading">{tabs[0]!.heading}</h2>
-      <RouteExplorer />
+      <FlightPlanner />
     </section>
 
     <section
@@ -87,6 +90,8 @@ const tabs = [
 
   <script>
     import "../../scripts/app/tabs";
+    import "../../scripts/app/journey";
+    import "../../scripts/app/arrive";
     import "../../scripts/app/checklist";
   </script>
 </AppShell>

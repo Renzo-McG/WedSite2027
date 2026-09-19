@@ -1,30 +1,35 @@
 ---
 /**
- * The Stay map: Mactan's real coastline with a pin for every hotel, the
- * airport and the venue. The active hotel's pin grows, its name shows, and a
- * line draws from it to the Ocean Pavilion with the measured drive time. Lines
- * are connectors, not road routes; the caption says so.
+ * The Stay map: Mactan's real coastline with a numbered pin for every hotel,
+ * the airport and the venue. It answers the hotel list:
+ * - the active hotel's pin rises and names itself;
+ * - the camera glides to frame that hotel with the Ocean Pavilion;
+ * - a car drives the line from the hotel to the venue, then the measured
+ *   drive time lands on it;
+ * - when the list is re-sorted, the pins renumber and hop in the new order.
+ * Lines are connectors, not road routes; the caption says so.
  */
 import MactanMap from "../app/MactanMap.astro";
 import Icon from "../app/Icon.astro";
 import { landmarks, stays } from "../../data/travel";
-import { UNITS_PER_KM, frameFor, toKm } from "../../lib/travel-plot";
+import { UNITS_PER_KM, frameWithAspect, toKm } from "../../lib/travel-plot";
 
 const venue = stays.find((s) => s.isVenue)!;
 const fit = [...stays.map((s) => s.location), landmarks.airport.location];
 const margin = 0.8;
-const frame = frameFor(fit, margin);
+/** Portrait, so the desktop map can stand tall; phones crop it with the camera. */
+const aspect = 0.92;
+const frame = frameWithAspect(fit, margin, aspect);
+const W = frame.widthKm * UNITS_PER_KM;
+const H = frame.heightKm * UNITS_PER_KM;
 const px = (p: { lat: number; lng: number }) => {
   const { x, y } = toKm(frame, p);
   return { x: x * UNITS_PER_KM, y: y * UNITS_PER_KM };
 };
-const pct = (p: { lat: number; lng: number }) => {
-  const { x, y } = toKm(frame, p);
-  return {
-    left: ((x / frame.widthKm) * 100).toFixed(2),
-    top: ((y / frame.heightKm) * 100).toFixed(2),
-  };
-};
+const pct = (p: { x: number; y: number }) => ({
+  left: ((p.x / W) * 100).toFixed(2),
+  top: ((p.y / H) * 100).toFixed(2),
+});
 const v = px(venue.location);
 const links = stays
   .filter((s) => !s.isVenue)
@@ -33,32 +38,38 @@ const links = stays
     const dx = v.x - h.x;
     const dy = v.y - h.y;
     // A gentle arc: the control point sits off the midpoint, perpendicular.
-    const bend = 0.18;
+    const bend = 0.2;
     const c = { x: (h.x + v.x) / 2 - dy * bend, y: (h.y + v.y) / 2 + dx * bend };
     const mid = { x: (h.x + 2 * c.x + v.x) / 4, y: (h.y + 2 * c.y + v.y) / 4 };
     return {
       id: s.id,
       d: `M${h.x.toFixed(1)} ${h.y.toFixed(1)} Q${c.x.toFixed(1)} ${c.y.toFixed(1)} ${v.x.toFixed(1)} ${v.y.toFixed(1)}`,
       label: s.toVenue?.minutes ? `${s.toVenue.minutes} min drive` : "Next door",
-      mid: {
-        left: ((mid.x / (frame.widthKm * UNITS_PER_KM)) * 100).toFixed(2),
-        top: ((mid.y / (frame.heightKm * UNITS_PER_KM)) * 100).toFixed(2),
-      },
+      mid: pct(mid),
     };
   });
-const airport = pct(landmarks.airport.location);
+const airport = pct(px(landmarks.airport.location));
 ---
 
 <figure class="stay-map" id="stay-map" data-stay-map>
   <MactanMap
     fit={fit}
     marginKm={margin}
+    aspect={aspect}
     class="stay-map__map"
     label="Map of Mactan Island with the six hotels, the airport and Shangri-La Mactan, the wedding venue. Use the hotel list to choose a hotel."
   >
     <g slot="svg" class="stay-map__links">
       {links.map((l) => <path class="stay-link" data-link={l.id} d={l.d} pathLength="1" />)}
     </g>
+
+    <span
+      class="map-marker map-marker--airport"
+      style={`left: ${airport.left}%; top: ${airport.top}%`}
+    >
+      <span class="map-marker__dot"><Icon name="plane" size={14} /></span>
+      <span class="map-marker__label">Airport</span>
+    </span>
 
     {
       links.map((l) => (
@@ -73,17 +84,13 @@ const airport = pct(landmarks.airport.location);
       ))
     }
 
-    <span
-      class="map-marker map-marker--airport"
-      style={`left: ${airport.left}%; top: ${airport.top}%`}
-    >
-      <span class="map-marker__dot"><Icon name="plane" size={14} /></span>
-      <span class="map-marker__label">Airport</span>
+    <span class="stay-car" aria-hidden="true" data-car>
+      <Icon name="car" size={13} />
     </span>
 
     {
-      stays.map((s) => {
-        const p = pct(s.location);
+      stays.map((s, i) => {
+        const p = pct(px(s.location));
         return (
           <button
             class:list={["pin", s.isVenue && "pin--venue"]}
@@ -93,10 +100,18 @@ const airport = pct(landmarks.airport.location);
             aria-pressed="false"
             aria-label={`Show ${s.name}`}
           >
-            <span class="pin__dot">
-              {s.isVenue ? <Icon name="pavilion" size={14} /> : <Icon name="bed" size={13} />}
+            <span class="pin__body">
+              <span class="pin__head">
+                {s.isVenue && <Icon name="pavilion" size={16} />}
+                <span
+                  class:list={["pin__rank num", s.isVenue && "pin__rank--bubble"]}
+                  data-pin-rank
+                >
+                  {i + 1}
+                </span>
+              </span>
+              <span class="pin__label">{s.isVenue ? "The wedding" : s.shortName}</span>
             </span>
-            <span class="pin__label">{s.shortName}</span>
           </button>
         );
       })

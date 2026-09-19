@@ -1,0 +1,886 @@
+/*
+ * Stay: the hotel ↔ map explorer. The map is part of the design, not an
+ * embedded utility: it stands tall beside the list on desktop and sits above
+ * a swipeable rail on phones, and every card change moves it.
+ */
+
+.stay {
+  display: grid;
+  gap: 14px;
+}
+
+.stay__map {
+  position: relative;
+  z-index: 5;
+}
+
+@media (max-width: 1023px) {
+  .stay__map {
+    position: sticky;
+    top: calc(var(--appbar-h) + env(safe-area-inset-top));
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 0 calc(var(--gutter) * 0.5) 10px;
+    background: var(--ivory);
+  }
+
+  .stay-map__map {
+    aspect-ratio: 3 / 2;
+    max-height: 40svh;
+    border-radius: 22px;
+  }
+
+  .stay-map__caption {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stay {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-items: start;
+    gap: 28px;
+  }
+
+  .stay__map {
+    order: 2;
+    position: sticky;
+    top: 24px;
+  }
+
+  .stay-map__map {
+    max-height: calc(100dvh - 96px);
+  }
+}
+
+.stay-map {
+  display: grid;
+  gap: 8px;
+}
+
+.stay-map__map {
+  box-shadow:
+    var(--shadow-2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.stay-map__caption {
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+}
+
+/* The drive: a line that follows the car, then the time lands on it. */
+.stay-link {
+  fill: none;
+  stroke: var(--timber);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+  transition: opacity var(--d-fast) var(--ease-out);
+}
+
+.stay-link[data-active] {
+  opacity: 1;
+}
+
+.stay-car {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 2px solid #fff;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--timber);
+  box-shadow: var(--shadow-2);
+  opacity: 0;
+  transform: scale(calc(1 / var(--z)));
+  transition: opacity 160ms var(--ease-out);
+  pointer-events: none;
+}
+
+.stay-car[data-on] {
+  opacity: 1;
+}
+
+.stay-link-label {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--timber);
+  box-shadow: var(--shadow-2);
+  font-size: var(--t-2xs);
+  font-weight: 750;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(calc(0.85 / var(--z)));
+  transition:
+    opacity var(--d-fast) var(--ease-out),
+    transform 420ms var(--ease-pop);
+  pointer-events: none;
+}
+
+.stay-link-label[data-active] {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(calc(1 / var(--z)));
+}
+
+/* Pins: numbered teardrops, anchored at their tip. */
+.pin {
+  position: absolute;
+  z-index: 2;
+  width: 44px;
+  height: 48px;
+  margin: -48px 0 0 -22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: scale(calc(1 / var(--z)));
+  transform-origin: 50% 100%;
+}
+
+.pin__body {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  translate: -50% 0;
+  transition: transform 380ms var(--ease-pop);
+  transform-origin: 50% 100%;
+}
+
+.pin__head {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #fff;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--lagoon);
+  box-shadow: 0 6px 14px -4px rgba(3, 40, 37, 0.45);
+  transition: background-color var(--d-fast) var(--ease-out);
+}
+
+.pin__head::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  bottom: -6px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  border-radius: 0 0 3px;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.pin__rank {
+  font-size: var(--t-xs);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pin--venue .pin__head {
+  width: 34px;
+  height: 34px;
+  background: var(--timber);
+}
+
+.pin__rank--bubble {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1.5px solid #fff;
+  border-radius: var(--pill);
+  color: var(--deep);
+  background: var(--sun);
+  font-size: 0.625rem;
+}
+
+.pin__label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  padding: 3px 10px;
+  border-radius: var(--pill);
+  color: var(--ink);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: var(--shadow-2);
+  font-size: var(--t-xs);
+  font-weight: 750;
+  white-space: nowrap;
+  opacity: 0;
+  translate: -50% 4px;
+  transition:
+    opacity var(--d-fast) var(--ease-out),
+    translate var(--d-base) var(--ease-out);
+  pointer-events: none;
+}
+
+/* The venue's name sits above and to its left, over the island, clear of
+   the airport and of the other pins, which all lie along the coast. */
+.pin--venue .pin__label {
+  right: 60%;
+  bottom: calc(100% + 6px);
+  left: auto;
+  color: #fff;
+  background: var(--timber);
+  opacity: 1;
+  translate: 0 -50%;
+}
+
+.pin[data-active] {
+  z-index: 4;
+}
+
+.pin[data-active] .pin__body {
+  transform: translateY(-6px) scale(1.2);
+}
+
+.pin[data-active]:not(.pin--venue) .pin__head {
+  background: var(--deep);
+}
+
+.pin[data-active] .pin__label {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pin:hover .pin__label {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  .pin:not([data-active]):hover .pin__body {
+    transform: translateY(-3px) scale(1.08);
+  }
+}
+
+.pin.pin--venue .pin__label,
+.pin.pin--venue[data-active] .pin__label,
+.pin.pin--venue:hover .pin__label {
+  translate: 0 0;
+}
+
+.pin:focus-visible {
+  outline: none;
+}
+
+.pin:focus-visible .pin__head {
+  outline: 2.5px solid var(--deep);
+  outline-offset: 3px;
+}
+
+/* ================================================================= list */
+
+.stay__list {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.stay__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.stay__count {
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  font-weight: 650;
+}
+
+.stay__sort {
+  display: none;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.stay[data-enhanced] .stay__sort {
+  display: inline-grid;
+}
+
+.hotels {
+  /* The containing block for everything inside the cards, so the phone rail
+     clips it too (visually hidden link text included). */
+  position: relative;
+  display: grid;
+  gap: 18px;
+}
+
+@media (max-width: 1023px) {
+  .stay[data-enhanced] .hotels {
+    display: flex;
+    gap: 12px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 4px 8vw 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .stay[data-enhanced] .hotels::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stay[data-enhanced] .hotel {
+    flex: 0 0 84vw;
+    max-width: 440px;
+    scroll-snap-align: center;
+  }
+}
+
+/* As a card slides off-centre it eases back; the centred card is the one the
+   map is showing. */
+@supports (animation-timeline: view()) {
+  @media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+    html:not([data-reduced-motion]) .stay[data-enhanced] .hotel__card {
+      animation: rail-focus linear both;
+      animation-timeline: view(inline);
+    }
+  }
+}
+
+@keyframes rail-focus {
+  0% {
+    opacity: 0.6;
+    scale: 0.9;
+  }
+  38%,
+  62% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0.6;
+    scale: 0.9;
+  }
+}
+
+.hotel__card {
+  display: grid;
+  align-content: start;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow:
+    var(--shadow-1),
+    inset 0 0 0 1px var(--line);
+  transition:
+    box-shadow var(--d-base) var(--ease-out),
+    transform var(--d-base) var(--ease-out);
+}
+
+.hotel[data-active] .hotel__card {
+  box-shadow:
+    var(--shadow-2),
+    0 0 0 2px var(--lagoon);
+}
+
+.hotel--venue[data-active] .hotel__card {
+  box-shadow:
+    var(--shadow-2),
+    0 0 0 2px var(--timber);
+}
+
+@media (min-width: 1024px) {
+  .hotel[data-active] .hotel__card {
+    box-shadow:
+      var(--shadow-lift),
+      0 0 0 2px var(--lagoon);
+    transform: translateY(-4px);
+  }
+
+  .hotel--venue[data-active] .hotel__card {
+    box-shadow:
+      var(--shadow-lift),
+      0 0 0 2px var(--timber);
+  }
+}
+
+.hotel__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--sand);
+  isolation: isolate;
+}
+
+.hotel__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(3, 26, 24, 0.66) 0%, rgba(3, 26, 24, 0) 45%);
+  pointer-events: none;
+}
+
+.hotel__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: scale 1100ms var(--ease-out);
+}
+
+.hotel[data-active] .hotel__img {
+  scale: 1.05;
+}
+
+.hotel__rank {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  left: 12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--pill);
+  color: var(--shallows);
+  background: var(--deep);
+  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.5);
+  font-size: var(--t-sm);
+  font-weight: 800;
+}
+
+.hotel--venue .hotel__rank {
+  color: #fff;
+  background: var(--timber);
+}
+
+.hotel__badge {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--pill);
+  color: var(--ink);
+  background: rgba(255, 253, 248, 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-1);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.hotel__badge--venue {
+  color: #fff;
+  background: var(--timber);
+}
+
+.hotel__price {
+  position: absolute;
+  z-index: 1;
+  bottom: 12px;
+  left: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #fff;
+}
+
+.hotel__price b {
+  font-size: 1.75rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.hotel__price-from {
+  font-size: var(--t-xs);
+  font-weight: 650;
+  opacity: 0.88;
+}
+
+.hotel__body {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 16px 18px 18px;
+}
+
+.hotel__name {
+  font-size: var(--t-md);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.hotel__kind {
+  margin-top: -6px;
+  color: var(--ink-3);
+  font-size: var(--t-sm);
+  font-weight: 550;
+}
+
+.hotel__drive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  font-weight: 650;
+}
+
+.hotel__drive li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hotel__drive li:first-child {
+  color: var(--lagoon-strong);
+}
+
+.hotel__drive li.is-venue {
+  color: var(--timber-ink);
+}
+
+.hotel__more {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.stay[data-enhanced] .hotel__more {
+  display: none;
+}
+
+.hotel__desc,
+.hotel__suits {
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+}
+
+.hotel__suits b {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.hotel__note {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  color: var(--timber-ink);
+  background: var(--timber-tint);
+  font-size: var(--t-sm);
+  font-weight: 550;
+}
+
+.hotel__note .icon {
+  flex: none;
+  margin-top: 2px;
+}
+
+.hotel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  padding-top: 4px;
+}
+
+.hotel__cta {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.stay[data-enhanced] .hotel__cta {
+  display: flex;
+}
+
+.hotel__details,
+.hotel__show {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--pill);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--d-fast) var(--ease-out),
+    transform var(--d-press) var(--ease-out);
+}
+
+.hotel__details {
+  color: #fff;
+  background: var(--deep);
+}
+
+.hotel__details .icon {
+  transition: transform var(--d-fast) var(--ease-out);
+}
+
+.hotel__show {
+  color: var(--lagoon-strong);
+  background: var(--lagoon-tint);
+}
+
+.hotel__details:active,
+.hotel__show:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hotel__details:hover {
+    background: var(--deep-3);
+  }
+
+  .hotel__details:hover .icon {
+    transform: translateX(3px);
+  }
+
+  .hotel__show:hover {
+    background: var(--lagoon-soft);
+  }
+}
+
+.stay__pager {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .stay[data-enhanced] .stay__pager {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: -4px;
+  }
+}
+
+.stay__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--pill);
+  background: var(--sand-2);
+  transition:
+    background-color var(--d-fast) var(--ease-out),
+    scale var(--d-base) var(--ease-pop);
+}
+
+.stay__dot[data-active] {
+  background: var(--deep);
+  scale: 1.45;
+}
+
+.stay__notes {
+  display: grid;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: var(--t-sm);
+}
+
+/* ================================================================= sheet */
+
+.hotel-sheet {
+  /* Its own layer in the photo's flight, so the sheet slides rather than
+     cross-fading through the page. */
+  view-transition-name: hotel-sheet;
+  width: min(640px, calc(100% - 32px));
+  max-width: 640px;
+  max-height: min(92dvh, 920px);
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 28px;
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow-3);
+  opacity: 1;
+  transform: none;
+  transition:
+    transform var(--d-nav) var(--ease-drawer),
+    opacity 300ms var(--ease-out),
+    overlay var(--d-nav) allow-discrete,
+    display var(--d-nav) allow-discrete;
+}
+
+@starting-style {
+  .hotel-sheet[open] {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+.hotel-sheet::backdrop {
+  background: rgba(3, 24, 22, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 719px) {
+  .hotel-sheet {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    border-radius: 28px 28px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+.hotel-sheet__media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--sand);
+}
+
+.hotel-sheet__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hotel-sheet__close-form {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.hotel-sheet__close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  color: var(--ink);
+  background: rgba(255, 253, 248, 0.92);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+}
+
+.hotel-sheet__body {
+  display: grid;
+  gap: 10px;
+  padding: 20px 22px 26px;
+}
+
+.hotel-sheet__badge {
+  justify-self: start;
+  padding: 4px 11px;
+  border-radius: var(--pill);
+  color: var(--lagoon-strong);
+  background: var(--lagoon-tint);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.hotel-sheet__badge.is-venue {
+  color: #fff;
+  background: var(--timber);
+}
+
+.hotel-sheet__title {
+  font-size: var(--t-xl);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.hotel-sheet__kind {
+  color: var(--ink-3);
+  font-weight: 550;
+}
+
+.hotel-sheet__more {
+  display: grid;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.hotel-sheet__more .hotel__desc,
+.hotel-sheet__more .hotel__suits {
+  font-size: var(--t-base);
+}
+
+/* The photo's flight from card to sheet and back. */
+::view-transition-group(hotel-photo) {
+  z-index: 3;
+  overflow: hidden;
+  border-radius: 24px;
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+::view-transition-old(hotel-photo),
+::view-transition-new(hotel-photo) {
+  height: 100%;
+  object-fit: cover;
+  animation-duration: 520ms;
+}
+
+::view-transition-group(hotel-sheet) {
+  animation: none;
+}
+
+::view-transition-new(hotel-sheet):only-child {
+  animation: sheet-rise 520ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+::view-transition-old(hotel-sheet):only-child {
+  animation: sheet-fall 360ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes sheet-rise {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+}
+
+@keyframes sheet-fall {
+  to {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

@@ -10,11 +10,14 @@ interface Props {
   sizes: string;
   class?: string;
   priority?: boolean;
-  /** Used by cross-page transitions to morph one photograph into another. */
-  transitionName?: string;
+  /**
+   * Carries this photograph to the next screen: a link containing it and an
+   * image with the same key on the destination morph into each other.
+   */
+  morph?: string;
 }
 
-const { image, sizes, class: className = "", priority = false, transitionName } = Astro.props;
+const { image, sizes, class: className = "", priority = false, morph } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const largest = Math.max(...image.widths);
 const src = (w: number) => `${base}assets/guide/${image.name}-${w}.webp`;
@@ -33,5 +36,5 @@ const height = Math.round((largest * image.aspect[1]) / image.aspect[0]);
   loading={priority ? "eager" : "lazy"}
   fetchpriority={priority ? "high" : undefined}
   decoding="async"
-  style={transitionName ? `view-transition-name: ${transitionName}` : undefined}
+  data-morph={morph}
 />

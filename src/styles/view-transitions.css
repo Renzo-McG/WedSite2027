@@ -3,9 +3,14 @@
  * page's <head> (see layouts/AppShell.astro) so the opt-in exists from the
  * first byte, even before the main stylesheet has arrived.
  *
- * The screen moves in the direction of travel through the tab order (types
- * "forward" / "back" are set in the pagereveal handler); the bars stay put;
- * the active-tab indicator morphs from the old tab to the new one.
+ * - The screen is pushed in the direction of travel through the tab order
+ *   (types "forward" / "back", set in the pagereveal handler), like a native
+ *   navigation stack: the new screen slides in over the old one, which eases
+ *   back and dims. The bars stay put.
+ * - The active-tab indicator glides from the old tab to the new one; the tab
+ *   icons and labels are named separately so they stay readable above it.
+ * - A photograph that leads to the next screen (type "morph") flies to its
+ *   new place and size.
  */
 
 @view-transition {
@@ -13,58 +18,117 @@
 }
 
 ::view-transition-group(screen) {
-  animation-duration: 320ms;
-  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 html:active-view-transition-type(forward)::view-transition-old(screen) {
-  animation: 200ms cubic-bezier(0.23, 1, 0.32, 1) both vt-out-left;
+  animation: 460ms cubic-bezier(0.32, 0.72, 0, 1) both vt-push-out-left;
 }
 
 html:active-view-transition-type(forward)::view-transition-new(screen) {
-  animation: 320ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in-right;
+  animation: 460ms cubic-bezier(0.32, 0.72, 0, 1) both vt-push-in-right;
 }
 
 html:active-view-transition-type(back)::view-transition-old(screen) {
-  animation: 200ms cubic-bezier(0.23, 1, 0.32, 1) both vt-out-right;
+  animation: 460ms cubic-bezier(0.32, 0.72, 0, 1) both vt-push-out-right;
 }
 
 html:active-view-transition-type(back)::view-transition-new(screen) {
-  animation: 320ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in-left;
+  animation: 460ms cubic-bezier(0.32, 0.72, 0, 1) both vt-push-in-left;
 }
 
 ::view-transition-group(tab-pill),
 ::view-transition-group(rail-pill) {
-  animation-duration: 360ms;
+  animation-duration: 460ms;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@keyframes vt-out-left {
+/* Tab icons and labels swap colour quickly: the old ink leaves first, so the
+   icon is never lost against the gliding pill. */
+::view-transition-old(tab-ink-0),
+::view-transition-old(tab-ink-1),
+::view-transition-old(tab-ink-2),
+::view-transition-old(tab-ink-3),
+::view-transition-old(tab-ink-4) {
+  animation: 120ms ease-out both vt-fade-out;
+}
+
+::view-transition-new(tab-ink-0),
+::view-transition-new(tab-ink-1),
+::view-transition-new(tab-ink-2),
+::view-transition-new(tab-ink-3),
+::view-transition-new(tab-ink-4) {
+  animation: 220ms ease-out both vt-fade-in;
+}
+
+@keyframes vt-fade-out {
   to {
     opacity: 0;
-    transform: translateX(-24px);
   }
 }
 
-@keyframes vt-in-right {
+@keyframes vt-fade-in {
   from {
     opacity: 0;
-    transform: translateX(40px);
   }
 }
 
-@keyframes vt-out-right {
+/* A photograph carried to the next screen. */
+::view-transition-group(morph) {
+  z-index: 2;
+  overflow: hidden;
+  border-radius: 22px;
+  animation-duration: 620ms;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+::view-transition-old(morph),
+::view-transition-new(morph) {
+  height: 100%;
+  object-fit: cover;
+  animation-duration: 620ms;
+}
+
+@keyframes vt-push-out-left {
+  to {
+    opacity: 0.2;
+    transform: translateX(-18%);
+    filter: brightness(0.92);
+  }
+}
+
+@keyframes vt-push-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(32%);
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes vt-push-out-right {
   to {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(26%);
   }
 }
 
-@keyframes vt-in-left {
+@keyframes vt-push-in-left {
   from {
-    opacity: 0;
-    transform: translateX(-40px);
+    opacity: 0.2;
+    transform: translateX(-18%);
   }
+}
+
+/* The screen being uncovered on "back" sits underneath the one leaving. */
+html:active-view-transition-type(back)::view-transition-new(screen) {
+  z-index: 0;
+}
+
+html:active-view-transition-type(back)::view-transition-old(screen) {
+  z-index: 1;
 }
 
 /* Reduced motion: navigation is a direct swap. */

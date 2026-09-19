@@ -1,28 +1,45 @@
-import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   arrival,
   essentials,
   flightGuidance,
   flightRoutes,
+  holidayLengths,
+  holidayPlaces,
+  journeyMinutes,
   landmarks,
   stays,
   travelMeta,
-  tripIdeas,
-  tripShapes,
+  weddingWindow,
   type GuideImage,
 } from "../src/data/travel";
-import { airportImage, comingLater, destinations, venueImages } from "../src/data/site";
+import { airportImage, destinations, venueImages, weddingToCome } from "../src/data/site";
 import { coastline } from "../src/data/mactan-geo";
-import { distanceKm, frameFor, toKm, toPercent } from "../src/lib/travel-plot";
+import { philippines } from "../src/data/land-geo";
+import { onLand } from "../src/lib/geo";
+import { distanceKm, frameFor, frameWithAspect, toKm, toPercent } from "../src/lib/travel-plot";
 import { cebuOffsetHours } from "../src/lib/guide-time";
 import shellSource from "../src/layouts/AppShell.astro?raw";
 import externalLinkSource from "../src/components/app/ExternalLink.astro?raw";
 import hotelCardSource from "../src/components/stay/HotelCard.astro?raw";
-import routeExplorerSource from "../src/components/travel/RouteExplorer.astro?raw";
+import flightPlannerSource from "../src/components/travel/FlightPlanner.astro?raw";
+import holidaySource from "../src/components/trip/HolidayExplorer.astro?raw";
 import travelPageSource from "../src/pages/travel/index.astro?raw";
 import stayPageSource from "../src/pages/stay/index.astro?raw";
-import tripPageSource from "../src/pages/trip/index.astro?raw";
+import homePageSource from "../src/pages/welcome/index.astro?raw";
+import weddingPageSource from "../src/pages/wedding/index.astro?raw";
+import motionSource from "../src/scripts/app/motion.ts?raw";
+import journeySource from "../src/scripts/app/journey.ts?raw";
+import staySource from "../src/scripts/app/stay.ts?raw";
+import tripSource from "../src/scripts/app/trip.ts?raw";
+import arriveSource from "../src/scripts/app/arrive.ts?raw";
+import assetRegister from "../docs/TRAVEL_AND_STAY_ASSETS.md?raw";
+
+// Files that exist, found by Vite at test time (no Node file APIs needed).
+const guideFiles = new Set(
+  Object.keys(import.meta.glob("../public/assets/guide/*.webp")).map((f) => f.split("/").pop()),
+);
+const pages = new Set(Object.keys(import.meta.glob("../src/pages/*/index.astro")));
 
 const allLinks = [
   ...flightRoutes.map((route) => route.link.href),
@@ -34,7 +51,7 @@ const allLinks = [
 
 const allImages: GuideImage[] = [
   ...stays.map((s) => s.image),
-  ...tripIdeas.map((i) => i.image),
+  ...holidayPlaces.map((place) => place.image),
   ...Object.values(venueImages),
   airportImage,
 ];
@@ -66,15 +83,31 @@ describe("Travel content", () => {
     for (const route of flightRoutes) {
       expect(route.legs).toHaveLength(2);
       expect(route.legs.at(-1)?.to).toBe("Cebu");
+      expect(route.legs[0]?.to).toBe(route.hub);
+      expect(route.hubCode).toMatch(/^[A-Z]{3}$/);
       expect(route.fareFrom).toBeGreaterThanOrEqual(flightGuidance.budget.low);
       expect(route.fareFrom).toBeLessThanOrEqual(flightGuidance.budget.high);
       expect(route.fareNote).toMatch(/recently seen/);
     }
   });
 
+  it("draws each journey to the length the airline quotes, change included", () => {
+    // Cathay quotes about 16½ h and Emirates about 19 h door to door;
+    // Singapore Airlines quotes 17 to 19 h.
+    const quoted = { "hong-kong": [990, 990], singapore: [17 * 60, 19 * 60], dubai: [1135, 1140] };
+    for (const route of flightRoutes) {
+      const [low = 0, high = 0] = quoted[route.id as keyof typeof quoted];
+      const drawn = journeyMinutes(route);
+      expect(route.connection.minutes).toBeGreaterThanOrEqual(40);
+      expect(drawn).toBeGreaterThanOrEqual(low - 10);
+      expect(drawn).toBeLessThanOrEqual(high + 10);
+    }
+    expect(flightGuidance.connections).toMatch(/longer/);
+  });
+
   it("labels prices as dated planning estimates", () => {
     expect(travelMeta.checked).toMatch(/^[A-Z][a-z]+ \d{4}$/);
-    expect(routeExplorerSource).toContain("<Freshness");
+    expect(flightPlannerSource).toContain("<Freshness");
     expect(stayPageSource).toContain("<Freshness");
     expect(flightGuidance.notYetOnSale).toMatch(/not on sale yet/);
   });
@@ -98,10 +131,7 @@ describe("imagery", () => {
   it("ships every declared image width", () => {
     for (const image of allImages) {
       for (const width of image.widths) {
-        expect(
-          existsSync(`public/assets/guide/${image.name}-${width}.webp`),
-          `${image.name}-${width}`,
-        ).toBe(true);
+        expect(guideFiles.has(`${image.name}-${width}.webp`), `${image.name}-${width}`).toBe(true);
       }
     }
   });
@@ -118,32 +148,56 @@ describe("imagery", () => {
   });
 
   it("records every unconfirmed hotel image in the asset register", () => {
-    const register = readFileSync("docs/TRAVEL_AND_STAY_ASSETS.md", "utf8");
+    const register = assetRegister;
     for (const image of allImages.filter((i) => i.status === "official-unconfirmed")) {
       expect(register).toContain(image.name);
     }
   });
 });
 
-describe("trip shapes", () => {
-  it("offers 7, 10 and 14 days", () => {
-    expect(tripShapes.map((shape) => shape.days)).toEqual([7, 10, 14]);
+describe("your trip", () => {
+  it("asks only for the wedding window: Saturday 23 to Monday 25 October 2027", () => {
+    expect(weddingWindow.map((d) => d.iso)).toEqual(["2027-10-23", "2027-10-24", "2027-10-25"]);
+    for (const day of weddingWindow) {
+      const weekday = new Date(`${day.iso}T12:00:00Z`).toLocaleDateString("en-GB", {
+        weekday: "long",
+        timeZone: "UTC",
+      });
+      expect(day.weekday).toBe(weekday);
+    }
+    expect(weddingWindow.map((d) => d.role)).toEqual(["arrive", "wedding", "depart"]);
   });
 
-  it.each(tripShapes)("$days days add up and surround the wedding", (shape) => {
-    const total = shape.segments.reduce((sum, segment) => sum + segment.days, 0);
-    expect(total).toBe(shape.days);
-    const index = shape.segments.findIndex((segment) => segment.kind === "wedding");
-    expect(index).toBeGreaterThan(0);
-    expect(shape.segments[index - 1]?.label).toBe("Day before");
-    expect(shape.segments[index + 1]?.label).toBe("Day after");
-    expect(shape.segments[0]?.kind).toBe("travel");
-    expect(shape.segments.at(-1)?.kind).toBe("travel");
-    for (const id of shape.ideas) expect(tripIdeas.some((idea) => idea.id === id)).toBe(true);
+  it("offers 7, 10 and 14 days as a holiday, not an itinerary", () => {
+    expect(holidayLengths.map((l) => l.days)).toEqual([7, 10, 14]);
+    for (const length of holidayLengths) {
+      // A day's travel each way, the three-day window, and the guest's own days.
+      expect(1 + weddingWindow.length + length.ownDays + 1).toBe(length.days);
+      expect(length.example).toMatch(/^For example/);
+    }
+    expect(holidaySource).toContain("Ideas, not an itinerary");
   });
 
-  it("never prices a trip", () => {
-    expect(JSON.stringify(tripShapes)).not.toMatch(/£|\bGBP\b/);
+  it.each(holidayLengths)("$days days reach something new, and the map shows it", (length) => {
+    const reach = holidayPlaces.filter((place) => place.from <= length.days);
+    expect(holidayPlaces.some((place) => place.from === length.days)).toBe(true);
+    for (const place of reach) {
+      const { lat, lng } = place.location;
+      expect(lng, place.id).toBeGreaterThan(length.view.west);
+      expect(lng, place.id).toBeLessThan(length.view.east);
+      expect(lat, place.id).toBeGreaterThan(length.view.south);
+      expect(lat, place.id).toBeLessThan(length.view.north);
+    }
+  });
+
+  it("puts every place reached over land on real land", () => {
+    for (const place of holidayPlaces.filter((p) => p.getThere.mode !== "boat")) {
+      expect(onLand(philippines, place.location.lat, place.location.lng), place.id).toBe(true);
+    }
+  });
+
+  it("never prices a holiday", () => {
+    expect(JSON.stringify([holidayPlaces, holidayLengths])).not.toMatch(/£|\bGBP\b|PHP/);
   });
 });
 
@@ -167,6 +221,19 @@ describe("maps", () => {
     const mactan = coastline.land[0]!;
     for (const point of [...stays.map((s) => s.location), landmarks.airport.location]) {
       expect(inside(point, mactan)).toBe(true);
+    }
+  });
+
+  it("keeps the true shape when a map is framed to a set aspect", () => {
+    const points = [...stays.map((stay) => stay.location), landmarks.airport.location];
+    const frame = frameWithAspect(points, 0.8, 0.92);
+    expect(frame.widthKm / frame.heightKm).toBeCloseTo(0.92, 3);
+    for (const point of points) {
+      const { left, top } = toPercent(frame, point);
+      expect(left).toBeGreaterThan(0);
+      expect(left).toBeLessThan(100);
+      expect(top).toBeGreaterThan(0);
+      expect(top).toBeLessThan(100);
     }
   });
 
@@ -198,14 +265,28 @@ describe("time", () => {
 describe("product shell", () => {
   it("gives every destination a real page", () => {
     for (const d of destinations) {
-      expect(existsSync(`src/pages/${d.path}index.astro`), d.path).toBe(true);
+      expect(pages.has(`../src/pages/${d.path}index.astro`), d.path).toBe(true);
     }
   });
 
-  it("keeps coming-later items as text, not links", () => {
-    expect(comingLater.length).toBeGreaterThan(0);
-    expect(shellSource).toContain("soon-badge");
-    expect(shellSource).not.toMatch(/comingLater\.map\(\(item\) => \(\s*<li>\s*<a/);
+  it("keeps build-status UI out of what guests see", () => {
+    for (const source of [shellSource, homePageSource, weddingPageSource]) {
+      expect(source).not.toMatch(/Coming later|soon-badge|Here now|readiness/);
+    }
+    expect(shellSource).not.toMatch(/data-clock=/);
+    expect(weddingToCome.length).toBeGreaterThan(3);
+  });
+
+  it("moves between screens in the direction of travel, and respects reduced motion", () => {
+    // Vitest does not load stylesheets, so check the wiring rather than the CSS.
+    expect(shellSource).toContain("view-transitions.css?raw");
+    expect(shellSource).toMatch(
+      /types\.add\(a === -1 \|\| a === b \? "same" : a < b \? "forward" : "back"\)/,
+    );
+    expect(motionSource).toContain("prefers-reduced-motion: reduce");
+    for (const source of [journeySource, staySource, tripSource, arriveSource]) {
+      expect(source).toContain("reduceMotion()");
+    }
   });
 
   it("opens the menu without JavaScript", () => {
@@ -214,8 +295,8 @@ describe("product shell", () => {
   });
 
   it("drives selections with native controls", () => {
-    expect(routeExplorerSource).toContain('type="radio"');
-    expect(tripPageSource).toContain('type="radio"');
+    expect(flightPlannerSource).toContain('type="radio"');
+    expect(holidaySource).toContain('type="radio"');
     expect(travelPageSource).toContain('role="tablist"');
     expect(travelPageSource).toContain('role="tabpanel"');
   });

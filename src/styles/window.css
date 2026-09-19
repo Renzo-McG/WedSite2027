@@ -1,0 +1,225 @@
+/*
+ * The wedding window: three calendar tiles for the days we ask guests to
+ * keep, with the days either side fading away (they are the guest's own).
+ * Assembles when first seen (scripts/app/window.ts sets data-seen): the
+ * wedding lands, Saturday and Monday close in, the bracket draws.
+ */
+
+.window {
+  --cols: minmax(0, 0.42fr) minmax(0, 1fr) minmax(0, 1.22fr) minmax(0, 1fr) minmax(0, 0.42fr);
+  display: grid;
+  gap: 8px;
+}
+
+.window__days {
+  display: grid;
+  grid-template-columns: var(--cols);
+  gap: 8px;
+}
+
+.window__edge {
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: rgba(14, 36, 33, 0.3);
+  background: linear-gradient(90deg, rgba(237, 228, 212, 0), var(--sand));
+  font-size: var(--t-xl);
+  font-weight: 250;
+}
+
+.window__edge:last-child {
+  background: linear-gradient(270deg, rgba(237, 228, 212, 0), var(--sand));
+}
+
+.window__day {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 158px;
+  padding: 14px 12px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow:
+    var(--shadow-1),
+    inset 0 0 0 1px var(--line);
+}
+
+.window__date {
+  display: grid;
+}
+
+.window__weekday {
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.window__num {
+  font-size: clamp(2.5rem, 1.9rem + 2.6vw, 3.75rem);
+  font-weight: 250;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+
+.window__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-sm);
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.window__detail {
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+  line-height: 1.4;
+}
+
+/* Saturday and Monday slide out from behind the wedding day. */
+.window__day--wedding {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(243, 198, 122, 0.35), transparent 60%),
+    linear-gradient(165deg, #b7683f 0%, var(--timber) 55%, #8a4524 100%);
+  box-shadow: 0 18px 34px -14px rgba(138, 69, 36, 0.7);
+}
+
+.window__day--wedding :is(.window__weekday, .window__detail) {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.window__day--wedding .window__num {
+  font-weight: 600;
+}
+
+.window__bracket {
+  display: grid;
+  grid-template-columns: var(--cols);
+  gap: 4px 8px;
+}
+
+.window__line {
+  grid-column: 2 / 5;
+  height: 12px;
+  border: 2px solid var(--ink);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  transform-origin: 50% 0;
+}
+
+.window__caption {
+  grid-column: 2 / 5;
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* The narrowest phones keep just the three days. */
+@media (max-width: 379px) {
+  .window {
+    --cols: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .window__edge {
+    display: none;
+  }
+
+  .window__line,
+  .window__caption {
+    grid-column: 1 / -1;
+  }
+
+  .window__day {
+    padding: 12px 10px;
+  }
+}
+
+@media (min-width: 720px) {
+  .window {
+    --cols: minmax(0, 0.6fr) minmax(0, 1fr) minmax(0, 1.18fr) minmax(0, 1fr) minmax(0, 0.6fr);
+  }
+
+  .window__day {
+    min-height: 176px;
+    padding: 18px;
+  }
+
+  .window__title {
+    font-size: var(--t-base);
+  }
+
+  .window__detail {
+    font-size: var(--t-sm);
+  }
+}
+
+/* Assembly. */
+[data-window][data-armed]:not([data-seen]) :is(.window__day, .window__edge, .window__caption) {
+  opacity: 0;
+}
+
+[data-window][data-armed]:not([data-seen]) .window__line {
+  transform: scaleX(0);
+}
+
+[data-window][data-seen] .window__day--wedding {
+  animation: window-land 700ms var(--ease-pop) both;
+}
+
+[data-window][data-seen] .window__day--arrive {
+  animation: window-from-right 720ms var(--ease-drawer) 260ms both;
+}
+
+[data-window][data-seen] .window__day--depart {
+  animation: window-from-left 720ms var(--ease-drawer) 260ms both;
+}
+
+[data-window][data-seen] .window__edge {
+  animation: window-fade 700ms var(--ease-out) 700ms both;
+}
+
+[data-window][data-seen] .window__line {
+  animation: window-bracket 700ms var(--ease-in-out) 760ms both;
+}
+
+[data-window][data-seen] .window__caption {
+  animation: window-fade 600ms var(--ease-out) 1100ms both;
+}
+
+@keyframes window-land {
+  from {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.92);
+  }
+}
+
+@keyframes window-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(60%);
+  }
+}
+
+@keyframes window-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-60%);
+  }
+}
+
+@keyframes window-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes window-bracket {
+  from {
+    transform: scaleX(0);
+  }
+}

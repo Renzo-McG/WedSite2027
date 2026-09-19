@@ -1,9 +1,10 @@
 ---
 /**
- * Arriving: the airport, the venue and the drive between them, on Mactan's
- * real coastline. The line from the airport to Shangri-La draws when the panel
- * is shown; it is a connector, labelled with the measured road distance, not a
- * road route.
+ * Arriving: what happens after the long flight, told on Mactan's real
+ * coastline. When the tab opens, a plane lands along the real runway (04/22),
+ * then a car sets off and the line from the airport to Shangri-La draws behind
+ * it, labelled with the measured road distance. The line is a connector, not
+ * a road route; the caption says so. Script: scripts/app/arrive.ts.
  */
 import MactanMap from "../app/MactanMap.astro";
 import Picture from "../app/Picture.astro";
@@ -12,99 +13,134 @@ import Icon from "../app/Icon.astro";
 import ExternalLink from "../app/ExternalLink.astro";
 import { arrival, landmarks, stays } from "../../data/travel";
 import { airportImage } from "../../data/site";
+import { coastline } from "../../data/mactan-geo";
 import { UNITS_PER_KM, frameFor, toKm } from "../../lib/travel-plot";
 
 const venue = stays.find((s) => s.isVenue)!;
 const fit = [landmarks.airport.location, venue.location];
 const margin = 1.1;
 const frame = frameFor(fit, margin);
+const W = frame.widthKm * UNITS_PER_KM;
+const H = frame.heightKm * UNITS_PER_KM;
 const px = (p: { lat: number; lng: number }) => {
   const { x, y } = toKm(frame, p);
   return { x: x * UNITS_PER_KM, y: y * UNITS_PER_KM };
 };
-const pct = (p: { lat: number; lng: number }) => {
-  const { x, y } = toKm(frame, p);
-  return { left: (x / frame.widthKm) * 100, top: (y / frame.heightKm) * 100 };
-};
+const pct = (p: { x: number; y: number }) => ({
+  left: ((p.x / W) * 100).toFixed(2),
+  top: ((p.y / H) * 100).toFixed(2),
+});
 const a = px(landmarks.airport.location);
 const v = px(venue.location);
 const mid = { x: (a.x + v.x) / 2, y: (a.y + v.y) / 2 - 60 };
 const route = `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${mid.x.toFixed(1)} ${mid.y.toFixed(1)} ${v.x.toFixed(1)} ${v.y.toFixed(1)}`;
-const airportPct = pct(landmarks.airport.location);
-const venuePct = pct(venue.location);
-const labelPct = {
-  left: ((a.x + 2 * mid.x + v.x) / 4 / (frame.widthKm * UNITS_PER_KM)) * 100,
-  top: ((a.y + 2 * mid.y + v.y) / 4 / (frame.heightKm * UNITS_PER_KM)) * 100,
-};
+const labelPct = pct({ x: (a.x + 2 * mid.x + v.x) / 4, y: (a.y + 2 * mid.y + v.y) / 4 });
+
+// Landing on runway 04: approach from the south-west, touch down near the
+// threshold, roll out towards the terminal.
+const strip = coastline.runway[0]!;
+const r0 = px({ lat: strip[0]![0], lng: strip[0]![1] });
+const r1 = px({ lat: strip.at(-1)![0], lng: strip.at(-1)![1] });
+const along = (t: number) => ({ x: r0.x + (r1.x - r0.x) * t, y: r0.y + (r1.y - r0.y) * t });
+const landFrom = pct(along(-0.55));
+const landTo = pct(along(0.62));
+const heading = (Math.atan2(r1.y - r0.y, r1.x - r0.x) * 180) / Math.PI;
 const optionIcons = { Grab: "phone", "Metered taxi": "taxi", "Hotel car": "car" } as const;
 ---
 
-<div class="arrive">
-  <div class="card arrive__map-card">
+<div class="arrive" data-arrive>
+  <figure class="arrive__stage">
     <MactanMap
       fit={fit}
       marginKm={margin}
       class="arrive__map"
       label="Map of Mactan Island showing Mactan-Cebu International Airport in the west and Shangri-La Mactan on the east coast, 9 km apart by road."
     >
-      <path slot="svg" class="arrive__route" d={route} pathLength="1"></path>
+      <path slot="svg" class="arrive__route" d={route} pathLength="1" data-drive></path>
       <span
         class="map-marker map-marker--airport"
-        style={`left: ${airportPct.left}%; top: ${airportPct.top}%`}
+        style={`left: ${pct(a).left}%; top: ${pct(a).top}%`}
       >
         <span class="map-marker__dot"><Icon name="plane" size={14} /></span>
-        <span class="map-marker__label">Airport</span>
+        <span class="map-marker__label">Airport, Terminal 2</span>
       </span>
       <span
         class="map-marker map-marker--venue"
-        style={`left: ${venuePct.left}%; top: ${venuePct.top}%`}
+        style={`left: ${pct(v).left}%; top: ${pct(v).top}%`}
       >
         <span class="map-marker__dot"><Icon name="pavilion" size={14} /></span>
         <span class="map-marker__label">Shangri-La</span>
       </span>
-      <span class="arrive__route-label" style={`left: ${labelPct.left}%; top: ${labelPct.top}%`}>
-        <Icon name="car" size={14} /> 9 km · ≤ 20 min
+      <span
+        class="arrive__plane"
+        aria-hidden="true"
+        data-land-from={`${landFrom.left},${landFrom.top}`}
+        data-land-to={`${landTo.left},${landTo.top}`}
+        style={`--heading: ${heading.toFixed(1)}deg`}
+      >
+        <span class="arrive__plane-shadow"></span>
+        <Icon name="plane" size={22} />
+      </span>
+      <span class="arrive__car" aria-hidden="true" data-car>
+        <Icon name="car" size={15} />
+      </span>
+      <span
+        class="arrive__route-label"
+        style={`left: ${labelPct.left}%; top: ${labelPct.top}%`}
+        data-drive-label
+      >
+        <Icon name="car" size={14} />
+        {arrival.toVenue.km} km, up to 20 min
       </span>
     </MactanMap>
-    <dl class="stats stats--compact">
-      <div class="stat">
-        <dt>Distance</dt>
-        <dd class="num">{arrival.toVenue.km} km by road</dd>
-      </div>
-      <div class="stat">
-        <dt>Drive</dt>
-        <dd>No more than 20 min</dd>
-      </div>
-      <div class="stat">
-        <dt>You land at</dt>
-        <dd>Terminal 2 (CEB)</dd>
-      </div>
-    </dl>
+    <figcaption class="arrive__caption note">
+      The line joins the airport to the venue with the measured road distance; it is not the road
+      route.
+    </figcaption>
+  </figure>
+
+  <div class="arrive__facts">
+    <p class="arrive__fact">
+      <b class="num">{arrival.toVenue.km} km</b>
+      <span>from the airport to Shangri-La by road</span>
+    </p>
+    <p class="arrive__fact">
+      <b class="num">20 min</b>
+      <span>at most by car, Shangri-La says; we measured 16 in light traffic</span>
+    </p>
+    <p class="arrive__fact">
+      <b>T2</b>
+      <span>{arrival.terminal}</span>
+    </p>
   </div>
 
-  <figure class="card arrive__photo">
-    <Picture image={airportImage} sizes="(min-width: 1024px) 380px, 100vw" class="arrive__img" />
+  <figure class="arrive__photo">
+    <Picture image={airportImage} sizes="(min-width: 1024px) 420px, 100vw" class="arrive__img" />
     <figcaption>
-      <span>{arrival.airport}, Terminal 2. {arrival.terminal}</span>
+      <span>{arrival.airport}, Terminal 2</span>
       <Credit image={airportImage} />
     </figcaption>
   </figure>
 
-  <ul class="options">
-    {
-      arrival.options.map((option) => (
-        <li class="card option">
-          <span class="option__icon">
-            <Icon name={optionIcons[option.name as keyof typeof optionIcons] ?? "car"} />
-          </span>
-          <h3 class="option__title">{option.name}</h3>
-          <p class="option__detail">{option.detail}</p>
-        </li>
-      ))
-    }
-  </ul>
-
-  <ExternalLink href={arrival.mapsLink.href} site={arrival.mapsLink.site} variant="secondary">
-    {arrival.mapsLink.label}
-  </ExternalLink>
+  <section class="ways" aria-labelledby="ways-title">
+    <h3 class="ways__title" id="ways-title">From the airport</h3>
+    <ul class="ways__list">
+      {
+        arrival.options.map((option) => (
+          <li class="way">
+            <span class="way__icon">
+              <Icon name={optionIcons[option.name as keyof typeof optionIcons] ?? "car"} />
+            </span>
+            <span class="way__text">
+              <span class="way__name">{option.name}</span>
+              <span class="way__detail">{option.detail}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+    <ExternalLink href={arrival.mapsLink.href} site={arrival.mapsLink.site} variant="secondary">
+      {arrival.mapsLink.label}
+    </ExternalLink>
+  </section>
 </div>

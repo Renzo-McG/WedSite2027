@@ -1,54 +1,51 @@
 /**
- * Shell behaviour shared by every screen: live London/Cebu clocks, the
- * wedding countdown, and the app-bar title that appears once the large screen
- * title has scrolled away (the familiar large-title pattern).
+ * Shell behaviour shared by every screen: the wedding countdown, the time in
+ * Cebu where a screen shows it, and the app-bar title that appears once the
+ * large screen title has scrolled away (the familiar large-title pattern).
  */
 import { countdownParts } from "../../lib/countdown";
 import { wedding } from "../../config/wedding";
 import { cebuOffsetHours } from "../../lib/guide-time";
 
-const timeFormat = (zone: string) =>
-  new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: zone });
+const cebuTime = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Asia/Manila",
+});
+const cebuDay = new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: "Asia/Manila" });
 
-function tickClocks(): void {
+function tick(): void {
   const now = new Date();
-  document.querySelectorAll<HTMLElement>("[data-clock]").forEach((el) => {
-    el.textContent = timeFormat(el.dataset.clock!).format(now);
+  document.querySelectorAll<HTMLElement>("[data-cebu-time]").forEach((el) => {
+    el.textContent = cebuTime.format(now);
   });
-  const offset = cebuOffsetHours(now);
-  document.querySelectorAll<HTMLElement>("[data-clock-note]").forEach((el) => {
-    el.textContent = `Cebu is ${offset} hours ahead of the UK today.`;
+  document.querySelectorAll<HTMLElement>("[data-cebu-day]").forEach((el) => {
+    el.textContent = cebuDay.format(now);
   });
-}
-
-function tickCountdown(): void {
+  document.querySelectorAll<HTMLElement>("[data-cebu-offset]").forEach((el) => {
+    el.textContent = String(cebuOffsetHours(now));
+  });
   const parts = countdownParts(Date.parse(wedding.date.countdownTarget), Date.now());
   document.querySelectorAll<HTMLElement>("[data-countdown-days]").forEach((el) => {
-    el.textContent = parts ? String(parts.days) : "0";
-  });
-  document.querySelectorAll<HTMLElement>("[data-countdown-rest]").forEach((el) => {
-    el.textContent = parts
-      ? `${parts.hours} h ${String(parts.minutes).padStart(2, "0")} m`
-      : "Today";
+    // A screen may count up to the figure itself; it reads data-days when it does.
+    el.dataset.days = parts ? String(parts.days) : "0";
+    if (!el.hasAttribute("data-count-up")) el.textContent = el.dataset.days;
   });
   document.querySelectorAll<HTMLElement>("[data-countdown]").forEach((el) => {
     el.hidden = false;
   });
 }
 
-function startClocks(): void {
-  tickClocks();
-  tickCountdown();
-  // Align the first update with the start of the next minute, then every minute.
-  const wait = 60_000 - (Date.now() % 60_000);
-  window.setTimeout(() => {
-    tickClocks();
-    tickCountdown();
-    window.setInterval(() => {
-      tickClocks();
-      tickCountdown();
-    }, 60_000);
-  }, wait);
+function startClock(): void {
+  tick();
+  // Align the next update with the start of the next minute, then every minute.
+  window.setTimeout(
+    () => {
+      tick();
+      window.setInterval(tick, 60_000);
+    },
+    60_000 - (Date.now() % 60_000),
+  );
 }
 
 function largeTitle(): void {
@@ -60,10 +57,10 @@ function largeTitle(): void {
   }
   const observer = new IntersectionObserver(
     ([entry]) => bar.toggleAttribute("data-titled", !entry?.isIntersecting),
-    { rootMargin: "-56px 0px 0px 0px" },
+    { rootMargin: "-58px 0px 0px 0px" },
   );
   observer.observe(title);
 }
 
-startClocks();
+startClock();
 largeTitle();
