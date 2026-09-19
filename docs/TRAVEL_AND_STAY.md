@@ -1,91 +1,104 @@
-# Guest companion (round 2)
+# Guest companion (round 3)
 
-The Wedding website as a product: a guest companion app for a destination wedding. It is a
-separate thing from the Save the Date at `/`, which will link out to it. Built for review on
+The Wedding website as a product: **Emily & Lawrence's Cebu wedding companion**, a small app
+guests move into after the Save the Date at `/` (which will link out to it). Built for review on
 branch `feat/travel-and-stay`; not linked from the invitation yet; `noindex`.
 
-| Screen      | Route       | Job                                                         |
-| ----------- | ----------- | ----------------------------------------------------------- |
-| Home        | `/welcome/` | What you need to know, countdown, clocks, what is coming    |
-| Travel      | `/travel/`  | Flights (routes, fares), Arriving (airport), Before you fly |
-| Stay        | `/stay/`    | Six hotels as cards, linked to a real map of Mactan         |
-| Your trip   | `/trip/`    | 7 / 10 / 14-day trip shapes and ideas for the extra days    |
-| The wedding | `/wedding/` | Date, venue, calendar, what is still to come                |
+| Screen      | Route       | Signature interaction                                                                |
+| ----------- | ----------- | ------------------------------------------------------------------------------------ |
+| Home        | `/welcome/` | The arrival: Mactan's coastline draws, a pin lands, the Pavilion photo opens from it |
+| Travel      | `/travel/`  | The London → Cebu journey: three routes on one timeline, flown on a map              |
+| Stay        | `/stay/`    | Hotel ↔ map explorer: camera, drive, re-ranking pins, a sheet grown from the photo   |
+| Your trip   | `/trip/`    | The wedding window, then "Making a holiday of it?": 7 / 10 / 14 days reshape the map |
+| The wedding | `/wedding/` | The Pavilion arrives from Home, the roof line draws, the light turns to golden hour  |
 
-Governing brief: `Wedding Planning/Wed-Site/Build Briefs/Wedding Website — Intention Brief (Round 2).md`
-in the vault. It records Lawrence's round 1 feedback and applies the Akari design principles to
-UI, motion and interaction. Facts and sources: [TRAVEL_AND_STAY_EVIDENCE.md](TRAVEL_AND_STAY_EVIDENCE.md).
-Photography, map data and the **deployment gate**: [TRAVEL_AND_STAY_ASSETS.md](TRAVEL_AND_STAY_ASSETS.md).
+Governing briefs, in the vault: `Wed-Site/Review/Travel & Stay/Feedback — Round 3.md` (this
+round), on top of `Build Briefs/Wedding Website — Intention Brief (Round 2).md`. Facts and
+sources: [TRAVEL_AND_STAY_EVIDENCE.md](TRAVEL_AND_STAY_EVIDENCE.md). Photography, map data and the
+**deployment gate**: [TRAVEL_AND_STAY_ASSETS.md](TRAVEL_AND_STAY_ASSETS.md).
 
-## In plain English
+## What round 3 changed
 
-A calm, polished travel app for this one wedding. It keeps the wedding site's light,
-green-leaning family, but not the invitation's frosted glass, script or serif. It uses one
-product typeface (Manrope) and white cards on a soft mist background. Lagoon teal (the water
-in the venue film) marks actions and journeys; timber (the Ocean Pavilion's roof) is kept for
-the wedding itself.
+Round 2's architecture stays: five real pages, the desktop rail, the phone app bar, menu sheet
+and five-icon tab bar, directional page transitions, the combined flight timeline, hotel ↔ map
+state, sorting, native controls, no backend and no live APIs. Round 3 adds the art direction
+and the choreography.
 
-It behaves like an app:
+- **Look.** Warm ivory and sand for the page; deep lagoon for the chrome and the journey;
+  tropical shallows for light on dark; lush green islands; timber (the Pavilion's roof) and
+  sunset for the wedding. Manrope throughout, now its full 200–800 range: light, huge display
+  type for names and dates, heavy numerals for durations and prices, quiet UI text.
+- **Fewer containers.** Cards are for things you choose (routes, hotels, places). Facts,
+  options and notes sit on the page as type and rows.
+- **Guest-facing only.** The roadmap, "Coming later", "Here now" and the rail clocks are gone.
+  What the wedding screen will add is written for guests ("Still to come, here").
+- **Your trip reframed.** The wedding needs only Saturday 23 to Monday 25 October; everything
+  either side is the guest's holiday. 7, 10 and 14 days are inspiration, not an itinerary.
 
-- On desktop, a persistent side rail carries the destinations, the "coming later" items, live
-  London and Cebu clocks, and a way back to the Save the Date.
-- On phones, a top bar takes over the screen's title as you scroll, a floating tab bar holds
-  the five destinations, and a menu sheet holds the whole site structure.
-- Moving between screens slides in the direction you are travelling through the tabs, and the
-  active-tab highlight glides to its new tab (cross-document View Transitions, no framework).
+## Motion system
 
-## What moves, and why
+One grammar (`src/styles/app.css`, mirrored in `src/scripts/app/motion.ts`):
+`ease-out` (0.23, 1, 0.32, 1) for entering and state, `ease-in-out` (0.77, 0, 0.175, 1) for
+on-screen travel, `drawer` (0.32, 0.72, 0, 1) for sheets, pushes and thumbs, and one
+overshoot (easeOutBack) kept for things that land on a map. Transform, opacity, clip-path and
+SVG stroke drawing; registered custom properties (`--z`, `--tx`, `--ty`, `--own`) for the map
+cameras and the itinerary band.
 
-Akari method: expansion first (this build), compression after review.
+| Where             | What moves                                                                                                                                                                                                                                       | Job                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
+| Every screen      | Native-style push in the direction of travel; the tab pill glides and the new tab draws its icon; a photograph that leads to the next screen flies there (Home → Wedding)                                                                        | Orientation, continuity        |
+| Menu              | Sheet rises on the drawer curve, rows arrive in turn, the burger folds into a cross                                                                                                                                                              | Spatial, feedback              |
+| Home              | First visit: coastline draws (real OSM Mactan), pin lands and ripples, map dives into the pin as the photo opens from it, names rise line by line, days count up. Later visits: a short settle                                                   | Arrival, sense of place        |
+| Home doors        | The Travel door flies its own London → Cebu arc when seen; photos lean in on hover                                                                                                                                                               | Invitation to explore          |
+| Travel · Flights  | One clock drives a plane along the chosen lane and across the map; durations resolve as it passes; at the hub the map plane waits while the timeline keeps running; other routes recede; total counts up                                         | Explanation, comparison        |
+| Travel · Arriving | A plane lands along the real runway, then a car leads the drive line to Shangri-La and the distance lands on it                                                                                                                                  | Explanation                    |
+| Before you fly    | Each tick draws itself and fills the ring; the last one turns the ring into a plane                                                                                                                                                              | Confirmation, reward           |
+| Stay              | Pin rises; camera frames hotel and venue; a car drives the line, then the drive time lands; sorting slides cards (FLIP), renumbers cards and pins, hops pins in order; the details sheet grows from the photo                                    | Connection, cause and effect   |
+| Stay (phones)     | The centred card in the rail drives the map; off-centre cards ease back (scroll-driven)                                                                                                                                                          | Control and result in one view |
+| Your trip         | The window assembles (wedding lands, Saturday and Monday slide out, bracket draws); 7 / 10 / 14 moves the map camera, pops in new places, draws arcs from Mactan, grows the band, rearranges the cards; the active place fans its activities out | The trip genuinely expanding   |
+| The wedding       | The roof line draws over the date; scrolling warms the light and sinks a sun across the Pavilion                                                                                                                                                 | Feeling: reaching the reason   |
 
-| Where          | Motion                                                                                                         | Job                                         |
-| -------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Everywhere     | Screen slides with direction; active pill morphs                                                               | Orientation: where you went, and from where |
-| Phones         | App-bar title appears once the big title scrolls away                                                          | Orientation                                 |
-| Home           | Venue photo settles; plan tiles rise in turn                                                                   | Entry                                       |
-| Travel         | Tab thumb slides; panel fades in                                                                               | State change                                |
-| Flights        | Route line draws to flying time with a plane at its tip; fare dot lifts                                        | Explanation and comparison                  |
-| Arriving       | Airport-to-venue line draws on the real coastline, then its label                                              | Explanation                                 |
-| Before you fly | Tick, and the progress ring fills                                                                              | Confirmation                                |
-| Stay           | Card lifts; its pin grows; a line draws to the venue with the drive time; sort moves cards to their new places | Connection (card ↔ map)                     |
-| Your trip      | Days re-flow into the new shape; idea cards rise                                                               | State change                                |
-| Menu           | Sheet slides up from the bottom                                                                                | Spatial                                     |
-
-One motion grammar: `cubic-bezier(0.23, 1, 0.32, 1)` (ease-out) for entering and state,
-`cubic-bezier(0.77, 0, 0.175, 1)` for on-screen travel, `cubic-bezier(0.32, 0.72, 0, 1)` for the
-sheet and the tab morph. Transform and opacity only (plus SVG line drawing). Nothing loops.
-
-**Reduced motion** (`prefers-reduced-motion` or `?motion=reduced`): every state still changes,
-instantly; lines appear drawn; navigation is a direct swap.
+**Reduced motion** (`prefers-reduced-motion` or `?motion=reduced`) is its own state: every
+change still happens, instantly. Lines are drawn, planes are parked at their destination, maps
+cut to their frame, the arrival shows its resting state, and navigation is a direct swap.
 
 ## Without JavaScript
 
-Every destination is a normal page and every link works. Route choice, trip length and sort
-are native radio buttons (selection shown with CSS `:has()`; older browsers show every option's
-content). The Travel tabs fall back to all three sections in order. The menu uses the native
-`popover` attribute and opens without script. Only the clocks, countdown, checklist memory,
-phone rail sync and card ↔ pin highlighting need JavaScript.
+Every destination is a normal page and every link works. Route choice, trip length and sort are
+native radio buttons; the chosen route's lit line and details, and the places and band for the
+chosen trip length, show through CSS `:has()`. The Travel tabs fall back to all three sections
+in order, hotel cards show their full details, the menu uses the native `popover` attribute,
+and Home shows its resting state. Only the flights, landings, drives, camera moves, counts,
+checklist memory and the phone rail sync need JavaScript.
 
 ## Files
 
-- Shell: `src/layouts/AppShell.astro`, `src/scripts/app/shell.ts`, `src/styles/app.css`,
-  `src/styles/view-transitions.css` (inlined into every page's head)
-- Screens: `src/pages/{welcome,travel,stay,trip,wedding}/index.astro`, `src/styles/app-screens.css`
-- Components: `src/components/app/` (icons, monogram, pictures, links, map),
-  `src/components/travel/`, `src/components/stay/`
-- Behaviour: `src/scripts/app/{tabs,checklist,stay}.ts`
-- Data: `src/data/travel.ts` (facts, hotels, trips, images), `src/data/site.ts` (destinations,
-  coming later, venue images), `src/data/mactan-geo.ts` (OpenStreetMap coastline)
+- Shell: `src/layouts/AppShell.astro` (with the morph and arrival hand-off script),
+  `src/scripts/app/shell.ts`, `src/styles/app.css`, `src/styles/view-transitions.css` (inlined)
+- Screens: `src/pages/{welcome,travel,stay,trip,wedding}/index.astro`, with
+  `src/styles/screen-{home,travel,stay,trip,wedding}.css`, `map.css` and `window.css`
+- Components: `src/components/app/` (icons, monogram, pictures, coastline, Mactan map),
+  `src/components/travel/` (FlightPlanner, FareScale, ArrivalPanel, PrepChecklist),
+  `src/components/stay/` (HotelCard, StayMap), `src/components/trip/` (WeddingWindow,
+  HolidayExplorer)
+- Behaviour: `src/scripts/app/{motion,welcome,tabs,journey,arrive,checklist,stay,trip,window,wedding}.ts`
+- Data: `src/data/travel.ts` (flights, hotels, the wedding window, holiday places and lengths),
+  `src/data/site.ts` (destinations, venue images, what the wedding screen will add),
+  `src/data/mactan-geo.ts` (OpenStreetMap), `src/data/land-geo.ts` (Natural Earth),
+  `src/lib/geo.ts`, `src/lib/travel-plot.ts`
 - Tests: `tests/travel.test.ts`
 
 ## Updating
 
 - **Prices:** `fareFrom`, `budget`, `priceFrom` and `travelMeta.checked` in `src/data/travel.ts`,
   plus the evidence register.
+- **Connections:** `connection` on each route; the drawn journey is both flights plus the
+  connection, and a test keeps it within the airline's quoted time.
 - **Suggested route:** move `featured: true`.
-- **Wedding room rate confirmed:** change Shangri-La's `note`, move "Wedding room rate" to
-  `done` in `readiness` (`src/data/site.ts`).
-- **A new section (Schedule, RSVP, Questions):** add a page, add it to `destinations`, and
-  remove it from `comingLater`. The tab bar holds five; beyond that, move one into the menu
-  sheet.
+- **Wedding room rate confirmed:** change Shangri-La's `note`.
+- **Holiday places:** `holidayPlaces` (with `from: 7 | 10 | 14`, a pin `label` side, and an image
+  in the asset register); the map view for each length is `holidayLengths[].view`. Tests check
+  every place sits inside its length's view and on land.
+- **A new section (Schedule, RSVP, Questions):** add a page and add it to `destinations`, then
+  take it out of `weddingToCome`. The tab bar holds five; beyond that, move one into the menu.
 - **Hotel photographs:** see the deployment gate in the asset register.
