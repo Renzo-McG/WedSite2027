@@ -50,6 +50,26 @@ export function frameFor(points: LatLng[], marginKm: number): PlotFrame {
   };
 }
 
+/**
+ * Frames a set of points, then widens the shorter side (evenly) until the
+ * frame has the given width-to-height ratio. Used where a map must fill a
+ * fixed shape and the camera crops it, like object-fit: cover.
+ */
+export function frameWithAspect(points: LatLng[], marginKm: number, aspect: number): PlotFrame {
+  const frame = frameFor(points, marginKm);
+  const lngKm = kmPerDegLng(frame.refLat);
+  if (frame.widthKm / frame.heightKm < aspect) {
+    const extra = aspect * frame.heightKm - frame.widthKm;
+    return { ...frame, west: frame.west - extra / 2 / lngKm, widthKm: frame.widthKm + extra };
+  }
+  const extra = frame.widthKm / aspect - frame.heightKm;
+  return {
+    ...frame,
+    north: frame.north + extra / 2 / KM_PER_DEG_LAT,
+    heightKm: frame.heightKm + extra,
+  };
+}
+
 /** Position in kilometres from the frame's top-left corner. */
 export function toKm(frame: PlotFrame, point: LatLng): { x: number; y: number } {
   return {

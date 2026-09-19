@@ -36,10 +36,19 @@ export interface FlightRoute {
   /** How the route is introduced to guests. */
   title: string;
   hub: string;
+  /** Airport code shown on the journey timeline. */
+  hubCode: string;
+  hubLocation: Place;
   airline: string;
   /** London airports this carrier uses for the route. */
   londonAirports: string;
   legs: FlightLeg[];
+  /**
+   * Time on the ground changing planes on the quickest usual itineraries: the
+   * airline's published journey time less the scheduled flying time. Longer
+   * connections are common; the page says so.
+   */
+  connection: { minutes: number; label: string };
   /** Door-to-door journey time as the airline or schedules report it. */
   journey: string;
   /** Short spoken form used in the at-a-glance line. */
@@ -58,12 +67,15 @@ export const flightRoutes: FlightRoute[] = [
     id: "hong-kong",
     title: "Our suggested route",
     hub: "Hong Kong",
+    hubCode: "HKG",
+    hubLocation: { lat: 22.308, lng: 113.9185 },
     airline: "Cathay Pacific",
     londonAirports: "Heathrow",
     legs: [
-      { from: "London", to: "Hong Kong", minutes: 13 * 60 + 5 },
+      { from: "London", to: "Hong Kong", minutes: 12 * 60 + 50 },
       { from: "Hong Kong", to: "Cebu", minutes: 2 * 60 + 45 },
     ],
+    connection: { minutes: 55, label: "About 1 hour" },
     journey: "About 16½ hours",
     journeyShort: "16½ hours",
     frequency: "Daily from Hong Kong to Cebu",
@@ -81,12 +93,15 @@ export const flightRoutes: FlightRoute[] = [
     id: "singapore",
     title: "Another excellent option",
     hub: "Singapore",
+    hubCode: "SIN",
+    hubLocation: { lat: 1.3644, lng: 103.9915 },
     airline: "Singapore Airlines",
     londonAirports: "Heathrow or Gatwick",
     legs: [
       { from: "London", to: "Singapore", minutes: 13 * 60 + 45 },
       { from: "Singapore", to: "Cebu", minutes: 3 * 60 + 40 },
     ],
+    connection: { minutes: 90, label: "About 1½ hours" },
     journey: "About 17 to 19 hours",
     journeyShort: "17–19 hours",
     frequency: "Daily from Singapore to Cebu",
@@ -104,12 +119,15 @@ export const flightRoutes: FlightRoute[] = [
     id: "dubai",
     title: "Often the best value",
     hub: "Dubai",
+    hubCode: "DXB",
+    hubLocation: { lat: 25.2532, lng: 55.3657 },
     airline: "Emirates",
     londonAirports: "Heathrow",
     legs: [
       { from: "London", to: "Dubai", minutes: 7 * 60 },
       { from: "Dubai", to: "Cebu", minutes: 9 * 60 + 25 },
     ],
+    connection: { minutes: 150, label: "About 2½ hours" },
     journey: "About 19 hours",
     journeyShort: "19 hours",
     frequency: "Four flights a week from Dubai to Cebu",
@@ -125,6 +143,17 @@ export const flightRoutes: FlightRoute[] = [
   },
 ];
 
+/** The two ends of every route, for the journey map. */
+export const journeyEnds = {
+  london: { name: "London", code: "LHR", location: { lat: 51.47, lng: -0.4543 } },
+  cebu: { name: "Cebu", code: "CEB", location: { lat: 10.3075, lng: 123.9794 } },
+} as const;
+
+/** Total drawn journey: both flights and the connection, in minutes. */
+export function journeyMinutes(route: FlightRoute): number {
+  return route.legs.reduce((sum, leg) => sum + leg.minutes, 0) + route.connection.minutes;
+}
+
 export const flightGuidance = {
   /** A planning band, not a quote: see the evidence register for the basis. */
   budget: { low: 850, high: 1250 },
@@ -133,6 +162,8 @@ export const flightGuidance = {
   notYetOnSale:
     "Flights for October 2027 are not on sale yet. Airlines usually open bookings around eleven months ahead, so expect them from late 2026. We will refresh these figures then.",
   noDirect: "There are no direct flights from the UK, so every route has one change.",
+  connections:
+    "Changes are shown at their quickest usual length. Many itineraries wait longer, so check the connection when you book.",
   compare: {
     label: "Compare every route on Google Flights",
     href: "https://www.google.com/travel/flights/flights-from-london-to-cebu.html",
@@ -431,32 +462,116 @@ export const landmarks = {
   },
 } as const;
 
-/* -------------------------------------------------------------- trip length */
+/* ------------------------------------------------------------ your trip */
 
-export type SegmentKind = "travel" | "rest" | "explore" | "wedding-around" | "wedding";
-
-export interface TripSegment {
-  days: number;
-  label: string;
-  kind: SegmentKind;
-  detail?: string;
+/**
+ * The wedding window: the only days we ask guests to keep. Everything either
+ * side is their own holiday, and the Your trip screen treats it that way.
+ */
+export interface WindowDay {
+  iso: string;
+  weekday: string;
+  day: number;
+  role: "arrive" | "wedding" | "depart";
+  title: string;
+  detail: string;
 }
 
-export interface TripIdea {
+export const weddingWindow: WindowDay[] = [
+  {
+    iso: "2027-10-23",
+    weekday: "Saturday",
+    day: 23,
+    role: "arrive",
+    title: "In Cebu by today",
+    detail: "Settled in, and over the journey",
+  },
+  {
+    iso: "2027-10-24",
+    weekday: "Sunday",
+    day: 24,
+    role: "wedding",
+    title: "The wedding",
+    detail: "Shangri-La Mactan",
+  },
+  {
+    iso: "2027-10-25",
+    weekday: "Monday",
+    day: 25,
+    role: "depart",
+    title: "Travel on from today",
+    detail: "Or stay on and explore",
+  },
+];
+
+export type Activity =
+  | "snorkel"
+  | "dive"
+  | "wildlife"
+  | "island"
+  | "beach"
+  | "waterfall"
+  | "canyon"
+  | "surf"
+  | "lagoon"
+  | "heritage"
+  | "food";
+
+/** How each activity is named on screen. */
+export const activityLabels: Record<Activity, string> = {
+  snorkel: "Snorkelling",
+  dive: "Diving",
+  wildlife: "Wildlife",
+  island: "Island hopping",
+  beach: "Beaches",
+  waterfall: "Waterfalls",
+  canyon: "Canyoneering",
+  surf: "Surfing",
+  lagoon: "Lagoons",
+  heritage: "History",
+  food: "Food",
+};
+
+export interface HolidayPlace {
   id: string;
-  title: string;
-  where: string;
+  name: string;
+  /** Island or province, for orientation. */
+  region: string;
+  /** Where the pin sits on the Philippines map. */
+  location: Place;
+  /** Which side of its pin the name sits, clear of its neighbours. */
+  label: "above" | "below" | "left" | "right";
+  /** How to get there from Mactan, as guests would plan it. */
+  getThere: { mode: "boat" | "road" | "ferry" | "flight"; label: string };
+  /** A sensible amount of time to give it. */
+  stay: string;
   detail: string;
+  activities: Activity[];
+  /** The shortest trip length (in days) that comfortably makes room for it. */
+  from: 7 | 10 | 14;
   image: GuideImage;
 }
 
-export const tripIdeas: TripIdea[] = [
+const ccBySa4 = { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" };
+
+/**
+ * Inspiration, not an itinerary: places a week, ten days or a fortnight make
+ * room for. Journey times are typical figures from operators and schedules
+ * (see the evidence register) and are rounded; nothing here is priced.
+ */
+export const holidayPlaces: HolidayPlace[] = [
   {
-    id: "nalusuan",
-    title: "Island hopping",
-    where: "From Mactan, by boat",
+    id: "islands",
+    name: "The reefs off Mactan",
+    region: "Mactan",
+    location: { lat: 10.1225, lng: 124.0322 },
+    label: "below",
+    getThere: { mode: "boat", label: "By banca from the resorts" },
+    stay: "Half a day or a day",
     detail:
-      "A half or full day by traditional banca boat to the marine sanctuaries at Hilutungan and Nalusuan for snorkelling. Boats leave from the resorts and jetties on Mactan.",
+      "A traditional outrigger banca out to the marine sanctuaries at Hilutungan and Nalusuan, for some of the clearest snorkelling near Cebu.",
+    activities: ["snorkel", "island", "beach"],
+    from: 7,
     image: {
       name: "idea-nalusuan",
       widths: [700, 1200],
@@ -465,32 +580,44 @@ export const tripIdeas: TripIdea[] = [
       credit: "Martin Michlmayr",
       source: "https://commons.wikimedia.org/wiki/File:Nalusuan_dive_trip_June_2025_067.jpg",
       status: "licensed",
-      licence: { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" },
+      licence: ccBySa4,
     },
   },
   {
-    id: "bohol",
-    title: "Bohol",
-    where: "2 hours by fast ferry",
+    id: "cebu-city",
+    name: "Cebu City",
+    region: "Cebu",
+    location: { lat: 10.2934, lng: 123.9021 },
+    label: "left",
+    getThere: { mode: "road", label: "30 to 60 minutes by road" },
+    stay: "A morning or an afternoon",
     detail:
-      "Two hours by fast ferry from Cebu City to Tagbilaran. Rolling Chocolate Hills, tiny tarsiers and the beaches of Panglao.",
+      "The oldest city in the Philippines: Magellan's Cross, the Basilica del Santo Niño and Fort San Pedro, then Cebu's famous lechon, slow-roasted pork.",
+    activities: ["heritage", "food"],
+    from: 7,
     image: {
-      name: "idea-bohol",
+      name: "idea-cebucity",
       widths: [700, 1200],
       aspect: [3, 2],
-      alt: "The Chocolate Hills of Bohol rising out of green forest",
-      credit: "Wolfgang Hägele",
-      source: "https://commons.wikimedia.org/wiki/File:Chocolate_Hills_Carmen_Bohol_2019.jpg",
+      alt: "The octagonal kiosk of Magellan's Cross in Cebu City, with its red-tiled roof",
+      credit: "Elmer B. Domingo",
+      source: "https://commons.wikimedia.org/wiki/File:Magellan%27s_Cross_Cebu_City.jpg",
       status: "licensed",
-      licence: { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" },
+      licence: ccBySa4,
     },
   },
   {
     id: "moalboal",
-    title: "Moalboal",
-    where: "2½–3 hours by road",
+    name: "Moalboal",
+    region: "South-west Cebu",
+    location: { lat: 9.9536, lng: 123.3992 },
+    label: "above",
+    getThere: { mode: "road", label: "2½ to 3 hours by road" },
+    stay: "A night or two",
     detail:
-      "Cebu's south-west coast, where you can snorkel with huge shoals of sardines and sea turtles just off the beach, with Kawasan Falls nearby.",
+      "Step off the beach into a shoal of millions of sardines, with sea turtles grazing on the reef a few metres out.",
+    activities: ["snorkel", "dive", "wildlife"],
+    from: 7,
     image: {
       name: "idea-moalboal",
       widths: [700, 1200],
@@ -500,15 +627,90 @@ export const tripIdeas: TripIdea[] = [
       source:
         "https://commons.wikimedia.org/wiki/File:Sardine_run_over_seafloor_in_Moalboal_04.jpg",
       status: "licensed",
-      licence: { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" },
+      licence: ccBySa4,
     },
   },
   {
-    id: "elnido",
-    title: "El Nido, Palawan",
-    where: "About 1 h 50 m by air",
+    id: "kawasan",
+    name: "Kawasan Falls",
+    region: "South-west Cebu",
+    location: { lat: 9.8047, lng: 123.3736 },
+    label: "below",
+    getThere: { mode: "road", label: "30 to 45 minutes from Moalboal" },
+    stay: "A day, often paired with Moalboal",
     detail:
-      "Limestone islands and lagoons, reached by a direct flight from Cebu, with no need to go back through Manila.",
+      "Turquoise pools in the jungle at Badian. Go canyoneering for a morning of river jumps and swims that ends at the falls.",
+    activities: ["waterfall", "canyon"],
+    from: 7,
+    image: {
+      name: "idea-kawasan",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "Kawasan Falls pouring into a turquoise pool with a bamboo raft",
+      credit: "Shemlongakit",
+      source: "https://commons.wikimedia.org/wiki/File:Badian_Kawasan_Falls_Cebu.jpg",
+      status: "licensed",
+      licence: ccBySa4,
+    },
+  },
+  {
+    id: "bohol",
+    name: "Bohol and Panglao",
+    region: "Bohol",
+    location: { lat: 9.67, lng: 123.88 },
+    label: "below",
+    getThere: { mode: "ferry", label: "About 2 hours by fast ferry" },
+    stay: "Two or three nights",
+    detail:
+      "The Chocolate Hills, tiny tarsiers in the forest, a slow boat up the Loboc River, and the white-sand beaches of Panglao.",
+    activities: ["wildlife", "beach", "heritage"],
+    from: 10,
+    image: {
+      name: "idea-bohol",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "The Chocolate Hills of Bohol rising out of green forest",
+      credit: "Wolfgang Hägele",
+      source: "https://commons.wikimedia.org/wiki/File:Chocolate_Hills_Carmen_Bohol_2019.jpg",
+      status: "licensed",
+      licence: ccBySa4,
+    },
+  },
+  {
+    id: "siargao",
+    name: "Siargao",
+    region: "Siargao Island",
+    location: { lat: 9.7845, lng: 126.1557 },
+    label: "left",
+    getThere: { mode: "flight", label: "About 1 hour by air" },
+    stay: "Three or four nights",
+    detail:
+      "The Philippines' surf island: Cloud 9's famous break, palm-lined roads, and boat days out to Daku, Guyam and Naked Island.",
+    activities: ["surf", "island", "beach"],
+    from: 10,
+    image: {
+      name: "idea-siargao",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "Outrigger boats moored in clear turquoise water below palm trees on Siargao",
+      credit: "ChaasPrime",
+      source: "https://commons.wikimedia.org/wiki/File:Siargao_14.jpg",
+      status: "licensed",
+      licence: ccBySa4,
+    },
+  },
+  {
+    id: "el-nido",
+    name: "El Nido",
+    region: "Palawan",
+    location: { lat: 11.2, lng: 119.42 },
+    label: "below",
+    getThere: { mode: "flight", label: "About 1 h 50 m by air" },
+    stay: "Three or four nights",
+    detail:
+      "Limestone islands and hidden lagoons in Bacuit Bay, reached by a direct flight from Cebu, with no need to go back through Manila.",
+    activities: ["lagoon", "island", "snorkel"],
+    from: 14,
     image: {
       name: "idea-elnido",
       widths: [700, 1200],
@@ -521,87 +723,82 @@ export const tripIdeas: TripIdea[] = [
       licence: { name: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
     },
   },
+  {
+    id: "coron",
+    name: "Coron",
+    region: "Palawan",
+    location: { lat: 12.02, lng: 120.18 },
+    label: "right",
+    getThere: { mode: "flight", label: "About 1 h 20 m by air" },
+    stay: "Three nights",
+    detail:
+      "Kayangan Lake between the cliffs of Coron Island, hot springs by the sea, and some of the world's best wreck diving.",
+    activities: ["lagoon", "dive", "island"],
+    from: 14,
+    image: {
+      name: "idea-coron",
+      widths: [700, 1200],
+      aspect: [3, 2],
+      alt: "The view over Kayangan Lake's cove on Coron Island, with boats moored below limestone cliffs",
+      credit: "Lyndon Aguila",
+      source: "https://commons.wikimedia.org/wiki/File:Kayangan_Lake,_Coron_Island.jpg",
+      status: "licensed",
+      licence: ccBySa4,
+    },
+  },
 ];
 
-export interface TripShape {
+export interface HolidayLength {
   days: 7 | 10 | 14;
-  name: string;
+  title: string;
   summary: string;
-  nightsInCebu: string;
-  segments: TripSegment[];
-  /** Ids from `tripIdeas`, in the order they are shown. */
-  ideas: string[];
+  /** Days free around the wedding window, after a day's travel each way. */
+  ownDays: number;
+  /** An example of how those days could be used; never a prescription. */
+  example: string;
+  /** The map's view for this length, as a lat/lng box. */
+  view: { west: number; east: number; south: number; north: number };
 }
 
-/**
- * Door-to-door trip shapes. The wedding weekend is fixed; everything else is
- * inspiration. Only the day before, the day and the day after carry weekdays,
- * because only those are known. Exact arrival and departure recommendations
- * will follow once plans around the weekend are confirmed.
- */
-export const tripShapes: TripShape[] = [
+export const holidayLengths: HolidayLength[] = [
   {
     days: 7,
-    name: "The wedding week",
+    title: "Cebu, the wedding and one great extra",
     summary:
-      "Enough for the whole wedding weekend and a couple of unhurried days by the sea on Mactan.",
-    nightsInCebu: "About 5 nights in Cebu",
-    segments: [
-      { days: 1, label: "Fly out", kind: "travel" },
-      { days: 1, label: "Arrive and rest", kind: "rest" },
-      { days: 1, label: "Beach and pool", kind: "rest" },
-      { days: 1, label: "Day before", kind: "wedding-around", detail: "Saturday" },
-      { days: 1, label: "Wedding", kind: "wedding", detail: "Sunday 24 October" },
-      { days: 1, label: "Day after", kind: "wedding-around", detail: "Monday" },
-      { days: 1, label: "Fly home", kind: "travel" },
-    ],
-    ideas: ["nalusuan"],
+      "Time for a day on the water off Mactan and one big day out, like the sardines at Moalboal and the pools at Kawasan Falls.",
+    ownDays: 2,
+    example: "For example, island hopping and a night in Moalboal",
+    view: { west: 123.22, east: 124.28, south: 9.68, north: 10.46 },
   },
   {
     days: 10,
-    name: "The wedding and an island",
+    title: "Room for another island",
     summary:
-      "A good balance: time to get over the journey, the full wedding weekend, then a few days to explore beyond Mactan.",
-    nightsInCebu: "About 8 nights in the Philippines",
-    segments: [
-      { days: 1, label: "Fly out", kind: "travel" },
-      { days: 1, label: "Arrive and rest", kind: "rest" },
-      { days: 1, label: "Island hopping", kind: "explore" },
-      { days: 1, label: "Day before", kind: "wedding-around", detail: "Saturday" },
-      { days: 1, label: "Wedding", kind: "wedding", detail: "Sunday 24 October" },
-      { days: 1, label: "Day after", kind: "wedding-around", detail: "Monday" },
-      { days: 3, label: "Bohol or Moalboal", kind: "explore" },
-      { days: 1, label: "Fly home", kind: "travel" },
-    ],
-    ideas: ["nalusuan", "bohol", "moalboal"],
+      "Cross to Bohol for the Chocolate Hills and Panglao's beaches, or fly an hour to Siargao for surf and island hopping.",
+    ownDays: 5,
+    example: "For example, three nights on Siargao or Bohol",
+    view: { west: 123.1, east: 126.45, south: 9.35, north: 10.55 },
   },
   {
     days: 14,
-    name: "A Philippines holiday",
+    title: "A proper Philippines holiday",
     summary:
-      "Build a proper adventure around the wedding: the celebrations first, then somewhere unforgettable.",
-    nightsInCebu: "About 12 nights in the Philippines",
-    segments: [
-      { days: 1, label: "Fly out", kind: "travel" },
-      { days: 1, label: "Arrive and rest", kind: "rest" },
-      { days: 1, label: "Island hopping", kind: "explore" },
-      { days: 1, label: "Day before", kind: "wedding-around", detail: "Saturday" },
-      { days: 1, label: "Wedding", kind: "wedding", detail: "Sunday 24 October" },
-      { days: 1, label: "Day after", kind: "wedding-around", detail: "Monday" },
-      { days: 6, label: "Palawan or Bohol", kind: "explore" },
-      { days: 1, label: "Back to Cebu", kind: "rest" },
-      { days: 1, label: "Fly home", kind: "travel" },
-    ],
-    ideas: ["nalusuan", "elnido", "bohol", "moalboal"],
+      "Fly direct from Cebu to Palawan for El Nido's lagoons or Coron's lakes and wrecks, as well as the islands closer to home.",
+    ownDays: 9,
+    example: "For example, El Nido and Coron after the wedding",
+    view: { west: 118.7, east: 126.6, south: 8.9, north: 12.6 },
   },
 ];
 
 export const tripGuidance = {
-  anchor:
-    "We recommend planning to be in Cebu for at least the day before and the day after the wedding, as we expect to arrange some additional time together around the main day.",
+  window: "That's all we ask. Everything either side is your holiday, so plan it however you like.",
   jetLag:
-    "Cebu is 7 hours ahead of the UK on the wedding weekend, so arriving a couple of days early makes the celebrations much more enjoyable.",
+    "Cebu is 7 hours ahead of the UK on the wedding weekend, and the flight takes most of a day, so arriving a couple of days early makes the celebrations much more enjoyable.",
+  gettingAround:
+    "Cebu is a hub: fast ferries leave Cebu City for Bohol, and Mactan-Cebu airport has direct flights to Siargao, El Nido and Coron, so there is no need to go back through Manila.",
   defaultDays: 10 as const,
+  /** Where the arcs on the Philippines map start: the wedding, on Mactan. */
+  base: { lat: 10.308194, lng: 124.019728 },
 };
 
 /* ------------------------------------------------------------ good to know */
@@ -653,14 +850,4 @@ export const essentials: {
     term: "Plugs",
     detail: "UK plugs need an adapter.",
   },
-];
-
-/* -------------------------------------------------------------- still to come */
-
-export const stillToCome: string[] = [
-  "The wedding room rate at Shangri-La and how to book it",
-  "Plans for the days around the wedding",
-  "Suggested arrival and departure days",
-  "Refreshed flight prices once October 2027 flights go on sale",
-  "Transfers for the wedding weekend",
 ];

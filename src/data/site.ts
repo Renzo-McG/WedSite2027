@@ -1,6 +1,6 @@
 /**
- * The Wedding website as a product: its destinations, what is coming later,
- * and the shared imagery. Travel facts live in ./travel.ts.
+ * The Wedding website as a product: its destinations, what the wedding screen
+ * will add, and the shared imagery. Travel facts live in ./travel.ts.
  */
 import type { GuideImage } from "./travel";
 
@@ -32,7 +32,20 @@ export type IconName =
   | "chevron-left"
   | "chevron-right"
   | "sparkle"
-  | "info";
+  | "info"
+  | "boat"
+  | "fish"
+  | "turtle"
+  | "palm"
+  | "waterfall"
+  | "canyon"
+  | "wave"
+  | "lagoon"
+  | "cross"
+  | "bowl"
+  | "shirt"
+  | "heart"
+  | "ring";
 
 export interface Destination {
   id: "home" | "travel" | "stay" | "trip" | "wedding";
@@ -41,22 +54,65 @@ export interface Destination {
   title: string;
   path: string;
   icon: IconName;
+  /** One line for the menu sheet. */
+  blurb: string;
 }
 
 /** Order matters: it sets the direction of the page transition. */
 export const destinations: Destination[] = [
-  { id: "home", label: "Home", title: "Emily & Lawrence", path: "welcome/", icon: "home" },
-  { id: "travel", label: "Travel", title: "Travel", path: "travel/", icon: "plane" },
-  { id: "stay", label: "Stay", title: "Where to stay", path: "stay/", icon: "bed" },
-  { id: "trip", label: "Your trip", title: "Your trip", path: "trip/", icon: "calendar" },
-  { id: "wedding", label: "Wedding", title: "The wedding", path: "wedding/", icon: "pavilion" },
+  {
+    id: "home",
+    label: "Home",
+    title: "Emily & Lawrence",
+    path: "welcome/",
+    icon: "home",
+    blurb: "Cebu, Sunday 24 October 2027",
+  },
+  {
+    id: "travel",
+    label: "Travel",
+    title: "Travel",
+    path: "travel/",
+    icon: "plane",
+    blurb: "London to Cebu, landing, and before you fly",
+  },
+  {
+    id: "stay",
+    label: "Stay",
+    title: "Where to stay",
+    path: "stay/",
+    icon: "bed",
+    blurb: "Six places near the wedding, on a map",
+  },
+  {
+    id: "trip",
+    label: "Your trip",
+    title: "Your trip",
+    path: "trip/",
+    icon: "calendar",
+    blurb: "The wedding weekend, and making a holiday of it",
+  },
+  {
+    id: "wedding",
+    label: "Wedding",
+    title: "The wedding",
+    path: "wedding/",
+    icon: "pavilion",
+    blurb: "The day, the venue and your calendar",
+  },
 ];
 
-/** Shown in navigation as not-yet-available. They are not links. */
-export const comingLater = [
-  { label: "Schedule", detail: "The weekend's plans, once confirmed" },
-  { label: "RSVP", detail: "With the formal invitation" },
-  { label: "Questions", detail: "Answers to common questions" },
+/**
+ * What the wedding screen will carry as plans are confirmed. Written for
+ * guests (what they will be able to find), not as a build plan.
+ */
+export const weddingToCome: { icon: IconName; label: string; detail: string }[] = [
+  { icon: "clock", label: "Ceremony and reception", detail: "Timings for the day" },
+  { icon: "shirt", label: "What to wear", detail: "Dress guidance for the day" },
+  { icon: "car", label: "Getting there on the day", detail: "Transport to the Pavilion" },
+  { icon: "heart", label: "Time together", detail: "Plans for the days around the wedding" },
+  { icon: "ring", label: "RSVP", detail: "With the formal invitation" },
+  { icon: "info", label: "Questions", detail: "Answers as they come up" },
 ];
 
 export const venueImages: Record<"aerial" | "pavilion" | "interior", GuideImage> = {
@@ -100,12 +156,3 @@ export const airportImage: GuideImage = {
   status: "licensed",
   licence: { name: "CC BY-SA 4.0", url: "https://creativecommons.org/licenses/by-sa/4.0/" },
 };
-
-/** What the guide already covers, and what arrives later. Drives the Home timeline. */
-export const readiness: { label: string; state: "done" | "now" | "soon"; detail: string }[] = [
-  { label: "Save the Date", state: "done", detail: "Live, with a calendar entry" },
-  { label: "Travel and stay guide", state: "now", detail: "Flights, hotels and trip ideas" },
-  { label: "Wedding room rate", state: "soon", detail: "Shangri-La, once confirmed" },
-  { label: "Formal invitation", state: "soon", detail: "With RSVP" },
-  { label: "Weekend schedule", state: "soon", detail: "The days around the wedding" },
-];
