@@ -1,7 +1,8 @@
 /**
- * Home: lets a tap, key or scroll skip the arrival, counts the days up as the
- * date resolves, and flies the Travel door's plane when the door is seen.
- * The arrival itself is CSS (styles/screen-home.css).
+ * Home: protects the arrival from incidental input, resolves it cleanly when
+ * the hero is genuinely left behind, counts the days up, and flies the Travel
+ * door's plane when the door is seen. The arrival itself is CSS
+ * (styles/screen-home.css).
  */
 import { countdownParts } from "../../lib/countdown";
 import { wedding } from "../../config/wedding";
@@ -27,14 +28,58 @@ if (welcome) {
   };
 
   if (arrival === "first" && !reduceMotion()) {
-    const inputs = ["pointerdown", "wheel", "keydown", "touchstart"] as const;
-    const skip = () => {
-      welcome.dataset.skip = "";
-      countUp(0);
-      inputs.forEach((type) => window.removeEventListener(type, skip));
+    let resolved = false;
+    let observer: IntersectionObserver | null = null;
+    const menu = document.querySelector<HTMLElement>("#site-menu");
+
+    const pause = (on: boolean) => {
+      if (resolved) return;
+      welcome.toggleAttribute("data-paused", on);
+      if (on) count?.pause();
+      else count?.resume();
     };
-    inputs.forEach((type) => window.addEventListener(type, skip, { passive: true }));
-    window.setTimeout(() => inputs.forEach((type) => window.removeEventListener(type, skip)), 3400);
+
+    const resolve = () => {
+      if (resolved) return;
+      resolved = true;
+      welcome.removeAttribute("data-paused");
+      welcome.dataset.resolved = "";
+      count?.cancel();
+      if (days) days.textContent = String(target);
+      observer?.disconnect();
+    };
+
+    // A little scroll should not destroy the arrival. If the hero is mostly
+    // above the viewport, however, finish the story so returning to it never
+    // reveals half-drawn geography or an intermediate photograph.
+    if ("IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (
+            entry &&
+            entry.boundingClientRect.top < 0 &&
+            (!entry.isIntersecting || entry.intersectionRatio < 0.18)
+          ) {
+            resolve();
+          }
+        },
+        { threshold: [0, 0.18, 0.35] },
+      );
+      observer.observe(welcome);
+    }
+
+    // The global menu is temporary chrome, not a decision to abandon Home.
+    // Pause while it obscures the hero, then continue where the guest left it.
+    menu?.addEventListener("toggle", (event) => {
+      pause((event as Event & { newState?: string }).newState === "open");
+    });
+    document.addEventListener("visibilitychange", () => {
+      pause(document.hidden || (menu?.matches(":popover-open") ?? false));
+    });
+
+    welcome.querySelector(".welcome__place")?.addEventListener("animationend", resolve, {
+      once: true,
+    });
     countUp(3250);
   } else {
     countUp(arrival === "return" ? 250 : 0);

@@ -18,8 +18,8 @@ const description =
   ".";
 ---
 
-<figure class="fare-scale" aria-label={description} role="img">
-  <div class="fare-scale__track">
+<figure class="fare-scale" aria-label={description} role="img" data-fare-scale>
+  <div class="fare-scale__track" data-fare-track>
     <span
       class="fare-scale__band"
       style={`left: ${pct(flightGuidance.budget.low)}%; right: ${(100 - Number(pct(flightGuidance.budget.high))).toFixed(2)}%`}
@@ -31,7 +31,9 @@ const description =
           data-fare-route={route.id}
           style={`left: ${pct(route.fareFrom)}%; --row: ${i}`}
         >
-          <span class="fare-scale__tag">
+          <span class="fare-scale__marker" aria-hidden="true" />
+          <span class="fare-scale__stem" aria-hidden="true" />
+          <span class="fare-scale__tag" data-fare-tag>
             {route.hub} <b class="num">{gbp(route.fareFrom)}</b>
           </span>
         </span>

@@ -39,6 +39,68 @@
   }
 }
 
+/* A short landscape phone has enough width to put context on one line. This
+   keeps the explorer controls above the persistent tab bar instead of making
+   the guest scroll just to discover them. */
+@media (max-width: 1023px) and (max-height: 600px) and (orientation: landscape) {
+  .screen {
+    gap: 12px;
+  }
+
+  .screen-head {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 18px;
+    padding-top: 0;
+  }
+
+  .screen-head__title {
+    font-size: 2.25rem;
+  }
+
+  .screen-head__lead {
+    font-size: var(--t-sm);
+  }
+
+  .tabs {
+    gap: 10px;
+  }
+
+  .tabs[data-enhanced] .tabs__list {
+    position: relative;
+    top: auto;
+  }
+
+  .jstage__head {
+    grid-template-columns: auto minmax(260px, 1fr);
+    align-items: end;
+    gap: 24px;
+    padding-top: 12px;
+  }
+
+  .jstage__kicker {
+    display: none;
+  }
+
+  .jstage__sub {
+    text-align: right;
+  }
+
+  .jpick {
+    width: min(560px, calc(100% - 40px));
+    margin-top: 4px;
+  }
+
+  .jpick__option {
+    min-height: 44px;
+    padding-block: 4px;
+  }
+
+  .jpick__recommended {
+    display: none;
+  }
+}
+
 .tabs__panel {
   display: grid;
   gap: 18px;
@@ -129,12 +191,18 @@
 }
 
 .jstage__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
-  padding: 20px 20px 0;
+  display: grid;
+  gap: 4px;
+  padding: 22px 20px 4px;
+}
+
+.jstage__kicker {
+  margin-bottom: 3px;
+  color: var(--shallows);
+  font-size: var(--t-2xs);
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 .jstage__title {
@@ -158,12 +226,13 @@
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  /* Clear of the city labels, which hang a little below the map's edge. */
-  margin: 24px 20px 6px;
+  margin: 12px 20px 4px;
   padding: 4px;
-  border-radius: var(--pill);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 12px 28px -22px rgba(0, 0, 0, 0.9);
 }
 
 .jpick__thumb {
@@ -173,9 +242,11 @@
   bottom: 4px;
   left: 4px;
   width: calc((100% - 8px) / 3);
-  border-radius: var(--pill);
-  background: rgba(125, 220, 207, 0.17);
-  box-shadow: inset 0 0 0 1px rgba(125, 220, 207, 0.55);
+  border-radius: 14px;
+  background: rgba(125, 220, 207, 0.2);
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 220, 207, 0.7),
+    0 8px 18px -12px rgba(125, 220, 207, 0.7);
   transform: translateX(calc(var(--pick, 0) * 100%));
   transition: transform var(--d-nav) var(--ease-drawer);
 }
@@ -187,18 +258,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  min-height: 46px;
-  padding: 5px 6px;
-  border-radius: var(--pill);
+  gap: 2px;
+  min-height: 58px;
+  padding: 7px 6px 6px;
+  border-radius: 14px;
   color: rgba(216, 244, 238, 0.66);
   cursor: pointer;
   transition: color var(--d-base) var(--ease-out);
 }
 
 .jpick__hub {
-  font-size: var(--t-sm);
-  font-weight: 700;
+  font-size: var(--t-base);
+  font-weight: 750;
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
@@ -210,16 +281,13 @@
   opacity: 0.8;
 }
 
-/* A quiet mark on the route we recommend, so the tag has somewhere to live. */
-.jpick__dot {
-  position: absolute;
-  top: 7px;
-  right: 10px;
-  width: 5px;
-  height: 5px;
-  border-radius: var(--pill);
-  background: var(--shallows);
-  opacity: 0.55;
+.jpick__recommended {
+  color: var(--shallows);
+  font-size: 0.55rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -268,6 +336,35 @@
     0 0 14px -2px rgba(125, 220, 207, 0.45);
 }
 
+.jstage__status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 24px;
+  margin: 5px 22px 0;
+  color: rgba(216, 244, 238, 0.72);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.jstage__status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--pill);
+  background: var(--shallows);
+  box-shadow: 0 0 0 4px rgba(125, 220, 207, 0.12);
+}
+
+.jstage:is([data-flying], [data-previewing]) .jstage__status-dot {
+  animation: status-pulse 1200ms var(--ease-in-out) infinite;
+}
+
+@keyframes status-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgba(125, 220, 207, 0);
+  }
+}
+
 @media (max-width: 360px) {
   .jpick {
     margin-inline: 12px;
@@ -278,7 +375,11 @@
   }
 
   .jpick__hub {
-    font-size: var(--t-xs);
+    font-size: 0.78rem;
+  }
+
+  .jpick__recommended {
+    font-size: 0.5rem;
   }
 }
 
@@ -287,7 +388,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: var(--map-aspect);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .jmap__svg {
@@ -712,6 +813,26 @@
   box-shadow: 0 0 0 4px rgba(125, 220, 207, 0.18);
 }
 
+/* One clock drives both map and timeline; these phase accents make that
+   shared choreography legible at departure, connection and arrival. */
+.jstage[data-phase="departure"] .jlane[data-active] .jlane__node--start,
+.jstage[data-phase="outbound"] .jlane[data-active] .jlane__node--start {
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.14);
+}
+
+.jstage[data-phase="layover"] .jlane[data-active] .jlane__node--hub {
+  border-color: var(--shallows);
+  background: rgba(125, 220, 207, 0.22);
+  box-shadow: 0 0 0 7px rgba(125, 220, 207, 0.1);
+  animation: status-pulse 1100ms var(--ease-in-out) infinite;
+}
+
+.jstage[data-phase="arrival"] .jlane[data-active] .jlane__node--end {
+  box-shadow:
+    0 0 0 5px rgba(125, 220, 207, 0.22),
+    0 0 24px rgba(125, 220, 207, 0.5);
+}
+
 .jlane__code {
   position: absolute;
   top: 12px;
@@ -808,33 +929,20 @@
 }
 
 @media (min-width: 900px) {
-  /* Wide screens: the title floats over the map's empty north-east, so the
-     timeline rises into the first view. */
   .jstage__head {
-    position: absolute;
-    z-index: 2;
-    top: 24px;
-    right: 28px;
-    display: grid;
-    justify-items: end;
-    padding: 0;
-    text-align: right;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+    align-items: end;
+    gap: 28px;
+    padding: 26px 28px 2px;
   }
 
-  /* The selector lifts onto the map's empty south-west, so it sits on the
-     visualisation it drives, directly above the timeline, clear of every city
-     label, and without pushing the timeline out of the first view. */
   .jpick {
-    z-index: 2;
-    width: min(330px, 38%);
-    margin: -60px 0 6px 24px;
-    background: rgba(4, 30, 28, 0.58);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    width: min(620px, calc(100% - 56px));
+    margin: 16px 28px 4px;
   }
 
-  .jmap {
-    margin-top: 0;
+  .jstage__status {
+    margin-inline: 30px;
   }
 
   .jlanes {
@@ -883,27 +991,25 @@
 }
 
 /* The chosen route, in words and links. */
+.jstage__facts {
+  margin: 4px 20px 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.11);
+}
+
 .planner__detail {
   display: grid;
   gap: 16px;
 }
 
-@media (min-width: 900px) {
-  .planner__detail {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    align-items: start;
-  }
-}
-
 .route-card {
   display: grid;
-  gap: 10px;
-  padding: 22px;
-  border-radius: var(--r-lg);
-  background: var(--paper);
-  box-shadow:
-    var(--shadow-1),
-    inset 0 0 0 1px var(--line);
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 @supports selector(:has(*)) {
@@ -915,13 +1021,25 @@
   .planner:has(#route-singapore:checked) [data-route-panel="singapore"],
   .planner:has(#route-dubai:checked) [data-route-panel="dubai"] {
     display: grid;
-    animation: panel-in var(--d-nav) var(--ease-out);
+    animation: route-facts-in 520ms var(--ease-out);
   }
 }
 
+@keyframes route-facts-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.route-card__intro {
+  display: grid;
+  gap: 4px;
+}
+
 .route-card__eyebrow {
-  color: var(--lagoon-strong);
-  font-size: var(--t-sm);
+  color: var(--shallows);
+  font-size: var(--t-xs);
   font-weight: 700;
 }
 
@@ -929,47 +1047,96 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 10px;
-  font-size: var(--t-xl);
+  gap: 2px 8px;
+  font-size: var(--t-lg);
   font-weight: 750;
   letter-spacing: -0.035em;
   line-height: 1.1;
 }
 
 .route-card__title .icon {
-  color: var(--lagoon);
+  color: var(--shallows);
 }
 
 .route-card__why {
   max-width: 40rem;
-  color: var(--ink-2);
+  color: rgba(216, 244, 238, 0.76);
+  font-size: var(--t-sm);
 }
 
 .route-card__facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 20px;
-  margin: 6px 0 8px;
-  padding: 14px 0;
-  border-block: 1px solid var(--line);
+  gap: 10px 16px;
+  margin: 0;
+  padding: 12px 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .route-card__facts dt {
-  color: var(--ink-3);
-  font-size: var(--t-xs);
+  color: rgba(216, 244, 238, 0.55);
+  font-size: var(--t-2xs);
   font-weight: 650;
 }
 
 .route-card__facts dd {
-  font-size: var(--t-sm);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: var(--t-xs);
   font-weight: 650;
   line-height: 1.35;
+}
+
+.route-card__more {
+  color: rgba(216, 244, 238, 0.7);
+  font-size: var(--t-xs);
+}
+
+.route-card__more summary {
+  width: fit-content;
+  color: var(--shallows);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.route-card__more p {
+  margin-top: 6px;
 }
 
 .route-card__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .jstage__facts {
+    margin-inline: 28px;
+  }
+
+  .route-card {
+    grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.35fr);
+    column-gap: 28px;
+    padding: 18px 20px;
+  }
+
+  .route-card__intro {
+    grid-row: 1 / span 3;
+    align-content: start;
+  }
+
+  .route-card__facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .route-card__more {
+    align-self: center;
+  }
+
+  .route-card__actions {
+    grid-column: 2;
+  }
 }
 
 /* Fares: the planning band, and where each route sits in it. */
@@ -1002,7 +1169,10 @@
 .fare-scale {
   display: grid;
   gap: 8px;
-  padding-top: 96px;
+  /* JS (fare-scale.ts) sets --fs-rows/--fs-row-h once it has measured the
+     rendered tags; these fallbacks match the old fixed three-row height so
+     nothing jumps before it runs. */
+  padding-top: calc(var(--fs-rows, 3) * var(--fs-row-h, 28px) + 12px);
 }
 
 .fare-scale__track {
@@ -1035,6 +1205,14 @@
   width: 16px;
   height: 16px;
   margin: -8px 0 0 -8px;
+}
+
+/* The visible circle. Kept separate from .fare-scale__dot so the emphasised
+   scale below zooms the marker only — not the stem/tag, whose own position
+   is worked out from the (untransformed) dot box. */
+.fare-scale__marker {
+  position: absolute;
+  inset: 0;
   border: 3px solid var(--paper);
   border-radius: var(--pill);
   background: var(--ink-3);
@@ -1046,7 +1224,7 @@
 
 .fare-scale__tag {
   position: absolute;
-  bottom: calc(100% + 6px + var(--row) * 28px);
+  bottom: calc(100% + 6px + var(--row, 0) * var(--fs-row-h, 28px));
   left: 50%;
   padding: 3px 9px;
   border-radius: var(--pill);
@@ -1058,19 +1236,25 @@
   font-size: var(--t-2xs);
   font-weight: 600;
   white-space: nowrap;
-  transform: translateX(-50%);
+  /* --fs-shift (from fare-scale.ts) nudges a tag that would otherwise spill
+     past the track's edge back inside it; the stem below is unaffected, so
+     it still points straight at this tag's own marker. */
+  transform: translateX(calc(-50% + var(--fs-shift, 0px)));
   transition:
     color var(--d-fast) var(--ease-out),
-    background-color var(--d-fast) var(--ease-out);
+    background-color var(--d-fast) var(--ease-out),
+    transform var(--d-fast) var(--ease-out);
 }
 
-.fare-scale__tag::after {
-  content: "";
+/* A straight vertical leader from the marker up to its tag. Kept as a
+   sibling of the tag (not a pseudo-element on it) so an edge nudge on the
+   tag never drags the leader off its marker. */
+.fare-scale__stem {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   width: 1px;
-  height: calc(var(--row) * 28px + 6px);
+  height: calc(var(--row, 0) * var(--fs-row-h, 28px) + 6px);
   background: var(--line-2);
 }
 
@@ -1102,6 +1286,13 @@
 .planner:has(#route-hong-kong:checked) [data-fare-route="hong-kong"],
 .planner:has(#route-singapore:checked) [data-fare-route="singapore"],
 .planner:has(#route-dubai:checked) [data-fare-route="dubai"] {
+  /* Wins any visual overlap with a neighbouring tag on a tight width. */
+  z-index: 1;
+}
+
+.planner:has(#route-hong-kong:checked) [data-fare-route="hong-kong"] .fare-scale__marker,
+.planner:has(#route-singapore:checked) [data-fare-route="singapore"] .fare-scale__marker,
+.planner:has(#route-dubai:checked) [data-fare-route="dubai"] .fare-scale__marker {
   background: var(--deep);
   transform: scale(1.3);
 }

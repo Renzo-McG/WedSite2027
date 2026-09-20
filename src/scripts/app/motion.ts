@@ -56,6 +56,8 @@ export const ease = {
 
 export interface Tween {
   cancel(): void;
+  pause(): void;
+  resume(): void;
   finished: Promise<boolean>;
 }
 
@@ -72,29 +74,69 @@ export function tween(
   let raf = 0;
   let timer = 0;
   let done: (v: boolean) => void = () => {};
+  let phase: "delay" | "running" = delay > 0 ? "delay" : "running";
+  let paused = false;
+  let settled = false;
+  let elapsed = 0;
+  let delayLeft = delay;
+  let startedAt = 0;
   const finished = new Promise<boolean>((resolve) => (done = resolve));
   if (reduceMotion() || duration <= 0) {
     frame(1);
     done(true);
-    return { cancel() {}, finished };
+    return { cancel() {}, pause() {}, resume() {}, finished };
   }
+  const settle = (value: boolean) => {
+    if (settled) return;
+    settled = true;
+    done(value);
+  };
+  const step = (now: number) => {
+    if (paused || settled) return;
+    const x = Math.min(1, (elapsed + now - startedAt) / duration);
+    frame(curve(x));
+    if (x < 1) raf = requestAnimationFrame(step);
+    else settle(true);
+  };
   const start = () => {
-    const t0 = performance.now();
-    const step = (now: number) => {
-      const x = Math.min(1, (now - t0) / duration);
-      frame(curve(x));
-      if (x < 1) raf = requestAnimationFrame(step);
-      else done(true);
-    };
+    phase = "running";
+    startedAt = performance.now();
     raf = requestAnimationFrame(step);
   };
-  if (delay > 0) timer = window.setTimeout(start, delay);
+  const schedule = () => {
+    phase = "delay";
+    startedAt = performance.now();
+    timer = window.setTimeout(start, delayLeft);
+  };
+  if (delay > 0) schedule();
   else start();
   return {
     cancel() {
+      if (settled) return;
       cancelAnimationFrame(raf);
       clearTimeout(timer);
-      done(false);
+      settle(false);
+    },
+    pause() {
+      if (paused || settled) return;
+      paused = true;
+      const now = performance.now();
+      if (phase === "delay") {
+        delayLeft = Math.max(0, delayLeft - (now - startedAt));
+        clearTimeout(timer);
+      } else {
+        elapsed += now - startedAt;
+        cancelAnimationFrame(raf);
+      }
+    },
+    resume() {
+      if (!paused || settled) return;
+      paused = false;
+      if (phase === "delay") schedule();
+      else {
+        startedAt = performance.now();
+        raf = requestAnimationFrame(step);
+      }
     },
     finished,
   };

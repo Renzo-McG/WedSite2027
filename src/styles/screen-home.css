@@ -8,7 +8,8 @@
  *            the Pavilion opens out from the same point
  *   2700 ms  the date, then the names rise line by line, then the details
  * The resting state is the default (no animation), so the page is complete
- * without JavaScript, with reduced motion, and when a tap skips the arrival.
+ * without JavaScript, with reduced motion, and when leaving the hero resolves
+ * the arrival.
  */
 
 .welcome {
@@ -378,9 +379,14 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   animation-delay: 160ms;
 }
 
-/* A tap, key or scroll skips straight to the resting state. */
-.welcome[data-skip] *,
-.welcome[data-skip] *::before {
+/* Temporary chrome pauses the story; only leaving the hero resolves it. */
+.welcome[data-paused] *,
+.welcome[data-paused] *::before {
+  animation-play-state: paused !important;
+}
+
+.welcome[data-resolved] *,
+.welcome[data-resolved] *::before {
   animation: none !important;
 }
 

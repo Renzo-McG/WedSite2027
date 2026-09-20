@@ -44,23 +44,38 @@ overshoot (easeOutBack) kept for things that land on a map. Transform, opacity, 
 SVG stroke drawing; registered custom properties (`--z`, `--tx`, `--ty`, `--own`) for the map
 cameras and the itinerary band.
 
-| Where             | What moves                                                                                                                                                                                                                                       | Job                            |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
-| Every screen      | Native-style push in the direction of travel; the tab pill glides and the new tab draws its icon; a photograph that leads to the next screen flies there (Home → Wedding)                                                                        | Orientation, continuity        |
-| Menu              | Sheet rises on the drawer curve, rows arrive in turn, the burger folds into a cross                                                                                                                                                              | Spatial, feedback              |
-| Home              | First visit: coastline draws (real OSM Mactan), pin lands and ripples, map dives into the pin as the photo opens from it, names rise line by line, days count up. Later visits: a short settle                                                   | Arrival, sense of place        |
-| Home doors        | The Travel door flies its own London → Cebu arc when seen; photos lean in on hover                                                                                                                                                               | Invitation to explore          |
-| Travel · Flights  | One clock drives a plane along the chosen lane and across the map; durations resolve as it passes; at the hub the map plane waits while the timeline keeps running; other routes recede; total counts up                                         | Explanation, comparison        |
-| Travel · Arriving | A plane lands along the real runway, then a car leads the drive line to Shangri-La and the distance lands on it                                                                                                                                  | Explanation                    |
-| Before you fly    | Each tick draws itself and fills the ring; the last one turns the ring into a plane                                                                                                                                                              | Confirmation, reward           |
-| Stay              | Pin rises; camera frames hotel and venue; a car drives the line, then the drive time lands; sorting slides cards (FLIP), renumbers cards and pins, hops pins in order; the details sheet grows from the photo                                    | Connection, cause and effect   |
-| Stay (phones)     | The centred card in the rail drives the map; off-centre cards ease back (scroll-driven)                                                                                                                                                          | Control and result in one view |
-| Your trip         | The window assembles (wedding lands, Saturday and Monday slide out, bracket draws); 7 / 10 / 14 moves the map camera, pops in new places, draws arcs from Mactan, grows the band, rearranges the cards; the active place fans its activities out | The trip genuinely expanding   |
-| The wedding       | The roof line draws over the date; scrolling warms the light and sinks a sun across the Pavilion                                                                                                                                                 | Feeling: reaching the reason   |
+| Where             | What moves                                                                                                                                                                                                                                                                 | Job                            |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Every screen      | Native-style push in the direction of travel; the tab pill glides and the new tab draws its icon; a photograph that leads to the next screen flies there (Home → Wedding)                                                                                                  | Orientation, continuity        |
+| Menu              | Sheet rises on the drawer curve, rows arrive in turn, the burger folds into a cross                                                                                                                                                                                        | Spatial, feedback              |
+| Home              | First visit: coastline draws (real OSM Mactan), pin lands and ripples, map dives into the pin as the photo opens from it, names rise line by line, days count up. The menu pauses it; leaving the hero resolves it. Later visits: a short settle                           | Arrival, sense of place        |
+| Home doors        | The Travel door flies its own London → Cebu arc when seen; photos lean in on hover                                                                                                                                                                                         | Invitation to explore          |
+| Travel · Flights  | First visit establishes comparison, then flies Hong Kong → Singapore → Dubai. One clock drives map, phase status and timeline; durations resolve as the plane passes; at the hub the plane waits while the timeline keeps running; route facts change in the same explorer | Explanation, comparison        |
+| Travel · Arriving | A plane lands along the real runway, then a car leads the drive line to Shangri-La and the distance lands on it                                                                                                                                                            | Explanation                    |
+| Before you fly    | Each tick draws itself and fills the ring; the last one turns the ring into a plane                                                                                                                                                                                        | Confirmation, reward           |
+| Stay              | Pin rises; camera frames hotel and venue; a car drives the line, then the drive time lands; sorting slides cards (FLIP), renumbers cards and pins, hops pins in order; the details sheet grows from the photo                                                              | Connection, cause and effect   |
+| Stay (phones)     | The centred card in the rail drives the map; off-centre cards ease back (scroll-driven)                                                                                                                                                                                    | Control and result in one view |
+| Your trip         | The window assembles (wedding lands, Saturday and Monday slide out, bracket draws); 7 / 10 / 14 moves the map camera, pops in new places, draws arcs from Mactan, grows the band, rearranges the cards; the active place fans its activities out                           | The trip genuinely expanding   |
+| The wedding       | The roof line draws over the date; scrolling warms the light and sinks a sun across the Pavilion                                                                                                                                                                           | Feeling: reaching the reason   |
 
 **Reduced motion** (`prefers-reduced-motion` or `?motion=reduced`) is its own state: every
 change still happens, instantly. Lines are drawn, planes are parked at their destination, maps
 cut to their frame, the arrival shows its resting state, and navigation is a direct swap.
+
+### Animation lifecycle and control
+
+The polish pass uses **play → optionally pause → resolve**, rather than treating every input as
+an abort. Pointer movement, unrelated clicks, global-menu use and small scrolls do not spend an
+introduction. The menu pauses Welcome and the first Travel guide, then resumes them. Direct route
+selection, pointer/key interaction inside the Flight Journey Explorer, changing away from the
+Flights panel, product navigation, or scrolling until the explorer is substantially behind the
+viewport yields control. A yielded Welcome or Travel sequence resolves to a coherent final state.
+
+Travel's once-per-session introduction is one piece of choreography: a 900 ms comparison state;
+Hong Kong, Singapore and Dubai in source order; a 2.7 s map/timeline flight and 750 ms arrival hold
+for each; then an instant resolve to the suggested route. Manual route changes use a slightly longer
+3.2 s version of the same linked map/timeline motion. Reduced motion skips the introduction and
+shows the suggested route complete.
 
 ## Without JavaScript
 

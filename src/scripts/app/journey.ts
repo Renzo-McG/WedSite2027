@@ -20,9 +20,11 @@ if (stage && planner) {
   const map = stage.querySelector<HTMLElement>(".jmap")!;
   const svg = map.querySelector<SVGSVGElement>("svg")!;
   const mapPlane = map.querySelector<HTMLElement>("[data-map-plane]")!;
+  const status = stage.querySelector<HTMLElement>("[data-status]");
   const readout = stage.querySelector<HTMLElement>("[data-readout]");
   const readouts = stage.querySelector<HTMLTemplateElement>("[data-readouts]");
   const inputs = [...stage.querySelectorAll<HTMLInputElement>(".jlane__input")];
+  const menu = document.querySelector<HTMLElement>("#site-menu");
   let flight: Tween | null = null;
   let seen = false;
 
@@ -52,12 +54,18 @@ if (stage && planner) {
   const arcs = (id: string) =>
     [0, 1].map((i) => svg.querySelector<SVGPathElement>(`[data-arc="${id}-${i}"]`)!);
 
+  const say = (message: string, phase: string) => {
+    stage.dataset.phase = phase;
+    if (status && status.textContent !== message) status.textContent = message;
+  };
+
   /** Fly a route. `ms` is shortened for the guided preview's quick passes. */
   const fly = (id: string, ms = 3600): Tween => {
     flight?.cancel();
     const el = lane(id);
     const legs = el.dataset.legs!.split(",").map(Number) as [number, number, number];
     const total = Number(el.dataset.total);
+    const hub = el.dataset.hub!;
     const rail = el.querySelector<HTMLElement>("[data-rail]")!;
     const lit = el.querySelector<HTMLElement>("[data-lit]")!;
     const plane = el.querySelector<HTMLElement>("[data-lane-plane]")!;
@@ -70,6 +78,7 @@ if (stage && planner) {
     const vb = svg.viewBox.baseVal;
 
     mark(id);
+    stage.dataset.mode = "route";
     inputs.forEach((input) => {
       if (input.value !== id) window.setTimeout(() => clearLane(lane(input.value)), 420);
     });
@@ -112,6 +121,30 @@ if (stage && planner) {
       arcA.style.strokeDashoffset = String(1 - fA);
       arcB.style.strokeDashoffset = String(1 - fB);
       const waiting = m >= legs[0] && m < legs[0] + legs[1];
+      const nextPhase =
+        p >= 0.995
+          ? "arrival"
+          : p < 0.035
+            ? "departure"
+            : m < legs[0]
+              ? "outbound"
+              : waiting
+                ? "layover"
+                : "onward";
+      if (nextPhase !== currentPhase) {
+        currentPhase = nextPhase;
+        const message =
+          nextPhase === "departure"
+            ? "Departing London"
+            : nextPhase === "outbound"
+              ? `Flight 1 · London to ${hub}`
+              : nextPhase === "layover"
+                ? `Connection · ${hub}`
+                : nextPhase === "onward"
+                  ? `Flight 2 · ${hub} to Cebu`
+                  : `Arrived in Cebu · via ${hub}`;
+        say(message, nextPhase);
+      }
       stage.toggleAttribute("data-waiting", waiting);
       if (m < legs[0]) place(arcA, lenA, fA);
       else if (waiting) place(arcA, lenA, 1);
@@ -119,6 +152,7 @@ if (stage && planner) {
     };
 
     stage.dataset.flying = "";
+    let currentPhase = "";
     flight = tween(reduceMotion() ? 0 : ms, frame, ease.travel);
     void flight.finished.then((done) => {
       if (!done) return;
@@ -135,12 +169,10 @@ if (stage && planner) {
   /*
    * The guided preview.
    *
-   * The first time Travel is opened in a session, the routes introduce
-   * themselves: the one we recommend flies as usual, then each of the others
-   * takes a quick pass, then it settles back on the recommendation. It exists
-   * to show that the three routes are yours to choose, so the moment the
-   * guest takes over — choosing a route, touching the stage, pressing a key,
-   * or scrolling with intent — it stops for good and never resumes.
+   * The first time Travel is opened in a session, comparison establishes the
+   * geography, then Hong Kong, Singapore and Dubai each fly in full before
+   * the explorer settles on the recommendation. Direct explorer input takes
+   * control immediately; incidental page input does not.
    *
    * It runs once per session, not once per page view, so coming back to
    * Travel later is quiet. Reduced motion skips it entirely: an automated
@@ -163,15 +195,58 @@ if (stage && planner) {
   };
 
   let stopped = false;
+  let paused = false;
   let timer = 0;
+  let holdLeft = 0;
+  let holdStarted = 0;
   let release: ((ok: boolean) => void) | null = null;
+  let removeTakeoverWatch: (() => void) | null = null;
 
-  const stopPreview = () => {
+  const finishHold = (ok: boolean) => {
+    clearTimeout(timer);
+    timer = 0;
+    const finish = release;
+    release = null;
+    finish?.(ok);
+  };
+
+  const scheduleHold = () => {
+    holdStarted = performance.now();
+    timer = window.setTimeout(() => finishHold(!stopped), holdLeft);
+  };
+
+  const pausePreview = (on: boolean) => {
+    if (paused === on || stopped) return;
+    paused = on;
+    if (on) {
+      flight?.pause();
+      if (release && timer) {
+        holdLeft = Math.max(0, holdLeft - (performance.now() - holdStarted));
+        clearTimeout(timer);
+        timer = 0;
+      }
+    } else {
+      flight?.resume();
+      if (release && !timer) scheduleHold();
+    }
+    stage.toggleAttribute("data-paused", on);
+  };
+
+  const resolveCurrent = () => {
+    const id = inputs.find((input) => input.checked)?.value;
+    if (!id) return;
+    flight?.cancel();
+    fly(id, 0);
+  };
+
+  const stopPreview = (resolve = true) => {
     if (stopped) return;
     stopped = true;
-    clearTimeout(timer);
-    release?.(false);
-    release = null;
+    finishHold(false);
+    if (resolve) resolveCurrent();
+    removeTakeoverWatch?.();
+    removeTakeoverWatch = null;
+    stage.removeAttribute("data-paused");
     stage.removeAttribute("data-previewing");
   };
 
@@ -180,11 +255,28 @@ if (stage && planner) {
     new Promise<boolean>((resolve) => {
       if (stopped) return resolve(false);
       release = resolve;
-      timer = window.setTimeout(() => {
-        release = null;
-        resolve(!stopped);
-      }, ms);
+      holdLeft = ms;
+      if (!paused) scheduleHold();
     });
+
+  const compare = () => {
+    flight?.cancel();
+    stage.dataset.mode = "compare";
+    stage.dataset.phase = "compare";
+    stage.removeAttribute("data-flying");
+    stage.removeAttribute("data-waiting");
+    stage.removeAttribute("data-landed");
+    stage
+      .querySelectorAll<HTMLElement | SVGElement>(
+        "[data-lane], [data-map-route], [data-city-route]",
+      )
+      .forEach((el) => el.removeAttribute("data-active"));
+    inputs.forEach((input) => clearLane(lane(input.value)));
+    svg
+      .querySelectorAll<SVGPathElement>("[data-arc]")
+      .forEach((path) => (path.style.strokeDashoffset = "1"));
+    if (status) status.textContent = "Comparing three one-stop routes";
+  };
 
   /** Choose a route the way the guest would, and fly it. */
   const preview = async (id: string, ms: number) => {
@@ -198,37 +290,70 @@ if (stage && planner) {
 
   const runPreview = async () => {
     stage.dataset.previewing = "";
-    const others = inputs.map((i) => i.value).filter((id) => id !== initial);
-    for (const id of others) {
-      if (!(await hold(700))) return stopPreview();
-      if (!(await preview(id, 1600))) return stopPreview();
+    compare();
+    if (!(await hold(900))) return;
+    for (const input of inputs) {
+      if (!(await preview(input.value, 2700))) return;
+      if (!(await hold(750))) return;
     }
-    if (!(await hold(600))) return stopPreview();
-    await preview(initial!, 2400);
+    if (stopped) return;
+    const selected = inputs.find((input) => input.value === initial);
+    if (selected) selected.checked = true;
+    fly(initial!, 0);
+    if (status) status.textContent = `Our suggested route · via ${lane(initial!).dataset.hub}`;
+    stopped = true;
+    removeTakeoverWatch?.();
+    removeTakeoverWatch = null;
     stage.removeAttribute("data-previewing");
   };
 
-  // Anything deliberate ends it. Scrolling needs to mean it: a few pixels of
-  // trackpad drift while the stage settles is not the guest taking over.
+  // Takeover is scoped to this explorer. Page chrome, pointer movement and a
+  // small scroll are incidental; directly operating the explorer or leaving
+  // it substantially behind are conflicting intent.
   const watchForTakeover = () => {
-    const from = window.scrollY;
-    const off = () => {
-      stopPreview();
-      window.removeEventListener("wheel", off);
-      window.removeEventListener("touchmove", off);
-      window.removeEventListener("keydown", off);
-      window.removeEventListener("scroll", onScroll);
-      planner.removeEventListener("pointerdown", off);
+    const directPointer = () => stopPreview();
+    const directKey = (event: KeyboardEvent) => {
+      if (["Enter", " ", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+        stopPreview();
+      }
     };
-    const onScroll = () => {
-      if (Math.abs(window.scrollY - from) > 80) off();
+    stage.addEventListener("pointerdown", directPointer);
+    stage.addEventListener("keydown", directKey);
+
+    const leftBehind = () => {
+      const rect = stage.getBoundingClientRect();
+      if (rect.top < 0 && rect.bottom < window.innerHeight * 0.35) stopPreview();
     };
-    window.addEventListener("wheel", off, { passive: true, once: true });
-    window.addEventListener("touchmove", off, { passive: true, once: true });
-    window.addEventListener("keydown", off, { once: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
-    planner.addEventListener("pointerdown", off);
+    window.addEventListener("scroll", leftBehind, { passive: true });
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (
+          entry &&
+          entry.boundingClientRect.top < 0 &&
+          (!entry.isIntersecting || entry.intersectionRatio < 0.22)
+        ) {
+          stopPreview();
+        }
+      },
+      { threshold: [0, 0.22, 0.3] },
+    );
+    observer.observe(stage);
+
+    removeTakeoverWatch = () => {
+      stage.removeEventListener("pointerdown", directPointer);
+      stage.removeEventListener("keydown", directKey);
+      window.removeEventListener("scroll", leftBehind);
+      observer.disconnect();
+    };
   };
+
+  menu?.addEventListener("toggle", (event) => {
+    pausePreview((event as Event & { newState?: string }).newState === "open");
+  });
+  document.addEventListener("visibilitychange", () => {
+    pausePreview(document.hidden || (menu?.matches(":popover-open") ?? false));
+  });
 
   stage.dataset.enhanced = "";
   inputs.forEach((input) => {
@@ -237,7 +362,7 @@ if (stage && planner) {
       // The preview sets `checked` directly, which fires no event, so every
       // change that reaches here is the guest choosing for themselves.
       stopPreview();
-      if (input.checked) fly(input.value);
+      if (input.checked) fly(input.value, 3200);
     });
   });
   const initial = inputs.find((i) => i.checked)?.value;
@@ -247,27 +372,35 @@ if (stage && planner) {
       stage,
       () => {
         seen = true;
-        const first = fly(inputs.find((i) => i.checked)?.value ?? initial);
-        if (reduceMotion() || previewDone()) return;
+        if (reduceMotion()) {
+          fly(inputs.find((i) => i.checked)?.value ?? initial, 0);
+          return;
+        }
+        if (previewDone()) {
+          fly(inputs.find((i) => i.checked)?.value ?? initial, 2400);
+          return;
+        }
         // Counted as spent the moment it is scheduled, so a preview the guest
         // interrupts does not come back the next time they open Travel.
         markPreviewed();
         watchForTakeover();
-        void first.finished.then((done) => {
-          if (done && !stopped) void runPreview();
-        });
+        void runPreview();
       },
       0.3,
     );
   }
 
-  // The Flights tab can be hidden when the stage first scrolls past; replay
-  // when the tab is shown again, so the journey is never missed.
+  // Choosing another Travel panel is direct intent. Returning to Flights may
+  // replay only the selected route, never the full introduction.
   document.addEventListener("tabchange", (event) => {
     const tab = (event as CustomEvent<string>).detail;
-    if (tab !== "flights" || !seen) return;
+    if (tab !== "flights") {
+      if (seen) stopPreview();
+      return;
+    }
+    if (!seen) return;
     stopPreview();
-    fly(inputs.find((i) => i.checked)?.value ?? initial!);
+    fly(inputs.find((i) => i.checked)?.value ?? initial!, 2400);
   });
 
   // Keep the map plane placed when the layout changes size.

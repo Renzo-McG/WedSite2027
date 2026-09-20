@@ -30,6 +30,7 @@ import homePageSource from "../src/pages/welcome/index.astro?raw";
 import weddingPageSource from "../src/pages/wedding/index.astro?raw";
 import motionSource from "../src/scripts/app/motion.ts?raw";
 import journeySource from "../src/scripts/app/journey.ts?raw";
+import welcomeSource from "../src/scripts/app/welcome.ts?raw";
 import staySource from "../src/scripts/app/stay.ts?raw";
 import tripSource from "../src/scripts/app/trip.ts?raw";
 import arriveSource from "../src/scripts/app/arrive.ts?raw";
@@ -299,6 +300,28 @@ describe("product shell", () => {
     expect(holidaySource).toContain('type="radio"');
     expect(travelPageSource).toContain('role="tablist"');
     expect(travelPageSource).toContain('role="tabpanel"');
+  });
+
+  it("treats animation interruption as direct intent, not incidental input", () => {
+    expect(welcomeSource).not.toMatch(/addEventListener\("(pointerdown|wheel|keydown|touchstart)"/);
+    expect(welcomeSource).toContain("intersectionRatio < 0.18");
+    expect(welcomeSource).toContain('addEventListener("toggle"');
+    expect(journeySource).not.toMatch(/window\.addEventListener\("(wheel|touchmove|keydown)"/);
+    expect(journeySource).toContain('stage.addEventListener("pointerdown"');
+    expect(journeySource).toContain("rect.bottom < window.innerHeight * 0.35");
+    expect(journeySource).toContain("intersectionRatio < 0.22");
+    expect(journeySource).toContain('addEventListener("toggle"');
+  });
+
+  it("presents route controls before the map and guides every route in order", () => {
+    expect(flightPlannerSource.indexOf('class="jpick"')).toBeLessThan(
+      flightPlannerSource.indexOf('class="jmap"'),
+    );
+    expect(flightPlannerSource).toContain('class="jstage__facts"');
+    expect(flightPlannerSource).toContain("First flight");
+    expect(flightPlannerSource).toContain("Onward flight");
+    expect(journeySource).toContain("for (const input of inputs)");
+    expect(journeySource).toContain("preview(input.value, 2700)");
   });
 
   it("identifies every external link", () => {

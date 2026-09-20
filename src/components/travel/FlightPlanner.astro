@@ -96,9 +96,35 @@ const cities = [
 <div class="planner" data-planner>
   <section class="jstage" data-journey aria-labelledby="jstage-title">
     <div class="jstage__head">
-      <h3 class="jstage__title" id="jstage-title">Three ways to Cebu</h3>
-      <p class="jstage__sub">All with one change. Pick a route to fly it.</p>
+      <div>
+        <p class="jstage__kicker">Compare routes</p>
+        <h3 class="jstage__title" id="jstage-title">Three ways to Cebu</h3>
+      </div>
+      <p class="jstage__sub">Choose a connection and watch the whole journey.</p>
     </div>
+
+    <!--
+      This is the explorer's control layer, before the visual it drives. Each
+      option labels the same native radio as its timeline lane, so selection
+      remains resilient without JavaScript.
+    -->
+    <div class="jpick" data-pick-group aria-label="Choose a flight route">
+      <span class="jpick__thumb" aria-hidden="true"></span>
+      {
+        routes.map((r) => (
+          <label class="jpick__option" for={`route-${r.route.id}`} data-pick={r.route.id}>
+            <span class="jpick__hub">{r.route.hub}</span>
+            <span class="jpick__total num">{hm(r.total).replace("h", "h ")}</span>
+            {r.route.featured && <span class="jpick__recommended">Our pick</span>}
+          </label>
+        ))
+      }
+    </div>
+
+    <p class="jstage__status" aria-live="polite">
+      <span class="jstage__status-dot" aria-hidden="true"></span>
+      <span data-status>Comparing three one-stop routes</span>
+    </p>
 
     <figure class="jmap" style={`--map-aspect: ${view.w.toFixed(0)} / ${view.h.toFixed(0)}`}>
       <svg
@@ -145,25 +171,6 @@ const cities = [
       </span>
     </figure>
 
-    <!--
-      The route selector. The lanes below are controls too, but they read as
-      data first, so this says plainly that there are three routes and one of
-      them is chosen. Each option is a label for the same radio its lane uses,
-      so choosing here needs no script and drives the whole stage.
-    -->
-    <div class="jpick" data-pick-group>
-      <span class="jpick__thumb" aria-hidden="true"></span>
-      {
-        routes.map((r) => (
-          <label class="jpick__option" for={`route-${r.route.id}`} data-pick={r.route.id}>
-            <span class="jpick__hub">{r.route.hub}</span>
-            <span class="jpick__total num">{hm(r.total).replace("h", "h ")}</span>
-            {r.route.featured && <span class="jpick__dot" aria-hidden="true" />}
-          </label>
-        ))
-      }
-    </div>
-
     <fieldset class="jlanes" style={`--scale-hours: ${scale / 60}`}>
       <legend class="visually-hidden">Choose a route</legend>
       <div class="jlanes__axis" aria-hidden="true">
@@ -193,6 +200,7 @@ const cities = [
               data-lane={r.route.id}
               data-total={r.total}
               data-legs={r.segments.map((s) => s.minutes).join(",")}
+              data-hub={r.route.hub}
             >
               <span class="jlane__head">
                 <span class="jlane__name">Via {r.route.hub}</span>
@@ -267,6 +275,67 @@ const cities = [
     <p class="jstage__readout" aria-live="polite" data-readout>
       {routes.find((r) => r.route.featured)!.readout}
     </p>
+
+    <div class="jstage__facts" aria-label="Selected route details">
+      {
+        routes.map((r) => (
+          <article
+            class="route-card"
+            data-route-panel={r.route.id}
+            aria-labelledby={`route-title-${r.route.id}`}
+          >
+            <div class="route-card__intro">
+              <p class="route-card__eyebrow">
+                {r.route.title} · {r.route.airline}
+              </p>
+              <h3 class="route-card__title" id={`route-title-${r.route.id}`}>
+                London <Icon name="arrow-right" size={18} /> {r.route.hub}{" "}
+                <Icon name="arrow-right" size={18} /> Cebu
+              </h3>
+              <p class="route-card__why">{r.route.why}</p>
+            </div>
+            <dl class="route-card__facts">
+              <div>
+                <dt>First flight</dt>
+                <dd class="num">
+                  {hm(r.route.legs[0]!.minutes)} to {r.route.hub}
+                </dd>
+              </div>
+              <div>
+                <dt>Connection</dt>
+                <dd>{r.route.connection.label}</dd>
+              </div>
+              <div>
+                <dt>Onward flight</dt>
+                <dd class="num">{hm(r.route.legs[1]!.minutes)} to Cebu</dd>
+              </div>
+              <div>
+                <dt>Total journey</dt>
+                <dd class="num">{r.route.journey}</dd>
+              </div>
+            </dl>
+            <details class="route-card__more">
+              <summary>Airports &amp; frequency</summary>
+              <p>
+                From {r.route.londonAirports}. {r.route.frequency}.
+              </p>
+            </details>
+            <div class="route-card__actions">
+              <ExternalLink href={r.route.link.href} site={r.route.link.site} variant="primary">
+                {r.route.link.label}
+              </ExternalLink>
+              <ExternalLink
+                href={flightGuidance.compare.href}
+                site={flightGuidance.compare.site}
+                variant="secondary"
+              >
+                Compare on Google Flights
+              </ExternalLink>
+            </div>
+          </article>
+        ))
+      }
+    </div>
     <p class="jstage__credit">Land: Natural Earth. Arcs show the route, not the flight path.</p>
     <template data-readouts>
       {routes.map((r) => <span data-for={r.route.id}>{r.readout}</span>)}
@@ -274,53 +343,6 @@ const cities = [
   </section>
 
   <div class="planner__detail">
-    {
-      flightRoutes.map((route) => (
-        <article
-          class="route-card"
-          data-route-panel={route.id}
-          aria-labelledby={`route-title-${route.id}`}
-        >
-          <p class="route-card__eyebrow">{route.title}</p>
-          <h3 class="route-card__title" id={`route-title-${route.id}`}>
-            London <Icon name="arrow-right" size={20} /> {route.hub}{" "}
-            <Icon name="arrow-right" size={20} /> Cebu
-          </h3>
-          <p class="route-card__why">{route.why}</p>
-          <dl class="route-card__facts">
-            <div>
-              <dt>Journey</dt>
-              <dd>{route.journey}</dd>
-            </div>
-            <div>
-              <dt>Airline</dt>
-              <dd>{route.airline}</dd>
-            </div>
-            <div>
-              <dt>From London</dt>
-              <dd>{route.londonAirports}</dd>
-            </div>
-            <div>
-              <dt>Onward to Cebu</dt>
-              <dd>{route.frequency}</dd>
-            </div>
-          </dl>
-          <div class="route-card__actions">
-            <ExternalLink href={route.link.href} site={route.link.site} variant="primary">
-              {route.link.label}
-            </ExternalLink>
-            <ExternalLink
-              href={flightGuidance.compare.href}
-              site={flightGuidance.compare.site}
-              variant="secondary"
-            >
-              Compare on Google Flights
-            </ExternalLink>
-          </div>
-        </article>
-      ))
-    }
-
     <section class="fares" aria-labelledby="fares-title">
       <div class="fares__head">
         <h3 class="fares__label" id="fares-title">Economy return, per person</h3>
