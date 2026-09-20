@@ -14,6 +14,7 @@
 import BaseLayout from "./BaseLayout.astro";
 import Icon from "../components/app/Icon.astro";
 import Monogram from "../components/app/Monogram.astro";
+import Names from "../components/app/Names.astro";
 import Coastline from "../components/app/Coastline.astro";
 import { destinations, type Destination } from "../data/site";
 import { googleCalendarUrl } from "../lib/calendar";
@@ -140,7 +141,7 @@ const order = destinations.map((d) => d.id);
       <a class="rail__brand" href={`${base}welcome/`}>
         <Monogram />
         <span class="rail__brand-text">
-          <span class="rail__names">Emily &amp; Lawrence</span>
+          <Names class="rail__names" />
           <span class="rail__meta">Cebu, 24 October 2027</span>
         </span>
       </a>
@@ -222,7 +223,7 @@ const order = destinations.map((d) => d.id);
       <div class="sheet__head">
         <Monogram size="sm" />
         <div>
-          <p class="sheet__names">Emily &amp; Lawrence</p>
+          <p class="sheet__names"><Names /></p>
           <p class="sheet__meta">Sunday 24 October 2027, Shangri-La Mactan</p>
         </div>
         <button

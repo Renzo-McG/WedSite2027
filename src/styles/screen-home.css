@@ -159,10 +159,11 @@
   color: var(--foam);
 }
 
+/* Both names carry the emphasis; only the ampersand (.names__amp) steps back. */
 .welcome__names {
   display: grid;
   font-size: var(--t-display);
-  font-weight: 250;
+  font-weight: 600;
   letter-spacing: -0.055em;
   line-height: 0.9;
 }
@@ -176,10 +177,6 @@
 
 .welcome__line > span {
   display: inline-block;
-}
-
-.welcome__line:last-child {
-  font-weight: 600;
 }
 
 .welcome__place {
@@ -221,6 +218,45 @@
 
 .welcome__days b {
   font-size: var(--t-md);
+}
+
+/*
+ * Cebu local time. A compact line, not a dashboard: flag, place, the time,
+ * then how far ahead of London it is right now. The gap is filled in by the
+ * shell script from the two IANA zones, so it follows the UK clock change.
+ */
+.welcome__time {
+  flex-wrap: wrap;
+  gap: 0;
+  column-gap: 6px;
+}
+
+.welcome__flag {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+/* Separators sit on the two figures, so they never dangle on an empty value. */
+.welcome__time b::before,
+.welcome__gap::before {
+  content: "·";
+  margin-right: 6px;
+  opacity: 0.55;
+}
+
+.welcome__gap:empty::before {
+  content: none;
+}
+
+/* At the narrowest widths the offset drops to its own line rather than squash. */
+@media (max-width: 359px) {
+  .welcome__gap {
+    flex-basis: 100%;
+  }
+
+  .welcome__gap::before {
+    content: none;
+  }
 }
 
 .welcome__credit {
@@ -614,13 +650,37 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
     linear-gradient(160deg, var(--deep-3) 0%, var(--deep) 70%);
 }
 
-.door-route {
+/*
+ * The Travel door's map: the same land, projection and framing as the Travel
+ * screen's journey, so the geography carries straight through from Home.
+ */
+.door-geo {
+  position: relative;
   display: block;
   width: 100%;
   max-width: 460px;
-  height: auto;
+  aspect-ratio: var(--map-aspect);
   margin: 10px 0 0 4px;
-  overflow: visible;
+}
+
+.door-route {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.door-route__land {
+  fill: rgba(125, 220, 207, 0.07);
+}
+
+.door-route__dots {
+  fill: url(#door-dots);
+}
+
+#door-dots circle {
+  fill: rgba(125, 220, 207, 0.3);
 }
 
 .door-route__arc {
@@ -629,6 +689,8 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-dasharray: 0.012 0.012;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(125, 220, 207, 0.55));
 }
 
 .js .door-route__arc {
@@ -641,31 +703,55 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   transition: stroke-dashoffset 2600ms cubic-bezier(0.37, 0, 0.63, 1);
 }
 
-.door-route__end {
-  fill: #fff;
+/* Cities sit in HTML above the map, so their type never scales with it. */
+.door-city {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  translate: -4px -50%;
+  pointer-events: none;
 }
 
-.door-route__end--cebu {
-  fill: var(--shallows);
+.door-city__dot {
+  position: relative;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--pill);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
 }
 
-.door-route__halo {
-  fill: none;
-  stroke: var(--shallows);
-  stroke-width: 2;
+.door-city--cebu .door-city__dot {
+  background: var(--shallows);
+  box-shadow: 0 0 0 3px rgba(125, 220, 207, 0.2);
+}
+
+.door-city__halo {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--shallows);
+  border-radius: var(--pill);
   opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
 }
 
-.door--travel[data-seen] .door-route__halo {
+.door--travel[data-seen] .door-city__halo {
   animation: welcome-ripple 1000ms var(--ease-out) 2500ms both;
 }
 
-.door-route__place {
-  fill: rgba(255, 255, 255, 0.72);
-  font-size: 13px;
+.door-city__name {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: var(--t-xs);
   font-weight: 650;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Cebu is at the right edge, so its label reads back towards the map. */
+.door-city--cebu {
+  flex-direction: row-reverse;
+  translate: calc(-100% + 4px) -50%;
 }
 
 .door-route__plane {

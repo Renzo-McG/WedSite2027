@@ -5,7 +5,7 @@
  */
 import { countdownParts } from "../../lib/countdown";
 import { wedding } from "../../config/wedding";
-import { cebuOffsetHours } from "../../lib/guide-time";
+import { cebuGapLabel, cebuOffsetHours } from "../../lib/guide-time";
 
 const cebuTime = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
@@ -24,6 +24,9 @@ function tick(): void {
   });
   document.querySelectorAll<HTMLElement>("[data-cebu-offset]").forEach((el) => {
     el.textContent = String(cebuOffsetHours(now));
+  });
+  document.querySelectorAll<HTMLElement>("[data-cebu-gap]").forEach((el) => {
+    el.textContent = cebuGapLabel(now);
   });
   const parts = countdownParts(Date.parse(wedding.date.countdownTarget), Date.now());
   document.querySelectorAll<HTMLElement>("[data-countdown-days]").forEach((el) => {
