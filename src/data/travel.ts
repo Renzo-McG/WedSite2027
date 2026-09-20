@@ -530,8 +530,9 @@ export const landmarks = {
 /* ------------------------------------------------------------ your trip */
 
 /**
- * The wedding window: the only days we ask guests to keep. Everything either
- * side is their own holiday, and the Your trip screen treats it that way.
+ * The three days around the wedding. Only the Sunday is fixed; we may plan
+ * something simple either side of it, which is optional and not yet settled.
+ * Everything else is the guest's own holiday, and Your trip says so.
  */
 export interface WindowDay {
   iso: string;
@@ -548,8 +549,8 @@ export const weddingWindow: WindowDay[] = [
     weekday: "Saturday",
     day: 23,
     role: "arrive",
-    title: "In Cebu by today",
-    detail: "Settled in, and over the journey",
+    title: "The day before",
+    detail: "We may plan something simple",
   },
   {
     iso: "2027-10-24",
@@ -564,8 +565,8 @@ export const weddingWindow: WindowDay[] = [
     weekday: "Monday",
     day: 25,
     role: "depart",
-    title: "Travel on from today",
-    detail: "Or stay on and explore",
+    title: "The day after",
+    detail: "And perhaps something then too",
   },
 ];
 
@@ -614,6 +615,12 @@ export interface HolidayPlace {
   activities: Activity[];
   /** The shortest trip length (in days) that comfortably makes room for it. */
   from: 7 | 10 | 14;
+  /**
+   * What to look this place up as, where the name we call it by would not
+   * find it. Used only to build an outbound search link: we hold no ratings
+   * or reviews of our own, so there is nothing here to keep up to date.
+   */
+  searchName?: string;
   image: GuideImage;
 }
 
@@ -637,6 +644,7 @@ export const holidayPlaces: HolidayPlace[] = [
       "A traditional outrigger banca out to the marine sanctuaries at Hilutungan and Nalusuan, for some of the clearest snorkelling near Cebu.",
     activities: ["snorkel", "island", "beach"],
     from: 7,
+    searchName: "Mactan Island Cebu",
     image: {
       name: "idea-nalusuan",
       widths: [700, 1200],
@@ -660,6 +668,7 @@ export const holidayPlaces: HolidayPlace[] = [
       "The oldest city in the Philippines: Magellan's Cross, the Basilica del Santo Niño and Fort San Pedro, then Cebu's famous lechon, slow-roasted pork.",
     activities: ["heritage", "food"],
     from: 7,
+    searchName: "Cebu City Philippines",
     image: {
       name: "idea-cebucity",
       widths: [700, 1200],
@@ -683,6 +692,7 @@ export const holidayPlaces: HolidayPlace[] = [
       "Step off the beach into a shoal of millions of sardines, with sea turtles grazing on the reef a few metres out.",
     activities: ["snorkel", "dive", "wildlife"],
     from: 7,
+    searchName: "Moalboal Cebu",
     image: {
       name: "idea-moalboal",
       widths: [700, 1200],
@@ -707,6 +717,7 @@ export const holidayPlaces: HolidayPlace[] = [
       "Turquoise pools in the jungle at Badian. Go canyoneering for a morning of river jumps and swims that ends at the falls.",
     activities: ["waterfall", "canyon"],
     from: 7,
+    searchName: "Kawasan Falls Badian",
     image: {
       name: "idea-kawasan",
       widths: [700, 1200],
@@ -730,6 +741,7 @@ export const holidayPlaces: HolidayPlace[] = [
       "The Chocolate Hills, tiny tarsiers in the forest, a slow boat up the Loboc River, and the white-sand beaches of Panglao.",
     activities: ["wildlife", "beach", "heritage"],
     from: 10,
+    searchName: "Panglao Bohol",
     image: {
       name: "idea-bohol",
       widths: [700, 1200],
@@ -753,6 +765,7 @@ export const holidayPlaces: HolidayPlace[] = [
       "The Philippines' surf island: Cloud 9's famous break, palm-lined roads, and boat days out to Daku, Guyam and Naked Island.",
     activities: ["surf", "island", "beach"],
     from: 10,
+    searchName: "Siargao Island",
     image: {
       name: "idea-siargao",
       widths: [700, 1200],
@@ -856,9 +869,8 @@ export const holidayLengths: HolidayLength[] = [
 ];
 
 export const tripGuidance = {
-  window: "That's all we ask. Everything either side is your holiday, so plan it however you like.",
-  jetLag:
-    "Cebu is 7 hours ahead of the UK on the wedding weekend, and the flight takes most of a day, so arriving a couple of days early makes the celebrations much more enjoyable.",
+  window:
+    "Completely optional, and still to be confirmed — we'll share anything we arrange here once we know more. Everything else is your holiday, so plan it however you like.",
   gettingAround:
     "Cebu is a hub: fast ferries leave Cebu City for Bohol, and Mactan-Cebu airport has direct flights to Siargao, El Nido and Coron, so there is no need to go back through Manila.",
   defaultDays: 10 as const,

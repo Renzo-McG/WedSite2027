@@ -785,6 +785,27 @@
   font-weight: 700;
 }
 
+/*
+ * A way out to what other travellers say, without becoming a review site:
+ * an outbound search, no ratings of our own and nothing to keep current.
+ * Deliberately quiet — the photograph and the place are the point.
+ */
+.place__reviews {
+  justify-self: start;
+  min-height: 32px;
+  margin-top: 2px;
+  color: var(--lagoon-strong);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .place__reviews:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
 .holiday__notes {
   display: grid;
   gap: 12px;

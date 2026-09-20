@@ -19,6 +19,7 @@
 import Icon from "../app/Icon.astro";
 import Picture from "../app/Picture.astro";
 import Credit from "../app/Credit.astro";
+import ExternalLink from "../app/ExternalLink.astro";
 import { philippines } from "../../data/land-geo";
 import { arc, landPath, project, viewFor, type View } from "../../lib/geo";
 import {
@@ -211,7 +212,7 @@ const defaultDays = tripGuidance.defaultDays;
           <span class="band__seg band__seg--travel"><Icon name="plane" size={14} /></span>
           <span class="band__seg band__seg--window">
             <Icon name="pavilion" size={14} />
-            <span class="band__text">Wedding weekend</span>
+            <span class="band__text">The wedding</span>
           </span>
           <span class="band__seg band__seg--own">
             {
@@ -228,8 +229,8 @@ const defaultDays = tripGuidance.defaultDays;
           holidayLengths.map((l) => (
             <p class="band__caption" data-caption={l.days}>
               <span class="visually-hidden">
-                {l.days} days door to door: a day's travel each way, the three-day wedding weekend,
-                and {l.ownDays} days of your own.{" "}
+                {l.days} days door to door: a day's travel each way, the wedding and the days around
+                it, and {l.ownDays} days of your own.{" "}
               </span>
               {l.example}. Your days can come before the wedding, after it, or both.
             </p>
@@ -270,6 +271,13 @@ const defaultDays = tripGuidance.defaultDays;
                     </li>
                   ))}
                 </ul>
+                <ExternalLink
+                  href={`https://www.tripadvisor.co.uk/Search?q=${encodeURIComponent(place.searchName ?? `${place.name} ${place.region}`)}`}
+                  site="tripadvisor.co.uk"
+                  class="place__reviews"
+                >
+                  Traveller reviews
+                </ExternalLink>
                 <Credit image={place.image} />
               </div>
             </article>
@@ -280,10 +288,6 @@ const defaultDays = tripGuidance.defaultDays;
   </div>
 
   <div class="holiday__notes">
-    <p>
-      <Icon name="clock" size={18} />
-      <span>{tripGuidance.jetLag}</span>
-    </p>
     <p>
       <Icon name="boat" size={18} />
       <span>{tripGuidance.gettingAround}</span>

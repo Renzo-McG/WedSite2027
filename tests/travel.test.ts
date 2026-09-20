@@ -156,7 +156,7 @@ describe("imagery", () => {
 });
 
 describe("your trip", () => {
-  it("asks only for the wedding window: Saturday 23 to Monday 25 October 2027", () => {
+  it("shows the three days around the wedding: Saturday 23 to Monday 25 October 2027", () => {
     expect(weddingWindow.map((d) => d.iso)).toEqual(["2027-10-23", "2027-10-24", "2027-10-25"]);
     for (const day of weddingWindow) {
       const weekday = new Date(`${day.iso}T12:00:00Z`).toLocaleDateString("en-GB", {

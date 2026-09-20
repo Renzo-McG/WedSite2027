@@ -1,6 +1,6 @@
 /*
- * The wedding window: three calendar tiles for the days we ask guests to
- * keep, with the days either side fading away (they are the guest's own).
+ * The wedding window: three calendar tiles for the days around the wedding,
+ * with the days beyond them fading away (they are the guest's own).
  * Assembles when first seen (scripts/app/window.ts sets data-seen): the
  * wedding lands, Saturday and Monday close in, the bracket draws.
  */

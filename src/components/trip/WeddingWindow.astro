@@ -1,10 +1,11 @@
 ---
 /**
- * The wedding window: the three days we ask guests to keep, as calendar
- * tiles. The neighbouring days fade away at either side, because everything
- * beyond the window is the guest's own. When the strip comes into view the
- * wedding day lands first, then Saturday and Monday close in beside it, and a
- * bracket draws beneath all three.
+ * The three days around the wedding, as calendar tiles. The Sunday is the
+ * fixed one; the days either side hold whatever we may arrange, which is
+ * optional and still to be confirmed. The neighbouring days fade away at
+ * either side, because everything beyond is the guest's own. When the strip
+ * comes into view the wedding day lands first, then Saturday and Monday close
+ * in beside it, and a bracket draws beneath all three.
  */
 import Icon from "../app/Icon.astro";
 import { weddingWindow } from "../../data/travel";
@@ -16,7 +17,7 @@ interface Props {
   caption?: string;
 }
 
-const { details = {}, caption = "The days we ask you to keep" } = Astro.props;
+const { details = {}, caption = "Around the day itself" } = Astro.props;
 const first = weddingWindow[0]!;
 const last = weddingWindow.at(-1)!;
 ---
