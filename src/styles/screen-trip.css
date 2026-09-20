@@ -792,8 +792,9 @@
  */
 .place__reviews {
   justify-self: start;
-  min-height: 32px;
-  margin-top: 2px;
+  /* The same comfortable target as every other link in the companion. */
+  min-height: 44px;
+  margin-top: -4px;
   color: var(--lagoon-strong);
   font-size: var(--t-xs);
   font-weight: 650;
