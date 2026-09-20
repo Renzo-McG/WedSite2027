@@ -159,11 +159,28 @@ export const flightGuidance = {
   budget: { low: 850, high: 1250 },
   budgetNote:
     "A sensible figure to plan around for an economy return in late October. Prices move with demand, so treat it as a guide rather than a promise.",
-  notYetOnSale:
-    "Flights for October 2027 are not on sale yet. Airlines usually open bookings around eleven months ahead, so expect them from late 2026. We will refresh these figures then.",
-  noDirect: "There are no direct flights from the UK, so every route has one change.",
-  connections:
-    "Changes are shown at their quickest usual length. Many itineraries wait longer, so check the connection when you book.",
+  /*
+   * The three things worth knowing before booking. Kept as a lead-in and a
+   * sentence each rather than one paragraph: they are separate facts, and
+   * running them together made the block hard to scan.
+   */
+  notes: [
+    {
+      icon: "plane" as const,
+      lead: "Every route has one change",
+      body: "There are no direct flights from the UK.",
+    },
+    {
+      icon: "clock" as const,
+      lead: "Changes are shown at their quickest",
+      body: "Many itineraries wait longer, so check the connection when you book.",
+    },
+    {
+      icon: "calendar" as const,
+      lead: "October 2027 is not on sale yet",
+      body: "Airlines usually open bookings around eleven months ahead, so expect these flights from late 2026. We will refresh these figures then.",
+    },
+  ],
   compare: {
     label: "Compare every route on Google Flights",
     href: "https://www.google.com/travel/flights/flights-from-london-to-cebu.html",
@@ -187,6 +204,21 @@ export const arrival = {
       name: "Grab",
       detail:
         "Southeast Asia's ride-hailing app, and the easiest option for most people. You see the price before you book. At Terminal 2, pick-up is at the North or South Wing drop-off.",
+      /* Worth installing before leaving home, so it is ready on landing. */
+      apps: [
+        {
+          store: "App Store",
+          label: "iPhone",
+          href: "https://apps.apple.com/gb/app/grab-food-delivery-taxi-ride/id647268330",
+          site: "apps.apple.com",
+        },
+        {
+          store: "Google Play",
+          label: "Android",
+          href: "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger",
+          site: "play.google.com",
+        },
+      ],
     },
     {
       name: "Metered taxi",

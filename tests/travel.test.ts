@@ -102,14 +102,14 @@ describe("Travel content", () => {
       expect(drawn).toBeGreaterThanOrEqual(low - 10);
       expect(drawn).toBeLessThanOrEqual(high + 10);
     }
-    expect(flightGuidance.connections).toMatch(/longer/);
+    expect(flightGuidance.notes.map((n) => n.body).join(" ")).toMatch(/longer/);
   });
 
   it("labels prices as dated planning estimates", () => {
     expect(travelMeta.checked).toMatch(/^[A-Z][a-z]+ \d{4}$/);
     expect(flightPlannerSource).toContain("<Freshness");
     expect(stayPageSource).toContain("<Freshness");
-    expect(flightGuidance.notYetOnSale).toMatch(/not on sale yet/);
+    expect(flightGuidance.notes.map((n) => n.lead).join(" ")).toMatch(/not on sale yet/);
   });
 
   it("includes Shangri-La without inventing a wedding rate", () => {

@@ -145,6 +145,25 @@ const cities = [
       </span>
     </figure>
 
+    <!--
+      The route selector. The lanes below are controls too, but they read as
+      data first, so this says plainly that there are three routes and one of
+      them is chosen. Each option is a label for the same radio its lane uses,
+      so choosing here needs no script and drives the whole stage.
+    -->
+    <div class="jpick" data-pick-group>
+      <span class="jpick__thumb" aria-hidden="true"></span>
+      {
+        routes.map((r) => (
+          <label class="jpick__option" for={`route-${r.route.id}`} data-pick={r.route.id}>
+            <span class="jpick__hub">{r.route.hub}</span>
+            <span class="jpick__total num">{hm(r.total).replace("h", "h ")}</span>
+            {r.route.featured && <span class="jpick__dot" aria-hidden="true" />}
+          </label>
+        ))
+      }
+    </div>
+
     <fieldset class="jlanes" style={`--scale-hours: ${scale / 60}`}>
       <legend class="visually-hidden">Choose a route</legend>
       <div class="jlanes__axis" aria-hidden="true">
@@ -315,12 +334,16 @@ const cities = [
     </section>
   </div>
 
-  <p class="planner__notes note">
-    <Icon name="info" size={16} />
-    <span>
-      {flightGuidance.noDirect}
-      {flightGuidance.connections}
-      {flightGuidance.notYetOnSale}
-    </span>
-  </p>
+  <ul class="planner__notes" aria-label="Worth knowing before you book">
+    {
+      flightGuidance.notes.map((note) => (
+        <li class="planner__note">
+          <Icon name={note.icon} size={17} />
+          <span>
+            <b>{note.lead}.</b> {note.body}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
 </div>

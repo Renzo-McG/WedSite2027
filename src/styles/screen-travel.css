@@ -148,6 +148,140 @@
   font-size: var(--t-sm);
 }
 
+/*
+ * The route selector: three labels for the three route radios. It keeps the
+ * stage's own language (glass on deep water, the lagoon for what is chosen)
+ * rather than borrowing a generic tab bar, and stays put at every width.
+ */
+.jpick {
+  position: relative;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  /* Clear of the city labels, which hang a little below the map's edge. */
+  margin: 24px 20px 6px;
+  padding: 4px;
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.jpick__thumb {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  border-radius: var(--pill);
+  background: rgba(125, 220, 207, 0.17);
+  box-shadow: inset 0 0 0 1px rgba(125, 220, 207, 0.55);
+  transform: translateX(calc(var(--pick, 0) * 100%));
+  transition: transform var(--d-nav) var(--ease-drawer);
+}
+
+.jpick__option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 46px;
+  padding: 5px 6px;
+  border-radius: var(--pill);
+  color: rgba(216, 244, 238, 0.66);
+  cursor: pointer;
+  transition: color var(--d-base) var(--ease-out);
+}
+
+.jpick__hub {
+  font-size: var(--t-sm);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.jpick__total {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+/* A quiet mark on the route we recommend, so the tag has somewhere to live. */
+.jpick__dot {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--pill);
+  background: var(--shallows);
+  opacity: 0.55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jpick__option:hover {
+    color: rgba(236, 251, 247, 0.9);
+  }
+}
+
+/*
+ * Chosen state and thumb position. The routes are a fixed set of three, and
+ * the stage already keys off these ids elsewhere in this file, so the mapping
+ * is written out rather than inferred.
+ */
+.planner:has(#route-hong-kong:checked) [data-pick="hong-kong"],
+.planner:has(#route-singapore:checked) [data-pick="singapore"],
+.planner:has(#route-dubai:checked) [data-pick="dubai"] {
+  color: #fff;
+}
+
+.planner:has(#route-hong-kong:checked) [data-pick="hong-kong"] .jpick__total,
+.planner:has(#route-singapore:checked) [data-pick="singapore"] .jpick__total,
+.planner:has(#route-dubai:checked) [data-pick="dubai"] .jpick__total {
+  opacity: 1;
+}
+
+.planner:has(#route-singapore:checked) .jpick {
+  --pick: 1;
+}
+
+.planner:has(#route-dubai:checked) .jpick {
+  --pick: 2;
+}
+
+/* The radios sit by the lanes, so focus is carried across with :has(). */
+.planner:has(#route-hong-kong:focus-visible) [data-pick="hong-kong"],
+.planner:has(#route-singapore:focus-visible) [data-pick="singapore"],
+.planner:has(#route-dubai:focus-visible) [data-pick="dubai"] {
+  outline: 2.5px solid var(--shallows);
+  outline-offset: 1px;
+}
+
+/* While the guided preview is running, the selector shows it is being driven. */
+.jstage[data-previewing] .jpick__thumb {
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 220, 207, 0.8),
+    0 0 14px -2px rgba(125, 220, 207, 0.45);
+}
+
+@media (max-width: 360px) {
+  .jpick {
+    margin-inline: 12px;
+  }
+
+  .jpick__option {
+    padding-inline: 2px;
+  }
+
+  .jpick__hub {
+    font-size: var(--t-xs);
+  }
+}
+
 /* The map. */
 .jmap {
   position: relative;
@@ -687,6 +821,18 @@
     text-align: right;
   }
 
+  /* The selector lifts onto the map's empty south-west, so it sits on the
+     visualisation it drives, directly above the timeline, clear of every city
+     label, and without pushing the timeline out of the first view. */
+  .jpick {
+    z-index: 2;
+    width: min(330px, 38%);
+    margin: -60px 0 6px 24px;
+    background: rgba(4, 30, 28, 0.58);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
   .jmap {
     margin-top: 0;
   }
@@ -968,15 +1114,33 @@
   box-shadow: 0 6px 14px -6px rgba(3, 40, 37, 0.6);
 }
 
+/*
+ * Worth knowing before booking: three separate facts, so they are set as
+ * three rows with a bold lead-in each rather than one running paragraph. No
+ * container each — the spacing and the lead-ins carry the structure.
+ */
 .planner__notes {
+  display: grid;
+  gap: 12px;
+  max-width: 52rem;
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  line-height: 1.55;
+}
+
+.planner__note {
   display: flex;
   gap: 10px;
-  max-width: 52rem;
+}
+
+.planner__note b {
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .planner__notes .icon {
   flex: none;
-  margin-top: 3px;
+  margin-top: 2px;
   color: var(--lagoon);
 }
 
@@ -1229,6 +1393,43 @@
 .way__detail {
   color: var(--ink-2);
   font-size: var(--t-sm);
+}
+
+/*
+ * Where to get Grab. Compact buttons in the site's own language rather than
+ * the official store badges, which would be the only brand marks anywhere in
+ * the companion. They wrap onto their own line on a narrow phone.
+ */
+.way__apps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  margin-top: 6px;
+}
+
+.way__apps-label {
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.way__app {
+  min-height: 36px;
+  padding: 5px 12px;
+  border-radius: var(--pill);
+  color: var(--deep);
+  background: var(--sand);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .way__app:hover {
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1px var(--lagoon);
+  }
 }
 
 /* ============================================================== checklist */

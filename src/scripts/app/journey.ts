@@ -52,7 +52,8 @@ if (stage && planner) {
   const arcs = (id: string) =>
     [0, 1].map((i) => svg.querySelector<SVGPathElement>(`[data-arc="${id}-${i}"]`)!);
 
-  const fly = (id: string) => {
+  /** Fly a route. `ms` is shortened for the guided preview's quick passes. */
+  const fly = (id: string, ms = 3600): Tween => {
     flight?.cancel();
     const el = lane(id);
     const legs = el.dataset.legs!.split(",").map(Number) as [number, number, number];
@@ -118,7 +119,7 @@ if (stage && planner) {
     };
 
     stage.dataset.flying = "";
-    flight = tween(reduceMotion() ? 0 : 3600, frame, ease.travel);
+    flight = tween(reduceMotion() ? 0 : ms, frame, ease.travel);
     void flight.finished.then((done) => {
       if (!done) return;
       frame(1);
@@ -128,12 +129,118 @@ if (stage && planner) {
       el.dataset.landed = "";
       stage.dataset.landed = "";
     });
+    return flight;
+  };
+
+  /*
+   * The guided preview.
+   *
+   * The first time Travel is opened in a session, the routes introduce
+   * themselves: the one we recommend flies as usual, then each of the others
+   * takes a quick pass, then it settles back on the recommendation. It exists
+   * to show that the three routes are yours to choose, so the moment the
+   * guest takes over — choosing a route, touching the stage, pressing a key,
+   * or scrolling with intent — it stops for good and never resumes.
+   *
+   * It runs once per session, not once per page view, so coming back to
+   * Travel later is quiet. Reduced motion skips it entirely: an automated
+   * animated sequence is exactly what that setting asks us not to do.
+   */
+  const PREVIEW_KEY = "guide:travel-previewed";
+  const previewDone = () => {
+    try {
+      return sessionStorage.getItem(PREVIEW_KEY) !== null;
+    } catch {
+      return true; // No storage: better to never auto-play than to replay.
+    }
+  };
+  const markPreviewed = () => {
+    try {
+      sessionStorage.setItem(PREVIEW_KEY, "1");
+    } catch {
+      /* storage unavailable: the preview simply will not be remembered */
+    }
+  };
+
+  let previewing = false;
+  let stopped = false;
+  let timer = 0;
+  let release: ((ok: boolean) => void) | null = null;
+
+  const stopPreview = () => {
+    if (stopped) return;
+    stopped = true;
+    clearTimeout(timer);
+    release?.(false);
+    release = null;
+    previewing = false;
+    stage.removeAttribute("data-previewing");
+  };
+
+  /** Wait, unless the guest has taken over in the meantime. */
+  const hold = (ms: number) =>
+    new Promise<boolean>((resolve) => {
+      if (stopped) return resolve(false);
+      release = resolve;
+      timer = window.setTimeout(() => {
+        release = null;
+        resolve(!stopped);
+      }, ms);
+    });
+
+  /** Choose a route the way the guest would, and fly it. */
+  const preview = async (id: string, ms: number) => {
+    if (stopped) return false;
+    const input = inputs.find((i) => i.value === id);
+    if (!input) return false;
+    input.checked = true; // :checked drives the selector and the lanes
+    const done = await fly(id, ms).finished;
+    return done && !stopped;
+  };
+
+  const runPreview = async () => {
+    previewing = true;
+    stage.dataset.previewing = "";
+    const others = inputs.map((i) => i.value).filter((id) => id !== initial);
+    for (const id of others) {
+      if (!(await hold(700))) return stopPreview();
+      if (!(await preview(id, 1600))) return stopPreview();
+    }
+    if (!(await hold(600))) return stopPreview();
+    await preview(initial!, 2400);
+    previewing = false;
+    stage.removeAttribute("data-previewing");
+  };
+
+  // Anything deliberate ends it. Scrolling needs to mean it: a few pixels of
+  // trackpad drift while the stage settles is not the guest taking over.
+  const watchForTakeover = () => {
+    const from = window.scrollY;
+    const off = () => {
+      stopPreview();
+      window.removeEventListener("wheel", off);
+      window.removeEventListener("touchmove", off);
+      window.removeEventListener("keydown", off);
+      window.removeEventListener("scroll", onScroll);
+      planner.removeEventListener("pointerdown", off);
+    };
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - from) > 80) off();
+    };
+    window.addEventListener("wheel", off, { passive: true, once: true });
+    window.addEventListener("touchmove", off, { passive: true, once: true });
+    window.addEventListener("keydown", off, { once: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    planner.addEventListener("pointerdown", off);
   };
 
   stage.dataset.enhanced = "";
   inputs.forEach((input) => {
     clearLane(lane(input.value));
     input.addEventListener("change", () => {
+      // The preview sets `checked` directly, which fires no event, so every
+      // change that reaches here is the guest choosing for themselves.
+      stopPreview();
       if (input.checked) fly(input.value);
     });
   });
@@ -144,7 +251,15 @@ if (stage && planner) {
       stage,
       () => {
         seen = true;
-        fly(inputs.find((i) => i.checked)?.value ?? initial);
+        const first = fly(inputs.find((i) => i.checked)?.value ?? initial);
+        if (reduceMotion() || previewDone()) return;
+        // Counted as spent the moment it is scheduled, so a preview the guest
+        // interrupts does not come back the next time they open Travel.
+        markPreviewed();
+        watchForTakeover();
+        void first.finished.then((done) => {
+          if (done && !stopped) void runPreview();
+        });
       },
       0.3,
     );
@@ -154,7 +269,9 @@ if (stage && planner) {
   // when the tab is shown again, so the journey is never missed.
   document.addEventListener("tabchange", (event) => {
     const tab = (event as CustomEvent<string>).detail;
-    if (tab === "flights" && seen) fly(inputs.find((i) => i.checked)?.value ?? initial!);
+    if (tab !== "flights" || !seen) return;
+    stopPreview();
+    fly(inputs.find((i) => i.checked)?.value ?? initial!);
   });
 
   // Keep the map plane placed when the layout changes size.
