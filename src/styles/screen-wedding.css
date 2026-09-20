@@ -1,0 +1,426 @@
+/*
+ * The wedding: warmer light, the same product. Timber, sun and sunset lead
+ * here; the lagoon steps back.
+ */
+
+.vow {
+  --p: 0;
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: calc(92svh - var(--tabbar-h));
+  margin: calc(-8px - var(--appbar-h) - env(safe-area-inset-top)) calc(var(--gutter) * -1) 0;
+  overflow: hidden;
+  color: #fff;
+  background: #2b160b;
+  isolation: isolate;
+}
+
+.vow__media {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+}
+
+.vow__img {
+  position: absolute;
+  inset: -4% 0 0;
+  width: 100%;
+  height: 108%;
+  object-fit: cover;
+  object-position: 36% 40%;
+  transform: translateY(calc(var(--p) * 8%)) scale(calc(1.02 + var(--p) * 0.06));
+  filter: saturate(calc(1 + var(--p) * 0.25)) sepia(calc(var(--p) * 0.22));
+}
+
+/* Golden hour: a sun that sinks across the Pavilion as you scroll. */
+.vow__light {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 72% calc(14% + var(--p) * 46%),
+      rgba(255, 214, 140, calc(0.35 + var(--p) * 0.35)) 0%,
+      rgba(243, 160, 100, calc(0.12 + var(--p) * 0.25)) 22%,
+      transparent 48%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(40, 16, 6, 0.88) 0%,
+      rgba(90, 40, 16, calc(0.35 + var(--p) * 0.3)) 38%,
+      rgba(166, 91, 52, calc(0.05 + var(--p) * 0.25)) 70%,
+      rgba(20, 10, 4, 0.35) 100%
+    );
+  mix-blend-mode: normal;
+}
+
+.vow__body {
+  display: grid;
+  gap: 8px;
+  padding: 24px var(--gutter) 34px;
+}
+
+.vow__roof {
+  width: 84px;
+  height: 31px;
+  margin-bottom: 6px;
+  fill: none;
+  stroke: var(--sun);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.vow__roof path {
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  animation: vow-draw 1300ms var(--ease-in-out) 200ms both;
+}
+
+.vow__roof path + path {
+  stroke-width: 1.6;
+  opacity: 0.8;
+  animation-delay: 700ms;
+}
+
+@keyframes vow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.vow__day {
+  color: var(--sun);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  animation: vow-rise 700ms var(--ease-out) 600ms both;
+}
+
+.vow__date {
+  display: grid;
+  font-size: var(--t-display);
+  font-weight: 250;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+
+.vow__line {
+  display: block;
+  padding-bottom: 0.06em;
+  overflow: hidden;
+}
+
+.vow__line > span {
+  display: inline-block;
+  animation: vow-line 1000ms var(--ease-out) 700ms both;
+}
+
+.vow__line + .vow__line > span {
+  font-weight: 600;
+  animation-delay: 820ms;
+}
+
+.vow__place {
+  font-weight: 600;
+  animation: vow-rise 700ms var(--ease-out) 1000ms both;
+}
+
+.vow__count {
+  justify-self: start;
+  margin-top: 8px;
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-size: var(--t-sm);
+  font-weight: 550;
+  animation: vow-rise 700ms var(--ease-out) 1150ms both;
+}
+
+.vow__count b {
+  font-size: var(--t-md);
+  font-weight: 750;
+}
+
+.vow__credit {
+  top: calc(var(--appbar-h) + env(safe-area-inset-top) + 6px);
+  bottom: auto;
+}
+
+@keyframes vow-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes vow-line {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+/* Arriving by the photograph from Home: the words wait for it to land. */
+html:active-view-transition-type(morph) .vow__line > span {
+  animation-delay: 900ms;
+}
+
+@media (min-width: 1024px) {
+  .vow {
+    min-height: min(80vh, 760px);
+    margin: 0;
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-2);
+  }
+
+  .vow__body {
+    padding: 48px 52px 52px;
+  }
+
+  .vow__roof {
+    width: 110px;
+    height: 40px;
+  }
+
+  .vow__credit {
+    top: 14px;
+  }
+}
+
+/* ============================================================== sections */
+
+.wed-section {
+  display: grid;
+  gap: 16px;
+}
+
+.wed-section__note {
+  max-width: 38rem;
+  color: var(--ink-2);
+}
+
+.wed-section .window__day--wedding {
+  box-shadow: 0 22px 40px -16px rgba(138, 69, 36, 0.75);
+}
+
+.venue {
+  display: grid;
+  gap: 18px;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(90% 80% at 100% 0%, rgba(243, 198, 122, 0.25), transparent 60%),
+    var(--timber-tint);
+}
+
+@media (min-width: 900px) {
+  .venue {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 0;
+  }
+}
+
+.venue__media {
+  position: relative;
+  min-height: 240px;
+  height: 100%;
+}
+
+.venue__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.venue__body {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 4px 20px 24px;
+}
+
+@media (min-width: 900px) {
+  .venue__body {
+    padding: 36px 40px;
+  }
+}
+
+.venue__text {
+  max-width: 34rem;
+  color: var(--ink-2);
+  font-size: var(--t-md);
+}
+
+.venue__links {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.venue__link {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 16px;
+  border-radius: var(--r-md);
+  color: var(--timber-ink);
+  background: rgba(255, 253, 248, 0.7);
+  font-weight: 700;
+  transition:
+    background-color var(--d-fast) var(--ease-out),
+    transform var(--d-press) var(--ease-out);
+}
+
+.venue__link:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .venue__link:hover {
+    background: var(--paper);
+  }
+}
+
+.keep {
+  display: grid;
+  gap: 16px;
+}
+
+.keep__head {
+  display: grid;
+  gap: 6px;
+}
+
+.keep__lead {
+  color: var(--ink-2);
+}
+
+.providers {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .providers {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.provider {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  background: var(--paper);
+  box-shadow:
+    var(--shadow-1),
+    inset 0 0 0 1px var(--line);
+  font-weight: 700;
+  transition:
+    box-shadow var(--d-base) var(--ease-out),
+    transform var(--d-press) var(--ease-out);
+}
+
+.provider:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .provider:hover {
+    box-shadow:
+      var(--shadow-2),
+      inset 0 0 0 1px var(--line-2);
+  }
+}
+
+.provider__cue {
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.next {
+  display: grid;
+  gap: 12px;
+}
+
+.next__lead {
+  color: var(--ink-2);
+}
+
+.next__list {
+  display: grid;
+  gap: 2px 28px;
+}
+
+@media (min-width: 720px) {
+  .next__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .next__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.next__item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.next__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--timber-ink);
+  background: var(--timber-tint);
+}
+
+.next__text {
+  display: grid;
+  line-height: 1.3;
+}
+
+.next__label {
+  font-weight: 750;
+}
+
+.next__detail {
+  color: var(--ink-3);
+  font-size: var(--t-sm);
+}
+
+.next__std {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: 8px;
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  font-weight: 650;
+}

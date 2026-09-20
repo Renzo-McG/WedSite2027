@@ -1,0 +1,1844 @@
+/*
+ * Travel: the tabs, the London → Cebu journey (the screen's signature
+ * object), arriving on Mactan, and the before-you-fly checklist.
+ */
+
+/* ================================================================== tabs */
+
+.tabs {
+  display: grid;
+  gap: 22px;
+}
+
+.tabs__list {
+  display: none;
+}
+
+.tabs[data-enhanced] .tabs__list {
+  display: inline-grid;
+  justify-self: start;
+}
+
+/* On phones the tabs stay within reach under the app bar. */
+@media (max-width: 1023px) {
+  .tabs[data-enhanced] .tabs__list {
+    position: sticky;
+    z-index: 10;
+    top: calc(var(--appbar-h) + env(safe-area-inset-top) + 6px);
+    max-width: none;
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      0 0 0 6px var(--ivory),
+      0 12px 22px -14px rgba(20, 40, 34, 0.45);
+  }
+}
+
+@media (max-width: 420px) {
+  .tabs__list .segmented__option .icon {
+    display: none;
+  }
+}
+
+/* A short landscape phone has enough width to put context on one line. This
+   keeps the explorer controls above the persistent tab bar instead of making
+   the guest scroll just to discover them. */
+@media (max-width: 1023px) and (max-height: 600px) and (orientation: landscape) {
+  .screen {
+    gap: 12px;
+  }
+
+  .screen-head {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 18px;
+    padding-top: 0;
+  }
+
+  .screen-head__title {
+    font-size: 2.25rem;
+  }
+
+  .screen-head__lead {
+    font-size: var(--t-sm);
+  }
+
+  .tabs {
+    gap: 10px;
+  }
+
+  .tabs[data-enhanced] .tabs__list {
+    position: relative;
+    top: auto;
+  }
+
+  .jstage__head {
+    grid-template-columns: auto minmax(260px, 1fr);
+    align-items: end;
+    gap: 24px;
+    padding-top: 12px;
+  }
+
+  .jstage__kicker {
+    display: none;
+  }
+
+  .jstage__sub {
+    text-align: right;
+  }
+
+  .jpick {
+    width: min(560px, calc(100% - 40px));
+    margin-top: 4px;
+  }
+
+  .jpick__option {
+    min-height: 44px;
+    padding-block: 4px;
+  }
+
+  .jpick__recommended {
+    display: none;
+  }
+}
+
+.tabs__panel {
+  display: grid;
+  gap: 18px;
+}
+
+.tabs__panel[hidden] {
+  display: none;
+}
+
+/* Panels arrive from the side you moved towards. */
+.tabs[data-enhanced] .tabs__panel:not([hidden]) {
+  animation: panel-in var(--d-base) var(--ease-out);
+}
+
+.tabs[data-enhanced] .tabs__panel[data-enter="next"]:not([hidden]) {
+  animation: panel-from-right var(--d-nav) var(--ease-drawer);
+}
+
+.tabs[data-enhanced] .tabs__panel[data-enter="prev"]:not([hidden]) {
+  animation: panel-from-left var(--d-nav) var(--ease-drawer);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes panel-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+
+@keyframes panel-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-48px);
+  }
+}
+
+.tabs__heading {
+  font-size: var(--t-xl);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+/* With tabs, the tab label is the heading; keep it for assistive tech. */
+.tabs[data-enhanced] .tabs__heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ============================================================= the journey */
+
+.planner {
+  display: grid;
+  gap: 18px;
+}
+
+.jstage {
+  --head: 180px;
+  --tot: 104px;
+  position: relative;
+  display: grid;
+  margin-inline: calc(var(--gutter) * -0.5);
+  overflow: hidden;
+  border-radius: 28px;
+  color: #fff;
+  background:
+    radial-gradient(70% 55% at 88% 12%, rgba(125, 220, 207, 0.14), transparent 70%),
+    radial-gradient(60% 50% at 0% 100%, rgba(125, 220, 207, 0.08), transparent 70%),
+    linear-gradient(172deg, #0b403c 0%, #062b29 55%, #041e1c 100%);
+  box-shadow: var(--shadow-3);
+}
+
+@media (min-width: 1024px) {
+  .jstage {
+    margin-inline: 0;
+    border-radius: var(--r-xl);
+  }
+}
+
+.jstage__head {
+  display: grid;
+  gap: 4px;
+  padding: 22px 20px 4px;
+}
+
+.jstage__kicker {
+  margin-bottom: 3px;
+  color: var(--shallows);
+  font-size: var(--t-2xs);
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.jstage__title {
+  font-size: var(--t-lg);
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.jstage__sub {
+  color: rgba(216, 244, 238, 0.72);
+  font-size: var(--t-sm);
+}
+
+/*
+ * The route selector: three labels for the three route radios. It keeps the
+ * stage's own language (glass on deep water, the lagoon for what is chosen)
+ * rather than borrowing a generic tab bar, and stays put at every width.
+ */
+.jpick {
+  position: relative;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 12px 20px 4px;
+  padding: 4px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 12px 28px -22px rgba(0, 0, 0, 0.9);
+}
+
+.jpick__thumb {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  border-radius: 14px;
+  background: rgba(125, 220, 207, 0.2);
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 220, 207, 0.7),
+    0 8px 18px -12px rgba(125, 220, 207, 0.7);
+  transform: translateX(calc(var(--pick, 0) * 100%));
+  transition: transform var(--d-nav) var(--ease-drawer);
+}
+
+.jpick__option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 58px;
+  padding: 7px 6px 6px;
+  border-radius: 14px;
+  color: rgba(216, 244, 238, 0.66);
+  cursor: pointer;
+  transition: color var(--d-base) var(--ease-out);
+}
+
+.jpick__hub {
+  font-size: var(--t-base);
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.jpick__total {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.jpick__recommended {
+  color: var(--shallows);
+  font-size: 0.55rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jpick__option:hover {
+    color: rgba(236, 251, 247, 0.9);
+  }
+}
+
+/*
+ * Chosen state and thumb position. The routes are a fixed set of three, and
+ * the stage already keys off these ids elsewhere in this file, so the mapping
+ * is written out rather than inferred.
+ */
+.planner:has(#route-hong-kong:checked) [data-pick="hong-kong"],
+.planner:has(#route-singapore:checked) [data-pick="singapore"],
+.planner:has(#route-dubai:checked) [data-pick="dubai"] {
+  color: #fff;
+}
+
+.planner:has(#route-hong-kong:checked) [data-pick="hong-kong"] .jpick__total,
+.planner:has(#route-singapore:checked) [data-pick="singapore"] .jpick__total,
+.planner:has(#route-dubai:checked) [data-pick="dubai"] .jpick__total {
+  opacity: 1;
+}
+
+.planner:has(#route-singapore:checked) .jpick {
+  --pick: 1;
+}
+
+.planner:has(#route-dubai:checked) .jpick {
+  --pick: 2;
+}
+
+/* The radios sit by the lanes, so focus is carried across with :has(). */
+.planner:has(#route-hong-kong:focus-visible) [data-pick="hong-kong"],
+.planner:has(#route-singapore:focus-visible) [data-pick="singapore"],
+.planner:has(#route-dubai:focus-visible) [data-pick="dubai"] {
+  outline: 2.5px solid var(--shallows);
+  outline-offset: 1px;
+}
+
+/* While the guided preview is running, the selector shows it is being driven. */
+.jstage[data-previewing] .jpick__thumb {
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 220, 207, 0.8),
+    0 0 14px -2px rgba(125, 220, 207, 0.45);
+}
+
+.jstage__status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 24px;
+  margin: 5px 22px 0;
+  color: rgba(216, 244, 238, 0.72);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.jstage__status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--pill);
+  background: var(--shallows);
+  box-shadow: 0 0 0 4px rgba(125, 220, 207, 0.12);
+}
+
+.jstage:is([data-flying], [data-previewing]) .jstage__status-dot {
+  animation: status-pulse 1200ms var(--ease-in-out) infinite;
+}
+
+@keyframes status-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgba(125, 220, 207, 0);
+  }
+}
+
+@media (max-width: 360px) {
+  .jpick {
+    margin-inline: 12px;
+  }
+
+  .jpick__option {
+    padding-inline: 2px;
+  }
+
+  .jpick__hub {
+    font-size: 0.78rem;
+  }
+
+  .jpick__recommended {
+    font-size: 0.5rem;
+  }
+}
+
+/* The map. */
+.jmap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--map-aspect);
+  margin-top: 2px;
+}
+
+.jmap__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.jmap__land {
+  fill: rgba(125, 220, 207, 0.06);
+}
+
+.jmap__dots {
+  fill: url(#jmap-dots);
+}
+
+#jmap-dots circle {
+  fill: rgba(125, 220, 207, 0.34);
+}
+
+.jmap__arc {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1.4;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 400ms var(--ease-out);
+}
+
+.jmap__route[data-active] .jmap__arc {
+  stroke: rgba(125, 220, 207, 0.55);
+}
+
+.jmap__lit {
+  fill: none;
+  stroke: var(--shallows);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(125, 220, 207, 0.7));
+  transition: opacity 400ms var(--ease-out);
+}
+
+.jmap__route:not([data-active]) .jmap__lit {
+  opacity: 0;
+}
+
+/* Without the script, the chosen route is simply drawn. */
+.jstage:not([data-enhanced]) .jmap__lit {
+  stroke-dashoffset: 0;
+}
+
+.planner:has(#route-hong-kong:not(:checked))
+  .jstage:not([data-enhanced])
+  [data-map-route="hong-kong"]
+  .jmap__lit,
+.planner:has(#route-singapore:not(:checked))
+  .jstage:not([data-enhanced])
+  [data-map-route="singapore"]
+  .jmap__lit,
+.planner:has(#route-dubai:not(:checked))
+  .jstage:not([data-enhanced])
+  [data-map-route="dubai"]
+  .jmap__lit {
+  opacity: 0;
+}
+
+.jcity {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  translate: -4px -50%;
+  pointer-events: none;
+  transition: opacity 400ms var(--ease-out);
+}
+
+.jcity__dot {
+  position: relative;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--pill);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
+}
+
+.jcity__name {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.jcity--left {
+  flex-direction: row-reverse;
+  translate: calc(-100% + 4px) -50%;
+}
+
+.jcity--above,
+.jcity--below {
+  flex-direction: column-reverse;
+  gap: 4px;
+  translate: -50% calc(-100% + 4px);
+}
+
+.jcity--below {
+  flex-direction: column;
+  translate: -50% -4px;
+}
+
+.jcity--hub {
+  opacity: 0.5;
+}
+
+.jcity--hub[data-active] {
+  opacity: 1;
+}
+
+.jcity--hub .jcity__dot {
+  width: 7px;
+  height: 7px;
+  background: var(--foam);
+}
+
+.jcity--cebu .jcity__dot {
+  width: 11px;
+  height: 11px;
+  background: var(--shallows);
+  box-shadow: 0 0 0 4px rgba(125, 220, 207, 0.22);
+}
+
+.jcity--cebu .jcity__name {
+  color: var(--shallows);
+  font-size: var(--t-sm);
+}
+
+.jcity__dot::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border: 1.5px solid var(--shallows);
+  border-radius: var(--pill);
+  opacity: 0;
+}
+
+.jstage[data-waiting] .jcity--hub[data-active] .jcity__dot::after,
+.jstage[data-landed] .jcity--cebu .jcity__dot::after {
+  animation: jcity-ring 900ms var(--ease-out) both;
+}
+
+@keyframes jcity-ring {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+
+.jmap__plane {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+  opacity: 0;
+  transition: opacity 300ms var(--ease-out);
+  pointer-events: none;
+}
+
+.jstage[data-flying] .jmap__plane,
+.jstage[data-landed] .jmap__plane {
+  opacity: 1;
+}
+
+.jstage__credit {
+  padding: 0 22px 16px;
+  color: rgba(216, 244, 238, 0.45);
+  font-size: 0.625rem;
+  font-weight: 500;
+}
+
+/* The shared timeline. */
+.jlanes {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 10px 6px;
+  border: 0;
+}
+
+.jlanes__axis {
+  position: relative;
+  height: 22px;
+  margin: 0 12px;
+  color: rgba(216, 244, 238, 0.5);
+  font-size: var(--t-2xs);
+  font-weight: 650;
+}
+
+.jlanes__axis-label {
+  display: none;
+}
+
+.jlanes__tick {
+  position: absolute;
+  bottom: 2px;
+  translate: -50% 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.jlanes__tick:first-of-type {
+  translate: 0 0;
+}
+
+.jlanes__tick::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 1px;
+  height: 5px;
+  background: rgba(216, 244, 238, 0.3);
+}
+
+.jlanes__tick:first-of-type::after {
+  left: 0;
+}
+
+.jlane__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.jlane {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head total"
+    "track track";
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 12px 6px;
+  border-radius: 18px;
+  cursor: pointer;
+  transition:
+    background-color var(--d-base) var(--ease-out),
+    box-shadow var(--d-base) var(--ease-out);
+}
+
+.jlane__input:checked + .jlane {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(125, 220, 207, 0.28);
+}
+
+.jlane__input:focus-visible + .jlane {
+  outline: 2.5px solid var(--shallows);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jlane__input:not(:checked) + .jlane:hover {
+    background: rgba(255, 255, 255, 0.035);
+  }
+}
+
+.jlane__head {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+}
+
+.jlane__name {
+  font-size: var(--t-base);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.jlane__airline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(216, 244, 238, 0.66);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.jlane__tag {
+  padding: 1px 8px;
+  border-radius: var(--pill);
+  color: var(--deep);
+  background: var(--shallows);
+  font-size: var(--t-2xs);
+  font-weight: 750;
+}
+
+.jlane__total {
+  grid-area: total;
+  display: grid;
+  justify-items: end;
+  line-height: 1.15;
+}
+
+.jlane__total b {
+  font-size: var(--t-md);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.jlane__fare {
+  color: rgba(216, 244, 238, 0.62);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+}
+
+.jlane__track {
+  grid-area: track;
+  position: relative;
+  height: 46px;
+  transition: opacity 400ms var(--ease-out);
+}
+
+.jlane__input:not(:checked) + .jlane :is(.jlane__track, .jlane__head, .jlane__total) {
+  opacity: 0.5;
+}
+
+.jlane__rail {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  height: 0;
+}
+
+.jlane__line {
+  position: absolute;
+  inset: 0;
+}
+
+.jlane__seg {
+  position: absolute;
+  top: -1.5px;
+  height: 3px;
+  border-radius: 3px;
+}
+
+.jlane__seg--fly {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.jlane__seg--wait {
+  top: -1px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.45) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+.jlane__line--lit .jlane__seg--fly {
+  background: var(--shallows);
+  box-shadow: 0 0 10px rgba(125, 220, 207, 0.55);
+}
+
+.jlane__line--lit .jlane__seg--wait {
+  background: repeating-linear-gradient(90deg, var(--shallows) 0 3px, transparent 3px 6px);
+}
+
+.jlane__line--lit {
+  clip-path: inset(0 100% 0 0);
+}
+
+.jlane__input:checked + .jlane .jlane__line--lit {
+  clip-path: inset(0 0 0 0);
+}
+
+.jlane__node {
+  position: absolute;
+  top: 0;
+  translate: -50% -50%;
+}
+
+.jlane__node--start {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--pill);
+  background: #fff;
+}
+
+.jlane__node--hub {
+  height: 12px;
+  min-width: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  background: #0a3835;
+  translate: 0 -50%;
+}
+
+.jlane__node--end {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--pill);
+  background: var(--shallows);
+  box-shadow: 0 0 0 4px rgba(125, 220, 207, 0.18);
+}
+
+/* One clock drives both map and timeline; these phase accents make that
+   shared choreography legible at departure, connection and arrival. */
+.jstage[data-phase="departure"] .jlane[data-active] .jlane__node--start,
+.jstage[data-phase="outbound"] .jlane[data-active] .jlane__node--start {
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.14);
+}
+
+.jstage[data-phase="layover"] .jlane[data-active] .jlane__node--hub {
+  border-color: var(--shallows);
+  background: rgba(125, 220, 207, 0.22);
+  box-shadow: 0 0 0 7px rgba(125, 220, 207, 0.1);
+  animation: status-pulse 1100ms var(--ease-in-out) infinite;
+}
+
+.jstage[data-phase="arrival"] .jlane[data-active] .jlane__node--end {
+  box-shadow:
+    0 0 0 5px rgba(125, 220, 207, 0.22),
+    0 0 24px rgba(125, 220, 207, 0.5);
+}
+
+.jlane__code {
+  position: absolute;
+  top: 12px;
+  left: -2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(216, 244, 238, 0.7);
+  font-size: var(--t-2xs);
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.jlane__node--end .jlane__code {
+  right: -2px;
+  left: auto;
+}
+
+/* On narrow phones the change and the total say enough at the Cebu end. */
+@media (max-width: 559px) {
+  .jlane__node--end .jlane__code {
+    display: none;
+  }
+}
+
+.jlane__plane {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: #fff;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(125, 220, 207, 0.8));
+  transition: opacity 300ms var(--ease-out);
+}
+
+.jlane__plane .icon {
+  rotate: 90deg;
+}
+
+.jstage[data-flying] .jlane[data-active] .jlane__plane {
+  opacity: 1;
+}
+
+/* Durations resolve as the plane passes them. */
+.jlane__dur {
+  position: absolute;
+  bottom: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #fff;
+  font-size: var(--t-2xs);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  translate: -50% 0;
+  opacity: 0;
+  transition:
+    opacity 320ms var(--ease-out),
+    transform 420ms var(--ease-out);
+}
+
+.jlane__dur--wait {
+  position: static;
+  color: var(--shallows);
+  translate: none;
+}
+
+.jlane__input:checked + .jlane .jlane__dur {
+  opacity: 1;
+}
+
+.jstage[data-enhanced] .jlane .jlane__dur {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.jstage[data-enhanced] .jlane .jlane__dur[data-on] {
+  opacity: 1;
+  transform: none;
+}
+
+.jstage__readout {
+  min-height: 3em;
+  padding: 6px 22px 10px;
+  color: rgba(216, 244, 238, 0.8);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+
+@media (min-width: 900px) {
+  .jstage__head {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+    align-items: end;
+    gap: 28px;
+    padding: 26px 28px 2px;
+  }
+
+  .jpick {
+    width: min(620px, calc(100% - 56px));
+    margin: 16px 28px 4px;
+  }
+
+  .jstage__status {
+    margin-inline: 30px;
+  }
+
+  .jlanes {
+    padding: 6px 16px 8px;
+  }
+
+  .jlanes__axis {
+    margin: 0 calc(12px + var(--tot)) 0 calc(12px + var(--head));
+  }
+
+  .jlanes__axis-label {
+    position: absolute;
+    bottom: 2px;
+    left: calc(-1 * var(--head));
+    display: block;
+  }
+
+  .jlane {
+    grid-template-columns: var(--head) minmax(0, 1fr) var(--tot);
+    grid-template-areas: "head track total";
+    gap: 0;
+    padding: 10px 12px;
+  }
+
+  .jlane__head {
+    display: grid;
+    gap: 2px;
+    padding-right: 16px;
+  }
+
+  .jlane__total {
+    padding-left: 16px;
+  }
+
+  .jlane__total b {
+    font-size: var(--t-lg);
+  }
+
+  .jstage__readout {
+    padding: 8px 30px 10px;
+  }
+
+  .jstage__credit {
+    padding: 0 30px 20px;
+  }
+}
+
+/* The chosen route, in words and links. */
+.jstage__facts {
+  margin: 4px 20px 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.planner__detail {
+  display: grid;
+  gap: 16px;
+}
+
+.route-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+@supports selector(:has(*)) {
+  .planner .route-card {
+    display: none;
+  }
+
+  .planner:has(#route-hong-kong:checked) [data-route-panel="hong-kong"],
+  .planner:has(#route-singapore:checked) [data-route-panel="singapore"],
+  .planner:has(#route-dubai:checked) [data-route-panel="dubai"] {
+    display: grid;
+    animation: route-facts-in 520ms var(--ease-out);
+  }
+}
+
+@keyframes route-facts-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.route-card__intro {
+  display: grid;
+  gap: 4px;
+}
+
+.route-card__eyebrow {
+  color: var(--shallows);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.route-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  font-size: var(--t-lg);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.route-card__title .icon {
+  color: var(--shallows);
+}
+
+.route-card__why {
+  max-width: 40rem;
+  color: rgba(216, 244, 238, 0.76);
+  font-size: var(--t-sm);
+}
+
+.route-card__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+  padding: 12px 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.route-card__facts dt {
+  color: rgba(216, 244, 238, 0.55);
+  font-size: var(--t-2xs);
+  font-weight: 650;
+}
+
+.route-card__facts dd {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: var(--t-xs);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.route-card__more {
+  color: rgba(216, 244, 238, 0.7);
+  font-size: var(--t-xs);
+}
+
+.route-card__more summary {
+  width: fit-content;
+  color: var(--shallows);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.route-card__more p {
+  margin-top: 6px;
+}
+
+.route-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .jstage__facts {
+    margin-inline: 28px;
+  }
+
+  .route-card {
+    grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.35fr);
+    column-gap: 28px;
+    padding: 18px 20px;
+  }
+
+  .route-card__intro {
+    grid-row: 1 / span 3;
+    align-content: start;
+  }
+
+  .route-card__facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .route-card__more {
+    align-self: center;
+  }
+
+  .route-card__actions {
+    grid-column: 2;
+  }
+}
+
+/* Fares: the planning band, and where each route sits in it. */
+.fares {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-radius: var(--r-lg);
+  background: var(--sand);
+}
+
+.fares__head {
+  display: grid;
+  gap: 2px;
+}
+
+.fares__label {
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  font-weight: 650;
+}
+
+.fares__value {
+  font-size: var(--t-2xl);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.fare-scale {
+  display: grid;
+  gap: 8px;
+  /* JS (fare-scale.ts) sets --fs-rows/--fs-row-h once it has measured the
+     rendered tags; these fallbacks match the old fixed three-row height so
+     nothing jumps before it runs. */
+  padding-top: calc(var(--fs-rows, 3) * var(--fs-row-h, 28px) + 12px);
+}
+
+.fare-scale__track {
+  position: relative;
+  height: 10px;
+  border-radius: var(--pill);
+  background: rgba(14, 36, 33, 0.08);
+}
+
+.fare-scale__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--pill);
+  background: linear-gradient(90deg, var(--lagoon-soft), var(--lagoon));
+  transform-origin: left center;
+  animation: band-grow 900ms var(--ease-out) both 200ms;
+}
+
+@keyframes band-grow {
+  from {
+    transform: scaleX(0.15);
+    opacity: 0;
+  }
+}
+
+.fare-scale__dot {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+}
+
+/* The visible circle. Kept separate from .fare-scale__dot so the emphasised
+   scale below zooms the marker only — not the stem/tag, whose own position
+   is worked out from the (untransformed) dot box. */
+.fare-scale__marker {
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--paper);
+  border-radius: var(--pill);
+  background: var(--ink-3);
+  box-shadow: var(--shadow-1);
+  transition:
+    background-color var(--d-fast) var(--ease-out),
+    transform var(--d-base) var(--ease-pop);
+}
+
+.fare-scale__tag {
+  position: absolute;
+  bottom: calc(100% + 6px + var(--row, 0) * var(--fs-row-h, 28px));
+  left: 50%;
+  padding: 3px 9px;
+  border-radius: var(--pill);
+  color: var(--ink-2);
+  background: var(--paper);
+  box-shadow:
+    var(--shadow-1),
+    inset 0 0 0 1px var(--line);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  white-space: nowrap;
+  /* --fs-shift (from fare-scale.ts) nudges a tag that would otherwise spill
+     past the track's edge back inside it; the stem below is unaffected, so
+     it still points straight at this tag's own marker. */
+  transform: translateX(calc(-50% + var(--fs-shift, 0px)));
+  transition:
+    color var(--d-fast) var(--ease-out),
+    background-color var(--d-fast) var(--ease-out),
+    transform var(--d-fast) var(--ease-out);
+}
+
+/* A straight vertical leader from the marker up to its tag. Kept as a
+   sibling of the tag (not a pseudo-element on it) so an edge nudge on the
+   tag never drags the leader off its marker. */
+.fare-scale__stem {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 1px;
+  height: calc(var(--row, 0) * var(--fs-row-h, 28px) + 6px);
+  background: var(--line-2);
+}
+
+.fare-scale__tag b {
+  font-weight: 750;
+}
+
+.fare-scale__axis {
+  position: relative;
+  height: 18px;
+  color: var(--ink-3);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.fare-scale__axis span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.fare-scale__axis span:first-child {
+  transform: none;
+}
+
+.fare-scale__axis span:last-child {
+  transform: translateX(-100%);
+}
+
+.planner:has(#route-hong-kong:checked) [data-fare-route="hong-kong"],
+.planner:has(#route-singapore:checked) [data-fare-route="singapore"],
+.planner:has(#route-dubai:checked) [data-fare-route="dubai"] {
+  /* Wins any visual overlap with a neighbouring tag on a tight width. */
+  z-index: 1;
+}
+
+.planner:has(#route-hong-kong:checked) [data-fare-route="hong-kong"] .fare-scale__marker,
+.planner:has(#route-singapore:checked) [data-fare-route="singapore"] .fare-scale__marker,
+.planner:has(#route-dubai:checked) [data-fare-route="dubai"] .fare-scale__marker {
+  background: var(--deep);
+  transform: scale(1.3);
+}
+
+.planner:has(#route-hong-kong:checked) [data-fare-route="hong-kong"] .fare-scale__tag,
+.planner:has(#route-singapore:checked) [data-fare-route="singapore"] .fare-scale__tag,
+.planner:has(#route-dubai:checked) [data-fare-route="dubai"] .fare-scale__tag {
+  color: #fff;
+  background: var(--deep);
+  box-shadow: 0 6px 14px -6px rgba(3, 40, 37, 0.6);
+}
+
+/*
+ * Worth knowing before booking: three separate facts, so they are set as
+ * three rows with a bold lead-in each rather than one running paragraph. No
+ * container each — the spacing and the lead-ins carry the structure.
+ */
+.planner__notes {
+  display: grid;
+  gap: 12px;
+  max-width: 52rem;
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+  line-height: 1.55;
+}
+
+.planner__note {
+  display: flex;
+  gap: 10px;
+}
+
+.planner__note b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.planner__notes .icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--lagoon);
+}
+
+/* ============================================================== arriving */
+
+.arrive {
+  display: grid;
+  gap: 18px;
+}
+
+@media (min-width: 1024px) {
+  .arrive {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+  }
+
+  .arrive__stage {
+    grid-row: span 2;
+  }
+
+  .ways {
+    grid-column: 1 / -1;
+  }
+}
+
+.arrive__stage {
+  display: grid;
+  gap: 8px;
+}
+
+.arrive__map {
+  box-shadow: var(--shadow-2);
+}
+
+.arrive__route {
+  fill: none;
+  stroke: var(--timber);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  vector-effect: non-scaling-stroke;
+}
+
+.arrive[data-enhanced]:not([data-played]) .arrive__route {
+  stroke-dashoffset: 1;
+}
+
+.arrive__plane,
+.arrive__car {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.arrive__plane {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  color: var(--deep);
+  opacity: 0;
+}
+
+.arrive__plane .icon {
+  position: relative;
+  scale: calc(1 + var(--alt, 0) * 0.6);
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8));
+}
+
+.arrive__plane-shadow {
+  position: absolute;
+  width: 18px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(14, 36, 33, 0.25);
+  translate: calc(var(--alt, 0) * 16px) calc(var(--alt, 0) * 16px);
+  filter: blur(2px);
+}
+
+.arrive__car {
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 2px solid #fff;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--timber);
+  box-shadow: var(--shadow-2);
+  opacity: 0;
+}
+
+.arrive__route-label {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--timber);
+  box-shadow: var(--shadow-2);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  transition:
+    opacity var(--d-base) var(--ease-out),
+    transform 420ms var(--ease-pop);
+}
+
+.arrive[data-enhanced] .arrive__route-label:not([data-on]) {
+  opacity: 0;
+  transform: translate(-50%, -30%) scale(0.85);
+}
+
+.arrive__caption {
+  font-size: var(--t-xs);
+}
+
+.arrive__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (min-width: 1024px) {
+  .arrive__facts {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-top: 4px;
+  }
+}
+
+.arrive__fact {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  color: var(--ink-2);
+  font-size: var(--t-xs);
+  line-height: 1.4;
+}
+
+.arrive__fact b {
+  color: var(--ink);
+  font-size: clamp(1.625rem, 1.2rem + 2vw, 2.5rem);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+@media (min-width: 1024px) {
+  .arrive__fact {
+    grid-template-columns: 7.5rem 1fr;
+    align-items: baseline;
+    gap: 12px;
+    font-size: var(--t-sm);
+  }
+}
+
+.arrive__photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+}
+
+.arrive__img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.arrive__photo figcaption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 2px;
+  padding: 40px 16px 12px;
+  color: #fff;
+  background: linear-gradient(0deg, rgba(3, 26, 24, 0.75), transparent);
+  font-size: var(--t-sm);
+  font-weight: 650;
+}
+
+.arrive__photo .credit {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.ways {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+.ways__title {
+  font-size: var(--t-lg);
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.ways__list {
+  display: grid;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .ways__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+}
+
+.way {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.way__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--shallows);
+  background: var(--deep);
+}
+
+.way__text {
+  display: grid;
+  gap: 2px;
+}
+
+.way__name {
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.way__detail {
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+}
+
+/*
+ * Where to get Grab. Compact buttons in the site's own language rather than
+ * the official store badges, which would be the only brand marks anywhere in
+ * the companion. They wrap onto their own line on a narrow phone.
+ */
+.way__apps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  margin-top: 6px;
+}
+
+.way__apps-label {
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.way__app {
+  min-height: 36px;
+  padding: 5px 12px;
+  border-radius: var(--pill);
+  color: var(--deep);
+  background: var(--sand);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .way__app:hover {
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1px var(--lagoon);
+  }
+}
+
+/* ============================================================== checklist */
+
+.prep {
+  display: grid;
+  gap: 16px;
+}
+
+.prep__summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.prep__badge {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+}
+
+.prep__ring {
+  width: 60px;
+  height: 60px;
+  transform: rotate(-90deg);
+  transition:
+    scale 420ms var(--ease-in-out),
+    opacity 300ms var(--ease-out);
+}
+
+.prep__ring circle {
+  fill: none;
+  stroke-width: 5;
+}
+
+.prep__ring-track {
+  stroke: var(--sand-2);
+}
+
+.prep__ring-fill {
+  stroke: var(--lagoon);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--progress, 0));
+  transition: stroke-dashoffset var(--d-nav) var(--ease-out);
+}
+
+.prep__ready {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--pill);
+  color: var(--deep);
+  background: var(--shallows);
+  opacity: 0;
+  scale: 0.4;
+  transition:
+    opacity 300ms var(--ease-out),
+    scale 520ms var(--ease-pop);
+}
+
+.prep__ready .icon {
+  rotate: 45deg;
+}
+
+.prep[data-complete] .prep__ring {
+  opacity: 0;
+  scale: 1.3;
+}
+
+.prep[data-complete] .prep__ready {
+  opacity: 1;
+  scale: 1;
+  transition-delay: 200ms;
+}
+
+.prep__count {
+  font-size: var(--t-lg);
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.prep__done {
+  display: none;
+  color: var(--lagoon-strong);
+}
+
+.prep[data-complete] .prep__done {
+  display: block;
+}
+
+.prep__list {
+  display: grid;
+  padding: 4px 18px;
+  border-radius: var(--r-lg);
+  background: var(--paper);
+  box-shadow:
+    var(--shadow-1),
+    inset 0 0 0 1px var(--line);
+}
+
+@media (min-width: 900px) {
+  .prep__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 36px;
+    padding: 6px 24px;
+  }
+}
+
+.prep__item {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.prep__item:last-child {
+  border-bottom: 0;
+}
+
+.prep__check {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.prep__label {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 30px;
+  align-items: start;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.prep__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--ink-2);
+  background: var(--sand);
+  transition:
+    color var(--d-fast) var(--ease-out),
+    background-color var(--d-fast) var(--ease-out);
+}
+
+.prep__text {
+  display: grid;
+  gap: 2px;
+}
+
+.prep__term {
+  font-weight: 750;
+}
+
+.prep__detail {
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+}
+
+.prep__box {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  color: transparent;
+  box-shadow: inset 0 0 0 2px var(--line-2);
+  transition:
+    background-color var(--d-fast) var(--ease-out),
+    color var(--d-fast) var(--ease-out),
+    box-shadow var(--d-fast) var(--ease-out),
+    transform var(--d-press) var(--ease-out);
+}
+
+.prep__box .icon path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.prep__check:checked + .prep__label .prep__box {
+  color: #fff;
+  background: var(--lagoon);
+  box-shadow: none;
+  animation: tick-pop 380ms var(--ease-pop);
+}
+
+.prep__check:checked + .prep__label .prep__box .icon path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 320ms var(--ease-out) 60ms;
+}
+
+@keyframes tick-pop {
+  50% {
+    transform: scale(1.14);
+  }
+}
+
+.prep__check:checked + .prep__label .prep__icon {
+  color: var(--shallows);
+  background: var(--deep);
+}
+
+.prep__check:active + .prep__label .prep__box {
+  transform: scale(0.9);
+}
+
+.prep__check:focus-visible + .prep__label .prep__box {
+  outline: 2.5px solid var(--lagoon);
+  outline-offset: 3px;
+}
+
+.prep__link {
+  padding-left: 58px;
+}

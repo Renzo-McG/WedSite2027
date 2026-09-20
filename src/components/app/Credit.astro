@@ -1,0 +1,25 @@
+---
+/** Photo credit, with the licence linked where one applies. */
+import type { GuideImage } from "../../data/travel";
+
+interface Props {
+  image: GuideImage;
+  class?: string;
+}
+
+const { image, class: className = "" } = Astro.props;
+---
+
+<span class:list={["credit", className]}>
+  Photo: {image.credit}{
+    image.licence && (
+      <>
+        {", "}
+        <a href={image.licence.url} target="_blank" rel="noopener noreferrer">
+          {image.licence.name}
+          <span class="visually-hidden"> licence (opens in a new tab)</span>
+        </a>
+      </>
+    )
+  }
+</span>

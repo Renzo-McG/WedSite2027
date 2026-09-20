@@ -1,0 +1,42 @@
+---
+/**
+ * Mactan's real coastline as line work (OpenStreetMap, see mactan-geo.ts), in a
+ * square frame centred on a point. The centre lands exactly in the middle of
+ * the SVG, so callers can line it up with anything else (the Home arrival
+ * opens the venue photograph from that point). Every stroke is normalised to
+ * a length of 1 so CSS can draw it in: Mactan first, then its neighbours.
+ */
+import { coastline } from "../../data/mactan-geo";
+import { UNITS_PER_KM, frameFor, toKm, type LatLng } from "../../lib/travel-plot";
+
+interface Props {
+  centre: LatLng;
+  radiusKm: number;
+  class?: string;
+}
+
+const { centre, radiusKm, class: className = "" } = Astro.props;
+const frame = frameFor([centre], radiusKm);
+const size = Math.round(radiusKm * 2 * UNITS_PER_KM);
+const p = (lat: number, lng: number) => {
+  const { x, y } = toKm(frame, { lat, lng });
+  return `${(x * UNITS_PER_KM).toFixed(0)} ${(y * UNITS_PER_KM).toFixed(0)}`;
+};
+const ring = (r: [number, number][]) =>
+  r.map(([lat, lng], i) => `${i ? "L" : "M"}${p(lat, lng)}`).join("") + "Z";
+const [mactan, ...rest] = coastline.land;
+const runway = coastline.runway
+  .map((line) => line.map(([lat, lng], i) => `${i ? "L" : "M"}${p(lat, lng)}`).join(""))
+  .join("");
+---
+
+<svg
+  class:list={["coast", className]}
+  viewBox={`0 0 ${size} ${size}`}
+  aria-hidden="true"
+  focusable="false"
+>
+  <path class="coast__rest" d={rest.map(ring).join("")} pathLength="1"></path>
+  <path class="coast__runway" d={runway} pathLength="1"></path>
+  <path class="coast__main" d={ring(mactan!)} pathLength="1"></path>
+</svg>

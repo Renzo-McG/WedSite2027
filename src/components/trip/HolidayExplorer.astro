@@ -1,0 +1,296 @@
+---
+/**
+ * "Making a holiday of it?": what 7, 10 or 14 days make possible. Inspiration,
+ * not an itinerary; the wedding takes only the one day.
+ *
+ * Choosing a length transforms the screen as one sequence:
+ * - the Philippines map (Natural Earth) pulls back from Cebu to show what is
+ *   now in reach, the new places pop onto it, and arcs draw out to them from
+ *   Mactan (flights a little heavier than roads and boats);
+ * - the band below grows: a day's travel each way, the wedding and the days
+ *   around it, and the days that are yours;
+ * - the places rearrange: new ones arrive, ones out of reach step away.
+ * Pointing at a place (or centring it on a phone) lights its arc, says how
+ * you get there, and fans its activities out around its pin.
+ *
+ * Without JavaScript: native radios, the 14-day map, and CSS :has shows the
+ * places and band for the chosen length. Script: scripts/app/trip.ts.
+ */
+import Icon from "../app/Icon.astro";
+import Picture from "../app/Picture.astro";
+import Credit from "../app/Credit.astro";
+import ExternalLink from "../app/ExternalLink.astro";
+import { philippines } from "../../data/land-geo";
+import { arc, landPath, project, viewFor, type View } from "../../lib/geo";
+import {
+  activityLabels,
+  holidayLengths,
+  holidayPlaces,
+  tripGuidance,
+  type Activity,
+} from "../../data/travel";
+import type { IconName } from "../../data/site";
+
+const ASPECT = 1.3;
+const frame = philippines.frame;
+const land = landPath(philippines);
+
+/** Grow a box to the map's shape, keeping it centred. */
+const fitAspect = (v: View): View => {
+  if (v.w / v.h > ASPECT) {
+    const h = v.w / ASPECT;
+    return { x: v.x, y: v.y - (h - v.h) / 2, w: v.w, h };
+  }
+  const w = v.h * ASPECT;
+  return { x: v.x - (w - v.w) / 2, y: v.y, w, h: v.h };
+};
+const views = holidayLengths.map((l) => ({ days: l.days, ...fitAspect(viewFor(frame, l.view)) }));
+const widest = views.at(-1)!;
+const vb = (v: View) => `${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`;
+const pct = (p: { x: number; y: number }, v: View) => ({
+  left: (((p.x - v.x) / v.w) * 100).toFixed(2),
+  top: (((p.y - v.y) / v.h) * 100).toFixed(2),
+});
+
+const base = project(frame, tripGuidance.base.lat, tripGuidance.base.lng);
+const modeIcon: Record<string, IconName> = {
+  boat: "boat",
+  ferry: "boat",
+  road: "car",
+  flight: "plane",
+};
+const activityIcon: Record<Activity, IconName> = {
+  snorkel: "fish",
+  dive: "fish",
+  wildlife: "turtle",
+  island: "boat",
+  beach: "palm",
+  waterfall: "waterfall",
+  canyon: "canyon",
+  surf: "wave",
+  lagoon: "lagoon",
+  heritage: "cross",
+  food: "bowl",
+};
+const places = holidayPlaces.map((place) => {
+  const p = project(frame, place.location.lat, place.location.lng);
+  const bend = place.getThere.mode === "flight" ? 0.22 : 0.3;
+  const a = arc(base, p, place.location.lng < tripGuidance.base.lng ? -bend : bend);
+  return { place, p, arc: a.d, mid: a.mid };
+});
+const defaultDays = tripGuidance.defaultDays;
+---
+
+<section class="holiday" data-holiday aria-labelledby="holiday-title">
+  <header class="holiday__head">
+    <h2 class="holiday__title" id="holiday-title">Making a holiday of it?</h2>
+    <p class="holiday__lead">
+      If you're coming this far, a week or two gives you time to see much more of the Philippines.
+      Here's what each makes room for. Ideas, not an itinerary.
+    </p>
+  </header>
+
+  <fieldset class="lengths" data-lengths>
+    <legend class="visually-hidden">How long you might come for</legend>
+    <span class="lengths__thumb" aria-hidden="true"></span>
+    {
+      holidayLengths.map((l) => (
+        <>
+          <input
+            class="lengths__input"
+            type="radio"
+            name="trip-length"
+            id={`len-${l.days}`}
+            value={l.days}
+            checked={l.days === defaultDays}
+          />
+          <label class="lengths__option" for={`len-${l.days}`}>
+            <b class="num">{l.days}</b>
+            <span>days</span>
+          </label>
+        </>
+      ))
+    }
+  </fieldset>
+
+  <div class="holiday__summaries" aria-live="polite">
+    {
+      holidayLengths.map((l) => (
+        <div class="holiday__summary" data-summary={l.days}>
+          <h3 class="holiday__summary-title">{l.title}</h3>
+          <p>{l.summary}</p>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="holiday__stage">
+    <div class="holiday__visual">
+      <figure
+        class="phmap"
+        data-phmap
+        data-views={JSON.stringify(views)}
+        style={`--aspect: ${ASPECT}`}
+      >
+        <svg
+          class="phmap__svg"
+          viewBox={vb(widest)}
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path class="phmap__shelf" d={land}></path>
+          <path class="phmap__land" d={land}></path>
+          {
+            places.map(({ place, arc: d }) => (
+              <path
+                class:list={["phmap__arc", `phmap__arc--${place.getThere.mode}`]}
+                d={d}
+                pathLength="1"
+                data-arc={place.id}
+                data-from={place.from}
+              />
+            ))
+          }
+        </svg>
+
+        <span
+          class="phpin phpin--base"
+          data-x={base.x.toFixed(1)}
+          data-y={base.y.toFixed(1)}
+          style={`left: ${pct(base, widest).left}%; top: ${pct(base, widest).top}%`}
+          aria-hidden="true"
+        >
+          <span class="phpin__dot"><Icon name="pavilion" size={15} /></span>
+          <span class="phpin__label">The wedding, Mactan</span>
+        </span>
+
+        {
+          places.map(({ place, p, mid }) => (
+            <>
+              <button
+                class:list={["phpin", `phpin--${place.label}`]}
+                type="button"
+                data-pin={place.id}
+                data-from={place.from}
+                data-x={p.x.toFixed(1)}
+                data-y={p.y.toFixed(1)}
+                style={`left: ${pct(p, widest).left}%; top: ${pct(p, widest).top}%`}
+                aria-label={`${place.name}: ${place.getThere.label}`}
+              >
+                <span class="phpin__photo">
+                  <Picture image={place.image} sizes="48px" class="phpin__img" />
+                </span>
+                <span class="phpin__label">{place.name}</span>
+                <span class="phpin__acts" aria-hidden="true">
+                  {place.activities.slice(0, 3).map((a, i) => (
+                    <span class="phpin__act" style={`--k: ${i}`}>
+                      <Icon name={activityIcon[a]} size={14} />
+                    </span>
+                  ))}
+                </span>
+              </button>
+              <span
+                class="phmap__via"
+                data-via={place.id}
+                data-x={mid.x.toFixed(1)}
+                data-y={mid.y.toFixed(1)}
+                style={`left: ${pct(mid, widest).left}%; top: ${pct(mid, widest).top}%`}
+                aria-hidden="true"
+              >
+                <Icon name={modeIcon[place.getThere.mode] ?? "car"} size={13} />
+                {place.getThere.label}
+              </span>
+            </>
+          ))
+        }
+        <figcaption class="phmap__credit">Land: Natural Earth</figcaption>
+      </figure>
+
+      <div class="band" data-band>
+        <div class="band__bar" aria-hidden="true">
+          <span class="band__seg band__seg--travel"><Icon name="plane" size={14} /></span>
+          <span class="band__seg band__seg--window">
+            <Icon name="pavilion" size={14} />
+            <span class="band__text">The wedding</span>
+          </span>
+          <span class="band__seg band__seg--own">
+            {
+              holidayLengths.map((l) => (
+                <span class="band__text band__own" data-own={l.days}>
+                  {l.ownDays} days of your own
+                </span>
+              ))
+            }
+          </span>
+          <span class="band__seg band__seg--travel"><Icon name="plane" size={14} /></span>
+        </div>
+        {
+          holidayLengths.map((l) => (
+            <p class="band__caption" data-caption={l.days}>
+              <span class="visually-hidden">
+                {l.days} days door to door: a day's travel each way, the wedding and the days around
+                it, and {l.ownDays} days of your own.{" "}
+              </span>
+              {l.example}. Your days can come before the wedding, after it, or both.
+            </p>
+          ))
+        }
+      </div>
+    </div>
+
+    <ul class="places" data-places>
+      {
+        places.map(({ place }) => (
+          <li class="place" data-place={place.id} data-from={place.from}>
+            <article class="place__card">
+              <div class="place__media">
+                <Picture
+                  image={place.image}
+                  sizes="(min-width: 1024px) 220px, 78vw"
+                  class="place__img"
+                />
+                <span class="place__via">
+                  <Icon name={modeIcon[place.getThere.mode] ?? "car"} size={14} />
+                  {place.getThere.label}
+                </span>
+              </div>
+              <div class="place__body">
+                <p class="place__region">{place.region}</p>
+                <h4 class="place__name">{place.name}</h4>
+                <p class="place__detail">{place.detail}</p>
+                <p class="place__stay">
+                  <Icon name="clock" size={14} />
+                  {place.stay}
+                </p>
+                <ul class="place__acts" aria-label="Things to do">
+                  {place.activities.map((a) => (
+                    <li>
+                      <Icon name={activityIcon[a]} size={14} />
+                      {activityLabels[a]}
+                    </li>
+                  ))}
+                </ul>
+                <ExternalLink
+                  href={`https://www.tripadvisor.co.uk/Search?q=${encodeURIComponent(place.searchName ?? `${place.name} ${place.region}`)}`}
+                  site="tripadvisor.co.uk"
+                  class="place__reviews"
+                >
+                  Traveller reviews
+                </ExternalLink>
+                <Credit image={place.image} />
+              </div>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div class="holiday__notes">
+    <p>
+      <Icon name="boat" size={18} />
+      <span>{tripGuidance.gettingAround}</span>
+    </p>
+  </div>
+</section>

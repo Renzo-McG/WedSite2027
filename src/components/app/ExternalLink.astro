@@ -1,0 +1,27 @@
+---
+/**
+ * Every outbound link goes through here: it names its destination, opens in a
+ * new tab, says so to screen readers, and carries no tracking parameters.
+ */
+import Icon from "./Icon.astro";
+
+interface Props {
+  href: string;
+  site: string;
+  variant?: "primary" | "secondary" | "plain";
+  class?: string;
+}
+
+const { href, site, variant = "plain", class: className = "" } = Astro.props;
+---
+
+<a
+  class:list={["xlink", `xlink--${variant}`, className]}
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <span class="xlink__label"><slot /></span>
+  <Icon name="arrow-out" size={16} class="xlink__icon" />
+  <span class="visually-hidden">(opens {site} in a new tab)</span>
+</a>

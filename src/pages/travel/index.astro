@@ -1,0 +1,98 @@
+---
+/**
+ * Travel: getting there. Three tabs (Flights, Arriving, Before you fly); the
+ * Flights tab opens straight onto the journey, the screen's signature object.
+ */
+import AppShell from "../../layouts/AppShell.astro";
+import ScreenHeader from "../../components/app/ScreenHeader.astro";
+import Icon from "../../components/app/Icon.astro";
+import FlightPlanner from "../../components/travel/FlightPlanner.astro";
+import ArrivalPanel from "../../components/travel/ArrivalPanel.astro";
+import PrepChecklist from "../../components/travel/PrepChecklist.astro";
+import "../../styles/screen-travel.css";
+import "../../styles/map.css";
+
+const tabs = [
+  { id: "flights", label: "Flights", icon: "plane" as const, heading: "Flights from London" },
+  { id: "arriving", label: "Arriving", icon: "pin" as const, heading: "Arriving in Cebu" },
+  { id: "prepare", label: "Before you fly", icon: "passport" as const, heading: "Before you fly" },
+];
+---
+
+<AppShell
+  screen="travel"
+  title="Travel — Emily & Lawrence"
+  description="How to fly from London to Cebu for the wedding: three good routes compared, planning fares, arriving at Mactan-Cebu airport and what to do before you fly."
+>
+  <ScreenHeader title="Travel" lead="London to Cebu, with one change on the way." />
+
+  <div class="tabs" data-tabs>
+    <div
+      class="segmented tabs__list"
+      role="tablist"
+      aria-label="Travel"
+      style="--count: 3"
+      data-tablist
+    >
+      <span class="segmented__thumb" aria-hidden="true"></span>
+      {
+        tabs.map((tab, i) => (
+          <button
+            class="segmented__option"
+            role="tab"
+            type="button"
+            id={`tab-${tab.id}`}
+            aria-controls={tab.id}
+            aria-selected={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+            data-tab={tab.id}
+          >
+            <Icon name={tab.icon} size={18} />
+            <span>{tab.label}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <section
+      class="tabs__panel"
+      id="flights"
+      role="tabpanel"
+      aria-labelledby="tab-flights"
+      data-panel
+    >
+      <h2 class="tabs__heading">{tabs[0]!.heading}</h2>
+      <FlightPlanner />
+    </section>
+
+    <section
+      class="tabs__panel"
+      id="arriving"
+      role="tabpanel"
+      aria-labelledby="tab-arriving"
+      data-panel
+    >
+      <h2 class="tabs__heading">{tabs[1]!.heading}</h2>
+      <ArrivalPanel />
+    </section>
+
+    <section
+      class="tabs__panel"
+      id="prepare"
+      role="tabpanel"
+      aria-labelledby="tab-prepare"
+      data-panel
+    >
+      <h2 class="tabs__heading">{tabs[2]!.heading}</h2>
+      <PrepChecklist />
+    </section>
+  </div>
+
+  <script>
+    import "../../scripts/app/tabs";
+    import "../../scripts/app/journey";
+    import "../../scripts/app/arrive";
+    import "../../scripts/app/checklist";
+    import "../../scripts/app/fare-scale";
+  </script>
+</AppShell>

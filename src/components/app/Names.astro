@@ -1,0 +1,17 @@
+---
+/**
+ * Emily & Lawrence, set as one identity.
+ *
+ * Both names carry the emphasis; the ampersand deliberately does not. It sits
+ * a weight or two lighter so the pair reads as two people joined, rather than
+ * as one name with a phrase attached to it. Every place the identity appears
+ * uses this component, so the treatment stays the same across the companion.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<span class:list={["names", className]}>Emily<span class="names__amp"> &amp; </span>Lawrence</span>

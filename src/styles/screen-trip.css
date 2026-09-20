@@ -1,0 +1,835 @@
+/*
+ * Your trip: the wedding window, then "Making a holiday of it?", where 7, 10
+ * or 14 days reshape a map of the Philippines, the itinerary band and the
+ * places in reach.
+ */
+
+@property --own {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 5;
+}
+
+.trip-ask {
+  max-width: 34rem;
+  color: var(--ink-2);
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.trip-ask b {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.trip-window {
+  display: grid;
+  gap: 14px;
+}
+
+.trip-window__note {
+  max-width: 36rem;
+  color: var(--ink-2);
+}
+
+/* ================================================================ holiday */
+
+.holiday {
+  --own: 5;
+  display: grid;
+  gap: 18px;
+  padding-top: 10px;
+  transition: --own 850ms var(--ease-in-out);
+}
+
+.holiday:has(#len-7:checked) {
+  --own: 2;
+}
+
+.holiday:has(#len-14:checked) {
+  --own: 9;
+}
+
+.holiday__head {
+  display: grid;
+  gap: 8px;
+}
+
+.holiday__title {
+  font-size: var(--t-2xl);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.holiday__lead {
+  max-width: 38rem;
+  color: var(--ink-2);
+  font-size: var(--t-md);
+  line-height: 1.5;
+}
+
+/* The length selector: big numerals that gain weight when chosen. */
+.lengths {
+  --i: 1;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 480px;
+  margin: 0;
+  padding: 5px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--sand);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.lengths:has(#len-7:checked) {
+  --i: 0;
+}
+
+.lengths:has(#len-14:checked) {
+  --i: 2;
+}
+
+.lengths__thumb {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 10px) / 3);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(125, 220, 207, 0.25), transparent 60%), var(--deep);
+  box-shadow: 0 10px 20px -10px rgba(3, 40, 37, 0.7);
+  transform: translateX(calc(var(--i) * 100%));
+  transition: transform 560ms var(--ease-drawer);
+}
+
+.lengths__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lengths__option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  min-height: 66px;
+  padding: 10px 8px;
+  border-radius: 20px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: color var(--d-base) var(--ease-out);
+}
+
+.lengths__option b {
+  font-size: clamp(2rem, 1.6rem + 1.6vw, 2.5rem);
+  font-weight: 300;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  transition: font-weight 500ms var(--ease-out);
+}
+
+.lengths__option span {
+  font-size: var(--t-sm);
+  font-weight: 650;
+}
+
+.lengths__input:checked + .lengths__option {
+  color: #fff;
+}
+
+.lengths__input:checked + .lengths__option b {
+  font-weight: 700;
+}
+
+.lengths__input:focus-visible + .lengths__option {
+  outline: 2.5px solid var(--lagoon);
+  outline-offset: 2px;
+}
+
+/* The summary for the chosen length replaces the last in place. */
+.holiday__summaries {
+  display: grid;
+}
+
+.holiday__summary {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  max-width: 40rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition:
+    opacity 320ms var(--ease-out),
+    transform 480ms var(--ease-out),
+    visibility 0s linear 480ms;
+}
+
+.holiday:has(#len-7:checked) [data-summary="7"],
+.holiday:has(#len-10:checked) [data-summary="10"],
+.holiday:has(#len-14:checked) [data-summary="14"] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 120ms, 120ms, 0s;
+}
+
+.holiday__summary-title {
+  font-size: var(--t-lg);
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.holiday__summary p {
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------- the stage */
+
+.holiday__stage {
+  display: grid;
+  gap: 16px;
+}
+
+.holiday__visual {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 1023px) {
+  .holiday__visual {
+    position: sticky;
+    z-index: 4;
+    top: calc(var(--appbar-h) + env(safe-area-inset-top));
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 0 calc(var(--gutter) * 0.5) 8px;
+    background: var(--ivory);
+  }
+}
+
+@media (min-width: 1024px) {
+  .holiday__stage {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 28px;
+  }
+
+  .holiday__visual {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+.phmap {
+  position: relative;
+  aspect-ratio: var(--aspect);
+  overflow: hidden;
+  border-radius: 26px;
+  background:
+    radial-gradient(90% 70% at 30% 20%, rgba(255, 255, 255, 0.3), transparent 60%),
+    linear-gradient(170deg, #9fdcd6 0%, #74c3c6 60%, #5bb2ba 100%);
+  box-shadow: var(--shadow-2);
+  isolation: isolate;
+}
+
+@media (max-width: 1023px) {
+  .phmap {
+    max-height: 44svh;
+    width: 100%;
+    margin-inline: auto;
+  }
+}
+
+.phmap__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.phmap__shelf {
+  fill: #cbeee5;
+  stroke: #cbeee5;
+  stroke-width: 9;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.phmap__land {
+  fill: var(--leaf);
+  stroke: rgba(46, 106, 76, 0.35);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.phmap__arc {
+  fill: none;
+  stroke: var(--deep);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.4;
+  transition:
+    stroke-dashoffset 900ms var(--ease-in-out),
+    opacity var(--d-base) var(--ease-out),
+    stroke-width var(--d-base) var(--ease-out);
+}
+
+.phmap__arc--flight {
+  stroke-width: 2;
+}
+
+.phmap__arc[data-in],
+.holiday:not([data-enhanced]) .phmap__arc {
+  stroke-dashoffset: 0;
+}
+
+.phmap__arc[data-prime] {
+  opacity: 0.7;
+}
+
+.phmap__arc[data-active] {
+  opacity: 1;
+  stroke: var(--lagoon-strong);
+  stroke-width: 3;
+}
+
+/* Pins: photographs for the places this length adds, dots for the rest. */
+.phpin {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  background: none;
+  cursor: pointer;
+  transition:
+    opacity 260ms var(--ease-out),
+    scale 380ms var(--ease-pop);
+}
+
+.phpin__photo {
+  display: block;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border: 2.5px solid #fff;
+  border-radius: var(--pill);
+  background: var(--deep);
+  box-shadow: 0 8px 18px -6px rgba(3, 40, 37, 0.55);
+  transition: scale 420ms var(--ease-pop);
+}
+
+.phpin__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity var(--d-base) var(--ease-out);
+}
+
+.phpin__label {
+  position: absolute;
+  top: calc(100% + 6px);
+  padding: 2px 9px;
+  border-radius: var(--pill);
+  color: var(--ink);
+  background: rgba(255, 253, 248, 0.95);
+  box-shadow: var(--shadow-1);
+  font-size: var(--t-2xs);
+  font-weight: 750;
+  white-space: nowrap;
+  transition: opacity var(--d-fast) var(--ease-out);
+}
+
+.holiday[data-enhanced] .phpin:not(.phpin--base):not([data-in]) {
+  opacity: 0;
+  scale: 0.3;
+  pointer-events: none;
+}
+
+/* Already in reach: a quiet dot. */
+.holiday[data-enhanced] .phpin[data-in]:not([data-prime]):not([data-active]) .phpin__photo {
+  scale: 0.36;
+}
+
+.holiday[data-enhanced] .phpin[data-in]:not([data-prime]):not([data-active]) .phpin__img {
+  opacity: 0;
+}
+
+.holiday[data-enhanced]
+  .phpin:not(.phpin--base):not([data-prime]):not([data-active])
+  .phpin__label {
+  opacity: 0;
+}
+
+/* Names sit on whichever side is clear of the neighbours. */
+.phpin--above .phpin__label {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+.phpin--left .phpin__label {
+  top: 50%;
+  right: calc(100% + 6px);
+  translate: 0 -50%;
+}
+
+.phpin--right .phpin__label {
+  top: 50%;
+  left: calc(100% + 6px);
+  translate: 0 -50%;
+}
+
+.phpin[data-active] {
+  z-index: 3;
+}
+
+.phpin[data-active] .phpin__photo {
+  scale: 1.18;
+  border-color: var(--sun);
+}
+
+.phpin[data-enter] {
+  animation: phpin-in 640ms var(--ease-pop) var(--delay, 0ms) both;
+}
+
+@keyframes phpin-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.3);
+  }
+}
+
+.phpin:focus-visible {
+  outline: none;
+}
+
+.phpin:focus-visible .phpin__photo {
+  outline: 2.5px solid var(--deep);
+  outline-offset: 3px;
+}
+
+/* Activities fan out above the active place. */
+.phpin__act {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--pill);
+  color: var(--deep);
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 460ms var(--ease-pop);
+  pointer-events: none;
+}
+
+.phpin[data-active] .phpin__act {
+  opacity: 1;
+  transform: rotate(calc(-150deg + var(--k) * 60deg)) translateX(44px)
+    rotate(calc(150deg - var(--k) * 60deg));
+  transition-delay: calc(180ms + var(--k) * 70ms);
+}
+
+.phpin--base {
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  cursor: default;
+}
+
+.phpin--base .phpin__dot {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #fff;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--timber);
+  box-shadow: 0 8px 18px -6px rgba(138, 69, 36, 0.6);
+}
+
+.phpin--base .phpin__label {
+  top: auto;
+  bottom: calc(100% + 6px);
+  color: #fff;
+  background: var(--timber);
+}
+
+/* How you get to the active place, on its arc. */
+.phmap__via {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--pill);
+  color: #fff;
+  background: var(--deep);
+  box-shadow: var(--shadow-2);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.85);
+  transition:
+    opacity var(--d-fast) var(--ease-out),
+    transform 420ms var(--ease-pop);
+  pointer-events: none;
+}
+
+.phmap__via[data-active] {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  transition-delay: 350ms;
+}
+
+.phmap__via[data-near] {
+  visibility: hidden;
+}
+
+.phmap__credit {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  color: rgba(14, 36, 33, 0.55);
+  font-size: 0.625rem;
+  font-weight: 550;
+}
+
+/* Without the script the map is a still overview: quiet dots, no names. */
+.holiday:not([data-enhanced]) .phpin:not(.phpin--base) .phpin__photo {
+  scale: 0.45;
+}
+
+.holiday:not([data-enhanced]) .phpin:not(.phpin--base) .phpin__label {
+  display: none;
+}
+
+/* Without the script, only the places the chosen length reaches show. */
+.holiday:not([data-enhanced]):has(#len-7:checked) :is([data-from="10"], [data-from="14"]),
+.holiday:not([data-enhanced]):has(#len-10:checked) [data-from="14"] {
+  display: none;
+}
+
+/* ------------------------------------------------------------ the band */
+
+.band {
+  display: grid;
+  gap: 6px;
+}
+
+.band__bar {
+  display: flex;
+  gap: 4px;
+  height: 44px;
+}
+
+.band__seg {
+  display: flex;
+  flex: 0 0 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.band__seg--travel {
+  flex-grow: 1;
+  color: var(--ink-2);
+  background: repeating-linear-gradient(135deg, var(--sand) 0 6px, var(--sand-2) 6px 12px);
+}
+
+.band__seg--window {
+  flex-grow: 3;
+  color: #fff;
+  background: var(--timber);
+}
+
+.band__seg--own {
+  display: grid;
+  flex-grow: var(--own);
+  color: #fff;
+  background: linear-gradient(90deg, var(--lagoon-strong), #16918b);
+}
+
+.band__own {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity var(--d-base) var(--ease-out);
+}
+
+.holiday:has(#len-7:checked) [data-own="7"],
+.holiday:has(#len-10:checked) [data-own="10"],
+.holiday:has(#len-14:checked) [data-own="14"] {
+  opacity: 1;
+  transition-delay: 300ms;
+}
+
+@media (max-width: 479px) {
+  .band__seg--window .band__text {
+    display: none;
+  }
+}
+
+.band__caption {
+  display: none;
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+}
+
+.holiday:has(#len-7:checked) [data-caption="7"],
+.holiday:has(#len-10:checked) [data-caption="10"],
+.holiday:has(#len-14:checked) [data-caption="14"] {
+  display: block;
+}
+
+/* ------------------------------------------------------------ the places */
+
+.places {
+  position: relative;
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 1023px) {
+  .holiday[data-enhanced] .places {
+    display: flex;
+    gap: 12px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 4px 11vw 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .holiday[data-enhanced] .places::-webkit-scrollbar {
+    display: none;
+  }
+
+  .holiday[data-enhanced] .place {
+    flex: 0 0 78vw;
+    max-width: 400px;
+    scroll-snap-align: center;
+  }
+}
+
+.place[hidden] {
+  display: none;
+}
+
+.place__card {
+  display: grid;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow:
+    var(--shadow-1),
+    inset 0 0 0 1px var(--line);
+  transition:
+    box-shadow var(--d-base) var(--ease-out),
+    transform var(--d-base) var(--ease-out);
+}
+
+.place[data-active] .place__card {
+  box-shadow:
+    var(--shadow-2),
+    0 0 0 2px var(--lagoon);
+}
+
+@media (min-width: 1024px) {
+  .place__card {
+    grid-template-columns: 40% minmax(0, 1fr);
+  }
+
+  .place[data-active] .place__card {
+    transform: translateX(-4px);
+  }
+}
+
+.place__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--sand);
+}
+
+@media (min-width: 1024px) {
+  .place__media {
+    aspect-ratio: auto;
+    min-height: 100%;
+  }
+}
+
+.place__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: scale 1000ms var(--ease-out);
+}
+
+.place[data-active] .place__img {
+  scale: 1.06;
+}
+
+.place__via {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--pill);
+  color: #fff;
+  background: rgba(5, 43, 41, 0.78);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.place__body {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 14px 16px 16px;
+}
+
+.place__region {
+  color: var(--lagoon-strong);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.place__name {
+  font-size: var(--t-md);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.place__detail {
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+}
+
+@media (max-width: 1023px) {
+  .place__detail {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+.place__stay {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+.place__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.place__acts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--pill);
+  color: var(--ink-2);
+  background: var(--sand);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+/*
+ * A way out to what other travellers say, without becoming a review site:
+ * an outbound search, no ratings of our own and nothing to keep current.
+ * Deliberately quiet — the photograph and the place are the point.
+ */
+.place__reviews {
+  justify-self: start;
+  /* The same comfortable target as every other link in the companion. */
+  min-height: 44px;
+  margin-top: -4px;
+  color: var(--lagoon-strong);
+  font-size: var(--t-xs);
+  font-weight: 650;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .place__reviews:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.holiday__notes {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+}
+
+@media (min-width: 900px) {
+  .holiday__notes {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+}
+
+.holiday__notes p {
+  display: flex;
+  gap: 10px;
+}
+
+.holiday__notes .icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--lagoon);
+}

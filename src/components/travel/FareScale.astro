@@ -1,0 +1,46 @@
+---
+/**
+ * The planning band for an economy return, with each route's recent "from"
+ * fare plotted on the same scale. It compares prices honestly: a band, a few
+ * observed points, and a date, never a quote.
+ */
+import { flightGuidance, flightRoutes } from "../../data/travel";
+
+const min = 800;
+const max = 1300;
+const pct = (v: number) => (((v - min) / (max - min)) * 100).toFixed(2);
+const gbp = (v: number) => `£${v.toLocaleString("en-GB")}`;
+const ticks = [800, 900, 1000, 1100, 1200, 1300];
+const sorted = [...flightRoutes].sort((a, b) => a.fareFrom - b.fareFrom);
+const description =
+  `Planning band ${gbp(flightGuidance.budget.low)} to ${gbp(flightGuidance.budget.high)} return. ` +
+  sorted.map((r) => `${r.airline} recently from about ${gbp(r.fareFrom)}`).join(", ") +
+  ".";
+---
+
+<figure class="fare-scale" aria-label={description} role="img" data-fare-scale>
+  <div class="fare-scale__track" data-fare-track>
+    <span
+      class="fare-scale__band"
+      style={`left: ${pct(flightGuidance.budget.low)}%; right: ${(100 - Number(pct(flightGuidance.budget.high))).toFixed(2)}%`}
+    ></span>
+    {
+      sorted.map((route, i) => (
+        <span
+          class="fare-scale__dot"
+          data-fare-route={route.id}
+          style={`left: ${pct(route.fareFrom)}%; --row: ${i}`}
+        >
+          <span class="fare-scale__marker" aria-hidden="true" />
+          <span class="fare-scale__stem" aria-hidden="true" />
+          <span class="fare-scale__tag" data-fare-tag>
+            {route.hub} <b class="num">{gbp(route.fareFrom)}</b>
+          </span>
+        </span>
+      ))
+    }
+  </div>
+  <div class="fare-scale__axis" aria-hidden="true">
+    {ticks.map((t) => <span style={`left: ${pct(t)}%`}>{gbp(t)}</span>)}
+  </div>
+</figure>

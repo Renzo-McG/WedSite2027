@@ -1,0 +1,371 @@
+---
+/**
+ * The journey, London to Cebu: Travel's signature object.
+ *
+ * One stage holds two views of the same three routes, kept in step:
+ * - a map (Natural Earth land, real airport positions) with each route's two
+ *   flights drawn as arcs through its hub;
+ * - a shared timeline, "hours since leaving London", with every route on one
+ *   scale: first flight, the change, second flight, arrival. The routes stay
+ *   directly comparable; the chosen one comes forward.
+ *
+ * Choosing a route (native radios, Akari IP-03 + IP-05) replays its journey:
+ * the timeline fills from London while a plane flies the map; at the hub the
+ * map plane waits while the timeline keeps running through the change, so a
+ * connection reads as time spent, not distance. Durations resolve as the
+ * plane passes them. Script: scripts/app/journey.ts.
+ *
+ * Without JavaScript every route is drawn in full and the chosen route's
+ * details show (CSS :has); without :has, every route's details show.
+ */
+import Icon from "../app/Icon.astro";
+import ExternalLink from "../app/ExternalLink.astro";
+import Freshness from "../app/Freshness.astro";
+import FareScale from "./FareScale.astro";
+import { londonToCebu } from "../../data/land-geo";
+import { arc, landPath, project, viewFor } from "../../lib/geo";
+import { flightGuidance, flightRoutes, journeyEnds, journeyMinutes } from "../../data/travel";
+
+const frame = londonToCebu.frame;
+const view = viewFor(frame, { west: -12, east: 138, south: -2, north: 57 });
+const land = landPath(londonToCebu);
+const pt = (p: { lat: number; lng: number }) => project(frame, p.lat, p.lng);
+const pct = (p: { x: number; y: number }) => ({
+  left: (((p.x - view.x) / view.w) * 100).toFixed(2),
+  top: (((p.y - view.y) / view.h) * 100).toFixed(2),
+});
+const london = pt(journeyEnds.london.location);
+const cebu = pt(journeyEnds.cebu.location);
+
+const scale = Math.ceil(Math.max(...flightRoutes.map(journeyMinutes)) / 60) * 60;
+const ticks = Array.from({ length: Math.floor(scale / 240) + 1 }, (_, i) => i * 4);
+const hm = (m: number) =>
+  `${Math.floor(m / 60)}h${m % 60 ? ` ${String(m % 60).padStart(2, "0")}` : ""}`;
+const gbp = (v: number) => `£${v.toLocaleString("en-GB")}`;
+
+const routes = flightRoutes.map((route) => {
+  const hub = pt(route.hubLocation);
+  const total = journeyMinutes(route);
+  const [first, second] = route.legs as [(typeof route.legs)[0], (typeof route.legs)[0]];
+  const share = (m: number) => ((m / total) * 100).toFixed(2);
+  return {
+    route,
+    total,
+    span: ((total / scale) * 100).toFixed(2),
+    hub: { ...hub, ...pct(hub) },
+    arcs: [arc(london, hub, 0.16).d, arc(hub, cebu, 0.16).d],
+    segments: [
+      { kind: "fly", at: 0, minutes: first.minutes, label: hm(first.minutes) },
+      {
+        kind: "wait",
+        at: first.minutes,
+        minutes: route.connection.minutes,
+        label: route.connection.label
+          .replace("About ", "~")
+          .replace(/ hours?/, "h")
+          .replace("~1h", "~1h"),
+      },
+      {
+        kind: "fly",
+        at: first.minutes + route.connection.minutes,
+        minutes: second.minutes,
+        label: hm(second.minutes),
+      },
+    ].map((s) => ({ ...s, left: share(s.at), width: share(s.minutes) })),
+    readout:
+      `${first.from} to ${route.hub}, ${hm(first.minutes).replace("h", " h")}. ` +
+      `${route.connection.label} to change planes. ` +
+      `${route.hub} to Cebu, ${hm(second.minutes).replace("h", " h")}. ` +
+      `${route.journey} in all.`,
+  };
+});
+const cities = [
+  { ...journeyEnds.london, at: pct(london), kind: "end", align: "right" },
+  ...flightRoutes.map((r) => ({
+    name: r.hub,
+    code: r.hubCode,
+    at: pct(pt(r.hubLocation)),
+    kind: "hub",
+    align: r.hubCode === "SIN" ? "below" : r.hubCode === "HKG" ? "above" : "left",
+    route: r.id,
+  })),
+  { ...journeyEnds.cebu, at: pct(cebu), kind: "cebu", align: "below" },
+];
+---
+
+<div class="planner" data-planner>
+  <section class="jstage" data-journey aria-labelledby="jstage-title">
+    <div class="jstage__head">
+      <div>
+        <p class="jstage__kicker">Compare routes</p>
+        <h3 class="jstage__title" id="jstage-title">Three ways to Cebu</h3>
+      </div>
+      <p class="jstage__sub">Choose a connection and watch the whole journey.</p>
+    </div>
+
+    <!--
+      This is the explorer's control layer, before the visual it drives. Each
+      option labels the same native radio as its timeline lane, so selection
+      remains resilient without JavaScript.
+    -->
+    <div class="jpick" data-pick-group aria-label="Choose a flight route">
+      <span class="jpick__thumb" aria-hidden="true"></span>
+      {
+        routes.map((r) => (
+          <label class="jpick__option" for={`route-${r.route.id}`} data-pick={r.route.id}>
+            <span class="jpick__hub">{r.route.hub}</span>
+            <span class="jpick__total num">{hm(r.total).replace("h", "h ")}</span>
+            {r.route.featured && <span class="jpick__recommended">Our pick</span>}
+          </label>
+        ))
+      }
+    </div>
+
+    <p class="jstage__status" aria-live="polite">
+      <span class="jstage__status-dot" aria-hidden="true"></span>
+      <span data-status>Comparing three one-stop routes</span>
+    </p>
+
+    <figure class="jmap" style={`--map-aspect: ${view.w.toFixed(0)} / ${view.h.toFixed(0)}`}>
+      <svg
+        class="jmap__svg"
+        viewBox={`${view.x.toFixed(0)} ${view.y.toFixed(0)} ${view.w.toFixed(0)} ${view.h.toFixed(0)}`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <defs>
+          <pattern id="jmap-dots" width="110" height="110" patternUnits="userSpaceOnUse">
+            <circle cx="55" cy="55" r="24"></circle>
+          </pattern>
+        </defs>
+        <path class="jmap__land" d={land}></path>
+        <path class="jmap__dots" d={land}></path>
+        {
+          routes.map((r) => (
+            <g class="jmap__route" data-map-route={r.route.id}>
+              {r.arcs.map((d, i) => (
+                <>
+                  <path class="jmap__arc" d={d} />
+                  <path class="jmap__lit" d={d} pathLength="1" data-arc={`${r.route.id}-${i}`} />
+                </>
+              ))}
+            </g>
+          ))
+        }
+      </svg>
+      {
+        cities.map((c) => (
+          <span
+            class:list={["jcity", `jcity--${c.kind}`, `jcity--${c.align}`]}
+            style={`left: ${c.at.left}%; top: ${c.at.top}%`}
+            data-city-route={"route" in c ? c.route : undefined}
+          >
+            <span class="jcity__dot" />
+            <span class="jcity__name">{c.name}</span>
+          </span>
+        ))
+      }
+      <span class="jmap__plane" data-map-plane aria-hidden="true">
+        <Icon name="plane" size={18} />
+      </span>
+    </figure>
+
+    <fieldset class="jlanes" style={`--scale-hours: ${scale / 60}`}>
+      <legend class="visually-hidden">Choose a route</legend>
+      <div class="jlanes__axis" aria-hidden="true">
+        <span class="jlanes__axis-label">Hours since leaving London</span>
+        {
+          ticks.map((h) => (
+            <span class="jlanes__tick" style={`left: ${((h * 60) / scale) * 100}%`}>
+              {h}h
+            </span>
+          ))
+        }
+      </div>
+      {
+        routes.map((r) => (
+          <>
+            <input
+              class="jlane__input"
+              type="radio"
+              name="route"
+              id={`route-${r.route.id}`}
+              value={r.route.id}
+              checked={r.route.featured}
+            />
+            <label
+              class="jlane"
+              for={`route-${r.route.id}`}
+              data-lane={r.route.id}
+              data-total={r.total}
+              data-legs={r.segments.map((s) => s.minutes).join(",")}
+              data-hub={r.route.hub}
+            >
+              <span class="jlane__head">
+                <span class="jlane__name">Via {r.route.hub}</span>
+                <span class="jlane__airline">
+                  {r.route.airline}
+                  {r.route.featured && <span class="jlane__tag">Our pick</span>}
+                </span>
+              </span>
+              <span class="jlane__track" aria-hidden="true">
+                <span class="jlane__rail" style={`width: ${r.span}%`} data-rail>
+                  {[false, true].map((lit) => (
+                    <span
+                      class:list={["jlane__line", lit && "jlane__line--lit"]}
+                      data-lit={lit || undefined}
+                    >
+                      {r.segments.map((s) => (
+                        <span
+                          class:list={["jlane__seg", `jlane__seg--${s.kind}`]}
+                          style={`left: ${s.left}%; width: ${s.width}%`}
+                        />
+                      ))}
+                    </span>
+                  ))}
+                  {r.segments
+                    .filter((s) => s.kind === "fly")
+                    .map((s) => (
+                      <span
+                        class="jlane__dur"
+                        style={`left: calc(${s.left}% + ${s.width}% / 2)`}
+                        data-at={s.at + s.minutes * 0.45}
+                      >
+                        {s.label}
+                      </span>
+                    ))}
+                  <span class="jlane__node jlane__node--start" style="left: 0%" />
+                  <span
+                    class="jlane__node jlane__node--hub"
+                    style={`left: ${r.segments[1]!.left}%; width: ${r.segments[1]!.width}%`}
+                  >
+                    <span class="jlane__code">
+                      {r.route.hubCode}
+                      <span
+                        class="jlane__dur jlane__dur--wait"
+                        data-at={r.segments[1]!.at + r.segments[1]!.minutes * 0.3}
+                      >
+                        <Icon name="clock" size={12} />
+                        {r.segments[1]!.label}
+                        <span class="visually-hidden"> to change planes</span>
+                      </span>
+                    </span>
+                  </span>
+                  <span class="jlane__node jlane__node--end" style="left: 100%">
+                    <span class="jlane__code">CEB</span>
+                  </span>
+                  <span class="jlane__plane" data-lane-plane>
+                    <Icon name="plane" size={16} />
+                  </span>
+                </span>
+              </span>
+              <span class="jlane__total">
+                <b class="num" data-lane-total>
+                  {hm(r.total).replace("h", "h ")}
+                </b>
+                <span class="jlane__fare num">from {gbp(r.route.fareFrom)}</span>
+              </span>
+            </label>
+          </>
+        ))
+      }
+    </fieldset>
+
+    <p class="jstage__readout" aria-live="polite" data-readout>
+      {routes.find((r) => r.route.featured)!.readout}
+    </p>
+
+    <div class="jstage__facts" aria-label="Selected route details">
+      {
+        routes.map((r) => (
+          <article
+            class="route-card"
+            data-route-panel={r.route.id}
+            aria-labelledby={`route-title-${r.route.id}`}
+          >
+            <div class="route-card__intro">
+              <p class="route-card__eyebrow">
+                {r.route.title} · {r.route.airline}
+              </p>
+              <h3 class="route-card__title" id={`route-title-${r.route.id}`}>
+                London <Icon name="arrow-right" size={18} /> {r.route.hub}{" "}
+                <Icon name="arrow-right" size={18} /> Cebu
+              </h3>
+              <p class="route-card__why">{r.route.why}</p>
+            </div>
+            <dl class="route-card__facts">
+              <div>
+                <dt>First flight</dt>
+                <dd class="num">
+                  {hm(r.route.legs[0]!.minutes)} to {r.route.hub}
+                </dd>
+              </div>
+              <div>
+                <dt>Connection</dt>
+                <dd>{r.route.connection.label}</dd>
+              </div>
+              <div>
+                <dt>Onward flight</dt>
+                <dd class="num">{hm(r.route.legs[1]!.minutes)} to Cebu</dd>
+              </div>
+              <div>
+                <dt>Total journey</dt>
+                <dd class="num">{r.route.journey}</dd>
+              </div>
+            </dl>
+            <details class="route-card__more">
+              <summary>Airports &amp; frequency</summary>
+              <p>
+                From {r.route.londonAirports}. {r.route.frequency}.
+              </p>
+            </details>
+            <div class="route-card__actions">
+              <ExternalLink href={r.route.link.href} site={r.route.link.site} variant="primary">
+                {r.route.link.label}
+              </ExternalLink>
+              <ExternalLink
+                href={flightGuidance.compare.href}
+                site={flightGuidance.compare.site}
+                variant="secondary"
+              >
+                Compare on Google Flights
+              </ExternalLink>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+    <p class="jstage__credit">Land: Natural Earth. Arcs show the route, not the flight path.</p>
+    <template data-readouts>
+      {routes.map((r) => <span data-for={r.route.id}>{r.readout}</span>)}
+    </template>
+  </section>
+
+  <div class="planner__detail">
+    <section class="fares" aria-labelledby="fares-title">
+      <div class="fares__head">
+        <h3 class="fares__label" id="fares-title">Economy return, per person</h3>
+        <p class="fares__value num">
+          {gbp(flightGuidance.budget.low)}–{gbp(flightGuidance.budget.high)}
+        </p>
+        <Freshness />
+      </div>
+      <FareScale />
+      <p class="note">{flightGuidance.budgetNote}</p>
+    </section>
+  </div>
+
+  <ul class="planner__notes" aria-label="Worth knowing before you book">
+    {
+      flightGuidance.notes.map((note) => (
+        <li class="planner__note">
+          <Icon name={note.icon} size={17} />
+          <span>
+            <b>{note.lead}.</b> {note.body}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+</div>

@@ -1,0 +1,14 @@
+---
+/** A small dated label for every planning estimate. */
+import Icon from "./Icon.astro";
+import { travelMeta } from "../../data/travel";
+interface Props {
+  label?: string;
+}
+const { label = "Planning estimate" } = Astro.props;
+---
+
+<span class="freshness">
+  <Icon name="clock" size={14} />
+  {label}, checked {travelMeta.checked}
+</span>

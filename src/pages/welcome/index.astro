@@ -1,0 +1,223 @@
+---
+/**
+ * Home. One moment of arrival, then the four doors into the trip.
+ *
+ * The arrival (first visit in a session): Mactan's real coastline draws itself
+ * on deep water, a pin lands on the Ocean Pavilion, and the photograph of the
+ * Pavilion opens out from that pin, as if the map had become the place. Then
+ * the names. Later visits get a short settle. The choreography is pure CSS
+ * from the first frame (styles/screen-home.css); scripts protect its lifecycle,
+ * resolve it if the hero is genuinely left behind, and count the days up.
+ */
+import AppShell from "../../layouts/AppShell.astro";
+import Icon from "../../components/app/Icon.astro";
+import Picture from "../../components/app/Picture.astro";
+import Credit from "../../components/app/Credit.astro";
+import Coastline from "../../components/app/Coastline.astro";
+import { venueImages } from "../../data/site";
+import { flightRoutes, holidayPlaces, journeyEnds, stays } from "../../data/travel";
+import { londonToCebu } from "../../data/land-geo";
+import { arc, landPath, project, viewFor } from "../../lib/geo";
+import "../../styles/screen-home.css";
+
+const base = import.meta.env.BASE_URL;
+const hero = venueImages.aerial;
+const heroSizes = "(min-width: 1024px) calc(100vw - 248px), 100vw";
+const venue = stays.find((s) => s.isVenue)!;
+const furthest = Math.max(...stays.map((s) => s.toVenue?.minutes ?? 0));
+const quickest = flightRoutes.find((r) => r.featured)!;
+const elNido = holidayPlaces.find((p) => p.id === "el-nido")!;
+
+/*
+ * The Travel door's graphic is the same map as the Travel screen's journey:
+ * the same Natural Earth land, the same projection and the same framing, so
+ * Home opens on the geography the rest of the companion is drawn in rather
+ * than on an abstract curve. The plane still flies the arc when the door is
+ * seen (scripts/app/welcome.ts).
+ */
+const doorFrame = londonToCebu.frame;
+const doorView = viewFor(doorFrame, { west: -12, east: 138, south: -2, north: 57 });
+const doorLand = landPath(londonToCebu);
+const doorPt = (p: { lat: number; lng: number }) => project(doorFrame, p.lat, p.lng);
+const doorLondon = doorPt(journeyEnds.london.location);
+const doorCebu = doorPt(journeyEnds.cebu.location);
+const doorArc = arc(doorLondon, doorCebu, 0.16);
+const doorPct = (p: { x: number; y: number }) => ({
+  left: (((p.x - doorView.x) / doorView.w) * 100).toFixed(2),
+  top: (((p.y - doorView.y) / doorView.h) * 100).toFixed(2),
+});
+// The plane's path is drawn for a 320-unit box; the map is measured in km.
+const doorPlaneScale = (doorView.w / 320).toFixed(1);
+const doorVb = [doorView.x, doorView.y, doorView.w, doorView.h].map((n) => n.toFixed(0)).join(" ");
+---
+
+<AppShell
+  screen="home"
+  immersive
+  title="Emily & Lawrence — Cebu 2027"
+  description="Travel, places to stay and trip planning for Emily and Lawrence's wedding at Shangri-La Mactan, Cebu, on Sunday 24 October 2027."
+  preload={[
+    {
+      srcset: hero.widths.map((w) => `${base}assets/guide/${hero.name}-${w}.webp ${w}w`).join(", "),
+      sizes: heroSizes,
+    },
+  ]}
+>
+  <section class="welcome" data-welcome aria-labelledby="home-title">
+    <div class="welcome__stage">
+      <div class="welcome__map" aria-hidden="true">
+        <Coastline centre={venue.location} radiusKm={9} class="welcome__coast" />
+      </div>
+      <Picture image={hero} sizes={heroSizes} class="welcome__photo" priority />
+      <span class="welcome__shade" aria-hidden="true"></span>
+      <span class="welcome__pin" aria-hidden="true">
+        <span class="welcome__ripple"></span>
+        <span class="welcome__pin-dot"><Icon name="pavilion" size={18} /></span>
+        <span class="welcome__pin-label">The Ocean Pavilion</span>
+      </span>
+    </div>
+
+    <div class="welcome__body">
+      <p class="welcome__date">Sunday 24 October 2027</p>
+      <h1 class="welcome__names" id="home-title" data-large-title>
+        <span class="welcome__line"><span>Emily</span></span>
+        <span class="welcome__line"
+          ><span><span class="names__amp">&amp;</span> Lawrence</span></span
+        >
+      </h1>
+      <p class="welcome__place">
+        <Icon name="pin" size={17} />
+        Shangri-La Mactan, Cebu, Philippines
+      </p>
+      <p class="welcome__now" data-countdown hidden>
+        <span class="welcome__days"
+          ><b class="num" data-countdown-days data-count-up>0</b> days to go</span
+        >
+        <span class="welcome__time">
+          <span class="welcome__flag" aria-hidden="true">🇵🇭</span>
+          Cebu local time
+          <b class="num" data-cebu-time>--:--</b>
+          <span class="welcome__gap" data-cebu-gap></span>
+        </span>
+      </p>
+    </div>
+    <Credit image={hero} class="photo-credit welcome__credit" />
+  </section>
+
+  <section class="doors" aria-labelledby="doors-title">
+    <h2 class="doors__title" id="doors-title">Plan the trip</h2>
+    <ul class="doors__grid">
+      <li class="door door--travel">
+        <a class="door__link" href={`${base}travel/`}>
+          <span
+            class="door-geo"
+            style={`--map-aspect: ${doorView.w.toFixed(0)} / ${doorView.h.toFixed(0)}`}
+          >
+            <svg
+              class="door-route"
+              viewBox={doorVb}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <defs>
+                <pattern id="door-dots" width="110" height="110" patternUnits="userSpaceOnUse">
+                  <circle cx="55" cy="55" r="24"></circle>
+                </pattern>
+              </defs>
+              <path class="door-route__land" d={doorLand}></path>
+              <path class="door-route__dots" d={doorLand}></path>
+              <path class="door-route__arc" id="door-arc" d={doorArc.d} pathLength="1"></path>
+              <g class="door-route__plane" data-door-plane>
+                <g transform={`scale(${doorPlaneScale})`}>
+                  <path
+                    d="M9 0C9-.8 8-1.2 7-1.2H2L-2-7h-2l2.5 5.8H-6l-1.6-2.2H-9L-8 0l-1 3.4h1.4L-6 1.2h4.5L-4 7h2l4-5.8h5C8 1.2 9 .8 9 0z"
+                  ></path>
+                </g>
+                <animateMotion
+                  dur="2.6s"
+                  begin="indefinite"
+                  fill="freeze"
+                  rotate="auto"
+                  calcMode="spline"
+                  keyTimes="0;1"
+                  keySplines="0.37 0 0.63 1"
+                >
+                  <mpath href="#door-arc"></mpath>
+                </animateMotion>
+              </g>
+            </svg>
+            <span
+              class="door-city door-city--london"
+              style={`left: ${doorPct(doorLondon).left}%; top: ${doorPct(doorLondon).top}%`}
+            >
+              <span class="door-city__dot"></span>
+              <span class="door-city__name">London</span>
+            </span>
+            <span
+              class="door-city door-city--cebu"
+              style={`left: ${doorPct(doorCebu).left}%; top: ${doorPct(doorCebu).top}%`}
+            >
+              <span class="door-city__dot"><span class="door-city__halo"></span></span>
+              <span class="door-city__name">Cebu</span>
+            </span>
+          </span>
+          <span class="door__text">
+            <span class="door__label">Travel</span>
+            <span class="door__title">London to Cebu in about {quickest.journeyShort}</span>
+            <span class="door__sub"
+              >Three good routes, one change, and what happens when you land</span
+            >
+          </span>
+          <span class="door__go" aria-hidden="true"><Icon name="arrow-right" size={20} /></span>
+        </a>
+      </li>
+
+      <li class="door door--photo door--stay">
+        <a class="door__link" href={`${base}stay/`}>
+          <Picture image={venue.image} sizes="(min-width: 1024px) 34vw, 50vw" class="door__img" />
+          <span class="door__text">
+            <span class="door__label">Stay</span>
+            <span class="door__title">Six places within {furthest} minutes of the wedding</span>
+          </span>
+          <span class="door__go" aria-hidden="true"><Icon name="arrow-right" size={20} /></span>
+        </a>
+      </li>
+
+      <li class="door door--photo door--trip">
+        <a class="door__link" href={`${base}trip/`}>
+          <Picture image={elNido.image} sizes="(min-width: 1024px) 34vw, 50vw" class="door__img" />
+          <span class="door__text">
+            <span class="door__label">Your trip</span>
+            <span class="door__title">Making a holiday of it?</span>
+          </span>
+          <span class="door__go" aria-hidden="true"><Icon name="arrow-right" size={20} /></span>
+        </a>
+      </li>
+
+      <li class="door door--photo door--wedding">
+        <a class="door__link" href={`${base}wedding/`}>
+          <Picture
+            image={venueImages.pavilion}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            class="door__img"
+            morph="pavilion"
+          />
+          <span class="door__text">
+            <span class="door__label">The wedding</span>
+            <span class="door__title">Sunday 24 October, at the Ocean Pavilion</span>
+          </span>
+          <span class="door__go" aria-hidden="true"><Icon name="arrow-right" size={20} /></span>
+        </a>
+      </li>
+    </ul>
+    <p class="doors__credits">
+      <Credit image={venue.image} />
+      <Credit image={elNido.image} />
+    </p>
+  </section>
+
+  <script>
+    import "../../scripts/app/welcome";
+  </script>
+</AppShell>
