@@ -264,6 +264,11 @@ export interface Stay {
   label: "left" | "right" | "above" | "below";
   officialUrl: string;
   officialSite: string;
+  /**
+   * What the first link is called. Defaults to "Hotel website"; set it where
+   * the destination is not the hotel's own site, so the label stays honest.
+   */
+  officialLabel?: string;
   /** Google Maps search text; also the directions origin. */
   mapsQuery: string;
   note?: string;
@@ -367,9 +372,19 @@ export const stays: Stay[] = [
     priceFrom: 150,
     location: { lat: 10.320973, lng: 124.03605 },
     label: "left",
-    officialUrl:
-      "https://www.marriott.com/en-us/hotels/cebsi-sheraton-cebu-mactan-resort/overview/",
-    officialSite: "marriott.com",
+    /*
+     * Marriott's own page for this property is
+     * https://www.marriott.com/en-gb/hotels/cebsi-sheraton-cebu-mactan-resort/overview/
+     * and it is the right destination in principle, but marriott.com answers
+     * "Access Denied" (Akamai reference #18.x) for us — reproduced in a real
+     * browser, on the command line and from a third network, September 2026.
+     * Rather than send guests to an error, the link goes somewhere that
+     * reliably shows the rooms, the photographs and the reviews, and is
+     * labelled for what it is. Restore the line above if Marriott unblocks.
+     */
+    officialUrl: "https://www.booking.com/hotel/ph/sheraton-cebu-mactan-resort.en-gb.html",
+    officialSite: "booking.com",
+    officialLabel: "Rooms and reviews",
     mapsQuery: "Sheraton Cebu Mactan Resort",
     badge: "Beachfront",
     image: {
@@ -456,8 +471,11 @@ export const stays: Stay[] = [
     priceFrom: 60,
     location: { lat: 10.326802, lng: 123.978648 },
     label: "right",
-    officialUrl: "https://www.marriott.com/en-us/hotels/cebfi-fairfield-cebu-mactan/overview/",
-    officialSite: "marriott.com",
+    /* Same Marriott block as the Sheraton above; the official page is
+       https://www.marriott.com/en-gb/hotels/cebfi-fairfield-cebu-mactan/overview/ */
+    officialUrl: "https://www.booking.com/hotel/ph/fairfield-by-marriott-cebu-mactan.en-gb.html",
+    officialSite: "booking.com",
+    officialLabel: "Rooms and reviews",
     mapsQuery: "Fairfield by Marriott Cebu Mactan",
     badge: "5 min from the airport",
     image: {
@@ -474,10 +492,25 @@ export const stays: Stay[] = [
 ];
 
 export const stayGuidance = {
-  priceNote:
-    "Lowest nightly rate we saw for a room for two in late October 2026. Suites, villas and busy dates cost more. Book directly or through any site you trust to see the real price for your dates and party.",
-  driveNote:
-    "Drive times measured on Google Maps in light traffic. Allow longer at busy times of day.",
+  /* Three separate caveats, set as three rows rather than two paragraphs of
+     running prose: they are read to check one thing, not read through. */
+  notes: [
+    {
+      icon: "money" as const,
+      lead: "Prices are a guide",
+      body: "The lowest nightly rate we saw for a room for two in late October 2026. Suites, villas and busy dates cost more.",
+    },
+    {
+      icon: "bed" as const,
+      lead: "Book wherever you like",
+      body: "Go direct or through any site you trust to see the real price for your dates and your party.",
+    },
+    {
+      icon: "car" as const,
+      lead: "Drive times are light traffic",
+      body: "Measured on Google Maps. Allow longer at busy times of day.",
+    },
+  ],
 };
 
 /** Fixed reference points for the orientation plot. */

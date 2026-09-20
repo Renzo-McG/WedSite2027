@@ -68,15 +68,30 @@ const furthest = Math.max(...stays.map((s) => s.toVenue?.minutes ?? 0));
 
       <div class="stay__notes">
         <Freshness label="Room prices are planning estimates" />
-        <p>{stayGuidance.priceNote}</p>
-        <p>{stayGuidance.driveNote}</p>
+        <ul class="stay__notes-list">
+          {
+            stayGuidance.notes.map((note) => (
+              <li class="stay__note">
+                <Icon name={note.icon} size={16} />
+                <span>
+                  <b>{note.lead}.</b> {note.body}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </div>
   </div>
 
   <!-- Hotel details: filled from the card, grown out of its photograph. -->
   <dialog class="hotel-sheet" data-sheet aria-labelledby="sheet-title">
-    <div class="hotel-sheet__media" data-sheet-media></div>
+    <!-- On a phone this is a bottom sheet, so it can be pushed back down.
+         The handle says so, and is the part that takes the drag. -->
+    <div class="hotel-sheet__grab" data-sheet-grab>
+      <span class="hotel-sheet__handle" aria-hidden="true"></span>
+      <div class="hotel-sheet__media" data-sheet-media></div>
+    </div>
     <form method="dialog" class="hotel-sheet__close-form">
       <button class="hotel-sheet__close" aria-label="Close">
         <Icon name="close" />

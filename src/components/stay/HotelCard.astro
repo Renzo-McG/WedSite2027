@@ -89,7 +89,7 @@ const drive = stay.isVenue
         }
         <div class="hotel__actions">
           <ExternalLink href={stay.officialUrl} site={stay.officialSite} variant="primary">
-            Hotel website
+            {stay.officialLabel ?? "Hotel website"}
           </ExternalLink>
           <ExternalLink
             href={stay.isVenue
@@ -117,7 +117,7 @@ const drive = stay.isVenue
           aria-controls="stay-map"
         >
           <Icon name="map" size={17} />
-          <span class="visually-hidden">Show {stay.shortName}</span> On the map
+          <span class="visually-hidden">Show {stay.shortName} </span>On the map
         </button>
       </div>
     </div>

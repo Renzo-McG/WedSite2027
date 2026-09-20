@@ -109,8 +109,14 @@ if (root) {
     });
   };
 
-  const setActive = (id: string) => {
-    if (!id || id === active) return;
+  /**
+   * Make a hotel the active one. `again` re-answers even when it is already
+   * active, which is what "On the map" needs: on a desktop the pointer has
+   * usually activated the card already, so without this the button had
+   * nothing left to do and looked broken.
+   */
+  const setActive = (id: string, again = false) => {
+    if (!id || (id === active && !again)) return;
     active = id;
     cards().forEach((card) => card.toggleAttribute("data-active", card.dataset.hotel === id));
     map.querySelectorAll<HTMLElement>("[data-pin]").forEach((el) => {
@@ -151,12 +157,30 @@ if (root) {
     if (card && !phone.matches) setActive(card.dataset.hotel!);
   });
 
-  // "On the map": on phones the map sits above the rail, so bring it into view.
+  /** A pin answers a press on "On the map" even if it was already chosen. */
+  const bouncePin = (id: string) => {
+    if (reduceMotion()) return;
+    pin(id)
+      ?.querySelector<HTMLElement>(".pin__body")
+      ?.animate(
+        [
+          { transform: "none" },
+          { transform: "translateY(-12px) scale(1.12)", offset: 0.42 },
+          { transform: "none" },
+        ],
+        { duration: 620, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+      );
+  };
+
+  // "On the map": frame the hotel, drive the line again and hop its pin, then
+  // bring the map into view (on phones it sits above the rail).
   list.addEventListener("click", (event) => {
     const button = (event.target as Element).closest<HTMLElement>("[data-show-on-map]");
     if (!button) return;
-    setActive(button.dataset.showOnMap!);
-    if (phone.matches) revealCard(button.dataset.showOnMap!);
+    const id = button.dataset.showOnMap!;
+    setActive(id, true);
+    bouncePin(id);
+    if (phone.matches) revealCard(id);
     mapFigure.scrollIntoView({ block: "nearest", behavior: reduceMotion() ? "auto" : "smooth" });
   });
 
@@ -344,10 +368,81 @@ if (root) {
       });
     };
 
+    /*
+     * The card itself is tappable, but not everything on it behaves the
+     * same: the two controls keep their own jobs, and on a phone a card that
+     * is not the centred one comes to the middle first, so a tap never opens
+     * something the guest was only bringing into view.
+     */
     list.addEventListener("click", (event) => {
-      const button = (event.target as Element).closest<HTMLElement>("[data-details]");
-      if (button) open(button.dataset.details!);
+      const target = event.target as Element;
+      const button = target.closest<HTMLElement>("[data-details]");
+      if (button) return open(button.dataset.details!);
+      if (target.closest("a, button")) return;
+      const card = target.closest<HTMLElement>("[data-hotel]");
+      if (!card) return;
+      const id = card.dataset.hotel!;
+      if (phone.matches && id !== active) {
+        setActive(id);
+        revealCard(id);
+        return;
+      }
+      open(id);
     });
+    /*
+     * Push the sheet back down to dismiss it (phones only, where it rises
+     * from the bottom edge). It follows the finger, and lets go if it has
+     * been pushed far enough or thrown quickly enough; otherwise it settles
+     * back. The close button, Escape and a tap outside are all untouched,
+     * so this is one more way out rather than the only one. Reduced motion
+     * keeps those and skips the drag.
+     */
+    const bottomSheet = window.matchMedia("(max-width: 719px)");
+    let from = 0;
+    let at = 0;
+    let since = 0;
+    let holding = -1;
+
+    const mayDrag = (event: PointerEvent) => {
+      if (holding !== -1 || event.pointerType === "mouse") return false;
+      if (!bottomSheet.matches || reduceMotion()) return false;
+      const target = event.target as Element;
+      if (target.closest("a, button")) return false;
+      // From the handle and the photograph always; from the body only once
+      // it is scrolled to the top, so the drag never fights the scroller.
+      return target.closest("[data-sheet-grab]") !== null || sheet.scrollTop <= 0;
+    };
+
+    const settle = () => {
+      if (holding === -1) return;
+      holding = -1;
+      sheet.removeAttribute("data-dragging");
+      sheet.style.transform = "";
+      const thrown = at / Math.max(1, performance.now() - since) > 0.55;
+      const far = at > Math.min(180, sheet.clientHeight * 0.26);
+      at = 0;
+      if (far || thrown) close();
+    };
+
+    sheet.addEventListener("pointerdown", (event) => {
+      if (!mayDrag(event)) return;
+      holding = event.pointerId;
+      from = event.clientY;
+      since = performance.now();
+      at = 0;
+    });
+
+    sheet.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== holding) return;
+      // Downwards only: dragging up should not lift the sheet off the edge.
+      at = Math.max(0, event.clientY - from);
+      sheet.dataset.dragging = "";
+      sheet.style.transform = `translateY(${at.toFixed(1)}px)`;
+    });
+
+    sheet.addEventListener("pointerup", settle);
+    sheet.addEventListener("pointercancel", settle);
+
     // Close button, Escape and a tap on the backdrop all take the photo home.
     sheet.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -358,7 +453,9 @@ if (root) {
       close();
     });
     sheet.addEventListener("click", (event) => {
-      if (event.target === sheet) close();
+      // A drag that settled back can land a click on the sheet itself; that
+      // is not a tap on the backdrop.
+      if (event.target === sheet && performance.now() - since > 400) close();
     });
   }
 

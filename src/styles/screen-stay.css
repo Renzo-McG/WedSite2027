@@ -399,6 +399,12 @@
     transform var(--d-base) var(--ease-out);
 }
 
+/* The card opens the hotel, so it says so to the pointer. The two controls
+   inside keep their own jobs. */
+.stay[data-enhanced] .hotel__card {
+  cursor: pointer;
+}
+
 .hotel[data-active] .hotel__card {
   box-shadow:
     var(--shadow-2),
@@ -524,6 +530,9 @@
 }
 
 .hotel__body {
+  /* Named so the controls below can lay themselves out to the card's own
+     width rather than the window's. */
+  container: hotel / inline-size;
   display: grid;
   align-content: start;
   gap: 8px;
@@ -612,29 +621,43 @@
   padding-top: 4px;
 }
 
+/*
+ * The two controls. Side by side when the card is wide enough to hold both
+ * at their natural size, and stacked full width when it is not, rather than
+ * squeezing the labels. The card measures itself, so this holds wherever the
+ * card is used: the desktop column, the phone rail, 320px and up.
+ */
 .hotel__cta {
   display: none;
-  align-items: center;
-  justify-content: space-between;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .stay[data-enhanced] .hotel__cta {
-  display: flex;
+  display: grid;
+}
+
+@container hotel (min-width: 370px) {
+  .hotel__cta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
 }
 
 .hotel__details,
 .hotel__show {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  min-height: 44px;
-  padding: 10px 16px;
+  min-height: 46px;
+  padding: 10px 18px;
   border: 0;
   border-radius: var(--pill);
   font-size: var(--t-sm);
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background-color var(--d-fast) var(--ease-out),
@@ -704,11 +727,33 @@
 
 .stay__notes {
   display: grid;
-  gap: 6px;
+  gap: 10px;
   padding-top: 14px;
   border-top: 1px solid var(--line);
   color: var(--ink-3);
   font-size: var(--t-sm);
+}
+
+.stay__notes-list {
+  display: grid;
+  gap: 9px;
+}
+
+.stay__note {
+  display: flex;
+  gap: 9px;
+  line-height: 1.55;
+}
+
+.stay__note b {
+  color: var(--ink-2);
+  font-weight: 700;
+}
+
+.stay__note .icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--lagoon);
 }
 
 /* ================================================================= sheet */
@@ -722,6 +767,9 @@
   max-height: min(92dvh, 920px);
   padding: 0;
   overflow: auto;
+  /* Reaching the end of the sheet should not start scrolling the screen
+     behind it, and matters most while it is being dragged. */
+  overscroll-behavior: contain;
   border: 0;
   border-radius: 28px;
   color: var(--ink);
@@ -757,6 +805,45 @@
     border-radius: 28px 28px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+.hotel-sheet__grab {
+  position: relative;
+}
+
+/*
+ * The drag handle. Only on phones, where the sheet rises from the bottom
+ * edge and pushing it back down is the natural way to be rid of it. The
+ * close button, Escape and a tap outside all still work.
+ */
+.hotel-sheet__handle {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .hotel-sheet__grab {
+    /* The drag belongs to the sheet here, not to the scroller underneath. */
+    touch-action: none;
+  }
+
+  .hotel-sheet__handle {
+    position: absolute;
+    z-index: 2;
+    top: 10px;
+    left: 50%;
+    display: block;
+    width: 44px;
+    height: 5px;
+    border-radius: var(--pill);
+    background: rgba(255, 253, 248, 0.85);
+    box-shadow: 0 1px 4px rgba(3, 24, 22, 0.35);
+    translate: -50% 0;
+  }
+}
+
+/* While a drag is in progress the sheet answers the finger directly. */
+.hotel-sheet[data-dragging] {
+  transition: none;
 }
 
 .hotel-sheet__media {
