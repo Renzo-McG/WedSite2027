@@ -162,7 +162,6 @@ if (stage && planner) {
     }
   };
 
-  let previewing = false;
   let stopped = false;
   let timer = 0;
   let release: ((ok: boolean) => void) | null = null;
@@ -173,7 +172,6 @@ if (stage && planner) {
     clearTimeout(timer);
     release?.(false);
     release = null;
-    previewing = false;
     stage.removeAttribute("data-previewing");
   };
 
@@ -199,7 +197,6 @@ if (stage && planner) {
   };
 
   const runPreview = async () => {
-    previewing = true;
     stage.dataset.previewing = "";
     const others = inputs.map((i) => i.value).filter((id) => id !== initial);
     for (const id of others) {
@@ -208,7 +205,6 @@ if (stage && planner) {
     }
     if (!(await hold(600))) return stopPreview();
     await preview(initial!, 2400);
-    previewing = false;
     stage.removeAttribute("data-previewing");
   };
 
