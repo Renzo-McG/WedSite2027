@@ -102,3 +102,36 @@ checklist memory and the phone rail sync need JavaScript.
 - **A new section (Schedule, RSVP, Questions):** add a page and add it to `destinations`, then
   take it out of `weddingToCome`. The tab bar holds five; beyond that, move one into the menu.
 - **Hotel photographs:** see the deployment gate in the asset register.
+
+## Known, deliberately deferred
+
+### Returning to the Save the Date does not replay the cinematic
+
+"See the Save the Date again" (the Wedding screen, and the same link in the rail and the menu
+sheet) goes to `/` and lands on the **already-opened** invitation, not the opening film.
+
+Why: `src/scripts/save-the-date.ts` writes `eandl.save-the-date.v1 = "opened"` to
+**localStorage** the first time a guest opens the invitation, and every later load starts from
+`setPhase(readOpened() ? "composed" : "sealed")`. So for anyone who has opened it once — which
+is everyone arriving from the companion — `/` opens composed. Confirmed by walking it through:
+open `/`, go to `/wedding/`, follow the link, and the page reports `phase="composed"`.
+
+What a clean fix needs (not done here: this pass must not change the guest Save the Date):
+
+1. An intentional signal on the link, e.g. `/?replay=1` or `#replay`, rather than anything
+   timing-based.
+2. `save-the-date.ts` to honour it at the point it chooses the initial phase: force `sealed`
+   and run `OPEN_SEQUENCE` (and `REDUCED_OPEN_SEQUENCE` under reduced motion), leaving the
+   stored `opened` flag alone so an ordinary visit is unaffected.
+3. Strip the parameter from the URL afterwards, so a refresh does not replay it again.
+4. Decide whether the replay should start sealed and open by itself, or start sealed and wait
+   for the guest to open it. The second is closer to what the cover is for.
+
+Do this during the Save the Date integration phase, alongside the calendar work below.
+
+### The calendar invite wording is not final
+
+`src/config/wedding.ts` holds the event definition used by the `.ics` file and the Google
+Calendar link. It is deliberately untouched here: the Save the Date and the companion should
+end up sharing one canonical event, so the wording is settled once, in that pass, rather than
+twice.
