@@ -1,39 +1,87 @@
 ---
-import { wedding } from "../../config/wedding";
+/**
+ * The invitation, as native responsive components.
+ *
+ * Two layers with different jobs. The editorial block is the invitation
+ * itself, set in the wedding's own type and positioned as a composition. The
+ * functional block is anchored to the foot of the card so the deliberate
+ * pause before it cannot collapse on a short screen.
+ *
+ * Casing is natural in the DOM and the capitals come from `text-transform`,
+ * so a screen reader announces "Emily and Lawrence" rather than spelling out
+ * capitals. Every line that animates is a word inside its own window: the
+ * window clips, the word rises. That is the companion's own reveal grammar
+ * (styles/screen-home.css), used here at a slower, more ceremonial pace.
+ */
+import { WEDDING_WEBSITE_PATH, wedding } from "../../config/wedding";
 import Countdown from "./Countdown.astro";
+
+/** Three visual groups, kept as groups. The machine-readable date is on <time>. */
+const dateGroups = ["24", "10", "2027"];
+const websiteHref = `${import.meta.env.BASE_URL}${WEDDING_WEBSITE_PATH}`;
 ---
 
 <div class="invitation__content">
-  <header class="invitation__header">
-    <p class="label">{wedding.cue}</p>
-  </header>
+  <div class="editorial" data-editorial>
+    {
+      /* The spaces are explicit. The connectives are inline-block so they can
+      be nudged off the baseline, and an inline-block trims whitespace at its
+      own edges, so a space written inside one disappears. */
+    }
+    <p class="editorial__cue">
+      <span class="rise"
+        >Save{" "}<span class="editorial__soft editorial__soft--the">the</span>{" "}Date</span
+      >
+    </p>
 
-  <main class="invitation__main">
-    <h1 class="names">
-      <span class="names__line">{wedding.couple.first}</span>
-      <span class="names__amp">&amp;</span>
-      <span class="names__line">{wedding.couple.second}</span>
+    <h1 class="editorial__names">
+      <span class="rise"
+        >{wedding.couple.first}{" "}<span class="editorial__soft editorial__soft--and">and</span>{
+          " "
+        }{wedding.couple.second}</span
+      >
     </h1>
-    <div class="details">
-      <p class="details__date">{wedding.date.display}</p>
-      <p class="details__place">
-        {wedding.venue}<br />{wedding.location}
-      </p>
-    </div>
-  </main>
 
-  {
-    /* Bounded breathing space: the only flexible row, so the composition can
-      never open an accidental void. */
-  }
-  <div class="invitation__breath" aria-hidden="true"></div>
+    <p class="editorial__date">
+      <time datetime={wedding.date.iso}>
+        <span class="visually-hidden">{wedding.date.display}</span>
+        <span aria-hidden="true">
+          {
+            dateGroups.map((group, index) => (
+              <span class="editorial__date-group" style={`--group: ${index}`}>
+                <span class="rise">{group}</span>
+              </span>
+            ))
+          }
+        </span>
+      </time>
+    </p>
 
-  <footer class="invitation__footer">
+    <p class="editorial__venue"><span class="rise">{wedding.venue}</span></p>
+    <p class="editorial__location"><span class="rise">{wedding.location}</span></p>
+    <p class="editorial__note"><span class="rise">{wedding.note}</span></p>
+  </div>
+
+  <div class="functional" data-functional>
     <Countdown />
-    <a class="cta" href="#calendar-enclosure" data-sheet-open>
-      <span>Save to Calendar</span>
-      <span class="cta__mark" aria-hidden="true"></span>
-    </a>
-    <p class="note">{wedding.note}</p>
-  </footer>
+
+    <div class="functional__actions">
+      <a class="cta" href="#calendar-enclosure" data-sheet-open>
+        <span>Save to Calendar</span>
+        <span class="cta__mark" aria-hidden="true"></span>
+      </a>
+
+      {
+        /* Named plainly on purpose: this is the official Save the Date, so
+        where the link goes should never need working out. */
+      }
+      <a class="website" href={websiteHref}>
+        <span>Visit our wedding website</span>
+        <svg class="website__arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5"
+          ></path>
+        </svg>
+      </a>
+    </div>
+  </div>
 </div>

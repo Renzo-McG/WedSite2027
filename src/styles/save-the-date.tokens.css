@@ -70,37 +70,114 @@
 
   /* ------------------------------------------------------------ typography */
 
-  --font-display: "Sirivennela", "Segoe Script", cursive;
-  --font-ui: "Plus Jakarta Sans", "Helvetica Neue", system-ui, sans-serif;
+  /* One typeface with the companion, in a different register. Manrope carries
+     the whole wedding brand; here it is set light, tracked open and largely
+     in capitals, which is what makes the Save the Date ceremonial where the
+     companion is practical. */
+  --font-display: "Manrope", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Manrope", "Avenir Next", "Segoe UI", system-ui, sans-serif;
 
-  --label-size: 0.75rem;
-  --label-tracking: 0.22em;
-  --names-size: clamp(5.25rem, 24vw, 6.75rem);
-  --names-leading: 0.76;
-  --names-gap: 0.12em;
-  --names-offset-x: -0.015em;
-  --names-offset-y: 0.08em;
-  --amp-size: 0.19em;
-  --amp-offset-x: 0.8em;
-  --amp-offset-y: 0.2em;
-  --date-size: clamp(1.4375rem, 5.6vw, 1.8125rem);
-  --place-size: clamp(0.9375rem, 3.8vw, 1.0625rem);
   --countdown-size: 0.8125rem;
   --countdown-tracking: 0.03em;
+
+  /* ---------------------------------------------- approved composition */
+
+  /* Sizes and gaps are a share of the invitation's own width (cqw), exactly
+     as the studio exported them, so the composition scales as one thing.
+     Source: "Save the Date - Approved Experience Settings", 20 Sep 2026.
+
+     The exported sizes were measured against Instrument Serif. Manrope sets
+     about a third wider per em, so every size carries the same factor
+     (0.749) - measured, as the point at which "Emily and Lawrence" fills the
+     measure exactly without crossing it. The ratios between the tiers are
+     the approved ones, untouched, which is what preserves the hierarchy.
+     Gaps are the exported values as-is. */
+  --inset: 10.2%;
+  --size-cue: 5.06cqw;
+  --size-names: 7.94cqw;
+  --size-date: 6.45cqw;
+  --size-venue: 4.53cqw;
+  --size-location: 4.5cqw;
+  --size-note: 3.75cqw;
+
+  --gap-cue-names: 5.75cqw;
+  --gap-names-date: 3.15cqw;
+  --gap-date-venue: 1.52cqw;
+  --gap-venue-lines: 0.26cqw;
+  --gap-before-note: 7.06cqw;
+  --date-gap: 0.85em;
+  --gap-countdown-cta: 4.4cqw;
+
+  /* The connective words. The companion already steps its ampersand back a
+     few weights at 0.92em (styles/app.css); the approved export asks for the
+     same 0.92, so the two products treat "and" identically. */
+  --the-size: 1.12em;
+  --the-y: -0.04em;
+  --and-size: 0.92em;
+  --and-y: -0.02em;
+  --soft-weight: 300;
+  --soft-opacity: 0.72;
+
+  --weight-cue: 300;
+  --weight-names: 250;
+  --weight-date: 250;
+  --weight-venue: 350;
+  --weight-location: 400;
+  --weight-note: 300;
+
+  --tracking-cue: 0.16em;
+  --tracking-names: 0.02em;
+  --tracking-date: 0.06em;
+  --tracking-venue: 0.01em;
+  --tracking-location: 0.12em;
+  --tracking-note: 0.02em;
+
+  /* Where the block sits in the card. */
+  --editorial-y-mobile: 36.45%;
+  --editorial-y-desktop: 24.03%;
+  --zone-y: 18%;
+
+  /* ------------------------------------------------------------- frost */
+
+  /* Approved mobile band: 80% of the screen, centred at 50%, softened 35%.
+     Reviewed and signed off on the current composition - not to be reduced
+     pre-emptively. */
+  --frost-height: 80%;
+  --frost-y: 50%;
+  --frost-feather: 35%;
+  --frost-alpha: 0.8;
+  --frost-blur: 14px;
+  /* The approved wash (0.52) rides on the stage video's own overlay strength
+     in config/wedding.ts, so the film and the frost stay one decision. */
+
+  /* ---------------------------------------------------- entrance timing */
+
+  /* The approved timeline. lib/entrance-machine.ts schedules the phases from
+     the same numbers; these drive what each phase looks like. */
+  --cover-open-seconds: 1.4s;
+  --frost-arrival-seconds: 0.9s;
+  --wording-arrival-seconds: 0.9s;
+
+  /* The wording is staged inside its own arrival window rather than fading as
+     one block: each line is a word rising through its own window, 70ms apart,
+     so the last line lands at about a second. */
+  --rise-duration: 680ms;
+  --rise-step: 70ms;
+
+  /* --------------------------------------------------------- monogram */
+
+  --mono-size: 38cqw;
+  --mono-rotate-duration: 46s;
+  --mono-rotate-to: 360deg;
+  --mono-breath-duration: 6.5s;
+  --mono-breath-scale: 1.016;
+  --mono-press: 0.97;
+  --mono-light: 0.22;
+  --mono-seam-gap: 22%;
 
   /* --------------------------------------------------------------- spacing */
 
   --edge: clamp(1.25rem, 6vw, 1.75rem);
-  --gap-header-names: clamp(2rem, 6.5vw, 3rem);
-  --gap-names-details: clamp(1.5rem, 5vw, 2.25rem);
-  --gap-date-place: 0.5rem;
-  --gap-countdown-cta: 1.125rem;
-  --gap-cta-note: 1.375rem;
-  --breath-min: clamp(2.25rem, 6.5svh, 4rem);
-  --breath-max: 7rem;
-
-  --invitation-pad-x: 3rem;
-  --invitation-pad-y: 3.25rem;
   --calendar-control-radius: 0.75rem;
   --calendar-sheet-alpha: 0.94;
 
@@ -119,48 +196,4 @@
   --dur-content: 1100ms;
   --dur-sheet: 620ms;
   --dur-close: 1180ms;
-}
-
-html[data-display-type="sirivennela"] .std {
-  --font-display: "Sirivennela", "Segoe Script", cursive;
-  --names-size: clamp(5.25rem, 24vw, 6.75rem);
-  --names-leading: 0.76;
-  --names-gap: 0.12em;
-  --names-offset-x: -0.015em;
-  --names-offset-y: 0.08em;
-  --amp-offset-x: 0.8em;
-  --amp-offset-y: 0.2em;
-}
-
-html[data-display-type="montecarlo"] .std {
-  --font-display: "MonteCarlo", "Segoe Script", cursive;
-  --names-size: clamp(4.9rem, 22vw, 6.4rem);
-  --names-leading: 0.82;
-  --names-gap: 0.08em;
-  --names-offset-x: -0.04em;
-  --names-offset-y: 0.03em;
-  --amp-offset-x: 0.62em;
-  --amp-offset-y: 0.16em;
-}
-
-html[data-display-type="corinthia"] .std {
-  --font-display: "Corinthia", "Segoe Script", cursive;
-  --names-size: clamp(5.8rem, 27vw, 7.4rem);
-  --names-leading: 0.7;
-  --names-gap: 0.13em;
-  --names-offset-x: -0.035em;
-  --names-offset-y: 0.12em;
-  --amp-offset-x: 0.92em;
-  --amp-offset-y: 0.28em;
-}
-
-html[data-display-type="parisienne"] .std {
-  --font-display: "Parisienne", "Segoe Script", cursive;
-  --names-size: clamp(4.65rem, 21vw, 6.05rem);
-  --names-leading: 0.86;
-  --names-gap: 0.08em;
-  --names-offset-x: -0.01em;
-  --names-offset-y: 0.02em;
-  --amp-offset-x: 0.58em;
-  --amp-offset-y: 0.14em;
 }

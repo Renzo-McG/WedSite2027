@@ -8,11 +8,16 @@ import CalendarSheet from "./CalendarSheet.astro";
 <div class="std" data-std>
   <StageVisual />
 
-  <!-- The markup ships in the `composed` state, so the whole invitation is
+  <!-- The markup ships in the `still` state, so the whole invitation is
        readable when JavaScript never runs. -->
-  <article class="invitation" data-phase="composed" data-invitation>
+  <article class="invitation" data-entrance="still" data-invitation>
     <div class="invitation__surface">
+      <!-- The frosted band is its own element rather than the card's own
+           background, so on a phone it can be a band: shortening it opens
+           clear venue above and below by the same amount. -->
+      <div class="frost" aria-hidden="true" data-frost></div>
       <div class="invitation__grain" aria-hidden="true"></div>
+
       <InvitationContent />
     </div>
 
@@ -21,7 +26,7 @@ import CalendarSheet from "./CalendarSheet.astro";
   </article>
 
   {
-    /* State control only — it closes the invitation, it is not browser
+    /* State control only - it closes the invitation, it is not browser
       navigation. It sits outside the card so it never joins the wedding copy. */
   }
   <button class="back" type="button" data-replay aria-label="Close invitation" hidden>
@@ -44,7 +49,7 @@ import CalendarSheet from "./CalendarSheet.astro";
     } catch {
       /* Blocked storage simply replays the opening next visit. */
     }
-    root.setAttribute("data-phase", opened ? "composed" : "sealed");
+    root.setAttribute("data-entrance", opened ? "still" : "closed");
   })();
 </script>
 

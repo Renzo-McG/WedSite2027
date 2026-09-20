@@ -8,6 +8,7 @@ import {
   entranceDuration,
   isVenueOnly,
   monogramVars,
+  reverseEntrance,
   venueWindow,
   type EntranceTiming,
 } from "../src/lib/entrance-machine";
@@ -131,6 +132,36 @@ describe("the entrance timeline", () => {
     expect(checkpointPhase("closed")).toBe("closed");
     expect(checkpointPhase("venue")).toBe("venue");
     expect(checkpointPhase("finished")).toBe("still");
+  });
+});
+
+/* --------------------------------------------------------------- reseal */
+
+describe("the reseal timeline", () => {
+  it("undoes the arrival in reverse order and ends closed", () => {
+    const phases = reverseEntrance(DEFAULT_TIMING).map((step) => step.phase);
+    expect(phases).toEqual(["content", "material", "venue", "closed"]);
+  });
+
+  it("never moves backwards in time", () => {
+    const steps = reverseEntrance(DEFAULT_TIMING);
+    for (let i = 1; i < steps.length; i += 1) {
+      expect(steps[i]!.at).toBeGreaterThanOrEqual(steps[i - 1]!.at);
+    }
+  });
+
+  /* Closing is not the opening rewound: there is nothing to wait for on the
+     way out, so it must not re-spend the venue hold. */
+  it("closes faster than it opened", () => {
+    const reverse = reverseEntrance(DEFAULT_TIMING);
+    const closing = reverse[reverse.length - 1]!.at;
+    expect(closing).toBeLessThan(entranceDuration(DEFAULT_TIMING));
+  });
+
+  it("stays proportionate under reduced motion", () => {
+    const reduced = reverseEntrance(REDUCED_TIMING);
+    const full = reverseEntrance(DEFAULT_TIMING);
+    expect(reduced[reduced.length - 1]!.at).toBeLessThan(full[full.length - 1]!.at);
   });
 });
 

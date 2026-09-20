@@ -4,26 +4,27 @@ import {
   countdownUnits,
   countdownUnitsCompact,
 } from "../lib/countdown";
-import { displayFontFromSearch } from "../lib/display-font";
 import {
-  CALENDAR_CLOSE_SEQUENCE,
-  CALENDAR_OPEN_SEQUENCE,
-  OPEN_SEQUENCE,
-  REDUCED_CALENDAR_CLOSE_SEQUENCE,
-  REDUCED_CALENDAR_OPEN_SEQUENCE,
-  REDUCED_OPEN_SEQUENCE,
-  REDUCED_RESEAL_SEQUENCE,
-  RESEAL_SEQUENCE,
-  isStageVideoResetPoint,
-  type ExperiencePhase,
-  type ExperienceStep,
-} from "../lib/experience-machine";
+  DEFAULT_TIMING,
+  REDUCED_TIMING,
+  buildEntrance,
+  reverseEntrance,
+  type EntrancePhase,
+  type EntranceStep,
+} from "../lib/entrance-machine";
 import { selectStageVideo, type StageVideo } from "../lib/stage-video";
 
 const STORAGE_KEY = "eandl.save-the-date.v1";
 const OPENED = "opened";
 const CALENDAR_USED_KEY = "eandl.calendar-used:v1";
-const COMPACT_COUNTDOWN = "(max-width: 26rem)";
+/* Narrow phones, and short landscape ones where the controls sit in their own
+   column beside the wording rather than across the full width. */
+const COMPACT_COUNTDOWN = "(max-width: 26rem), (max-height: 30rem)";
+
+/** Where the stage video should begin playing: the moment the cover moves. */
+const VIDEO_STARTS_AT: EntrancePhase = "opening";
+
+type SheetState = "opening" | "open" | "closing";
 
 interface StageMediaController {
   start(): void;
@@ -59,6 +60,14 @@ function writeOpened(): void {
     window.localStorage.setItem(STORAGE_KEY, OPENED);
   } catch {
     // Blocked storage simply replays the opening on a later visit.
+  }
+}
+
+function clearOpened(): void {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // The next visit simply arrives already open.
   }
 }
 
@@ -166,7 +175,7 @@ function configureStageVideo(stage: HTMLElement | null): StageMediaController {
       playWithoutBlocking();
     },
     resetAfterSeal(): void {
-      // Called only after the reseal sequence has reached the fully sealed state.
+      // Called only after the reseal has reached the fully closed state.
       video.pause();
       try {
         video.currentTime = 0;
@@ -208,12 +217,20 @@ function setUpExperience(root: HTMLElement): void {
 
   page?.setAttribute("data-enhanced", "");
 
-  function phase(): ExperiencePhase {
-    return (root.dataset.phase as ExperiencePhase | undefined) ?? "sealed";
+  /* --------------------------------------------------------- entrance */
+
+  /* The mark's idle motion is the approved one: an almost imperceptible turn
+     and a slow breath. Both are expressed as custom properties so the
+     timeline and the CSS never disagree about the numbers. */
+  const timing = (): typeof DEFAULT_TIMING =>
+    prefersReducedMotion() ? REDUCED_TIMING : DEFAULT_TIMING;
+
+  function phase(): EntrancePhase {
+    return (root.dataset.entrance as EntrancePhase | undefined) ?? "closed";
   }
 
-  function setPhase(next: ExperiencePhase): void {
-    root.dataset.phase = next;
+  function setPhase(next: EntrancePhase): void {
+    root.dataset.entrance = next;
   }
 
   function clearPhaseTimers(): void {
@@ -227,8 +244,8 @@ function setUpExperience(root: HTMLElement): void {
   }
 
   function play(
-    sequence: readonly ExperienceStep[],
-    onStep?: (next: ExperiencePhase) => void,
+    sequence: readonly EntranceStep[],
+    onStep?: (next: EntrancePhase) => void,
     done?: () => void,
   ): void {
     clearPhaseTimers();
@@ -248,31 +265,32 @@ function setUpExperience(root: HTMLElement): void {
     if (back) back.hidden = !visible;
   }
 
+  function isSettled(): boolean {
+    return phase() === "still";
+  }
+
   function scheduleCalendarCue(): void {
     clearCueTimers();
-    if (hasUsedCalendarThisSession() || phase() !== "composed") return;
+    if (hasUsedCalendarThisSession() || !isSettled()) return;
 
     cueTimers.push(
       window.setTimeout(() => {
-        if (phase() !== "composed") return;
-        setPhase("calendar-cue");
-        cueTimers.push(
-          window.setTimeout(() => {
-            if (phase() === "calendar-cue") setPhase("composed");
-          }, 1260),
-        );
+        if (!isSettled()) return;
+        root.setAttribute("data-cue", "");
+        cueTimers.push(window.setTimeout(() => root.removeAttribute("data-cue"), 1260));
       }, 760),
     );
   }
 
   function openInvitation(): void {
-    if (phase() !== "sealed") return;
+    if (phase() !== "closed") return;
     clearCueTimers();
     showBack(false);
+    root.removeAttribute("data-resealing");
     play(
-      prefersReducedMotion() ? REDUCED_OPEN_SEQUENCE : OPEN_SEQUENCE,
+      buildEntrance(timing()),
       (next) => {
-        if (next === "seam-release") stageMedia.start();
+        if (next === VIDEO_STARTS_AT) stageMedia.start();
       },
       () => {
         writeOpened();
@@ -283,24 +301,31 @@ function setUpExperience(root: HTMLElement): void {
   }
 
   function resealInvitation(): void {
-    if (phase() !== "composed" && phase() !== "calendar-cue") return;
+    if (!isSettled()) return;
     clearCueTimers();
+    root.removeAttribute("data-cue");
     showBack(false);
-    play(prefersReducedMotion() ? REDUCED_RESEAL_SEQUENCE : RESEAL_SEQUENCE, undefined, () => {
-      // The media reset is intentionally after the final sealed state.
-      if (isStageVideoResetPoint(phase())) stageMedia.resetAfterSeal();
+    root.setAttribute("data-resealing", "");
+    play(reverseEntrance(timing()), undefined, () => {
+      root.removeAttribute("data-resealing");
+      clearOpened();
+      stageMedia.resetAfterSeal();
       opener?.focus({ preventScroll: true });
     });
   }
 
-  setPhase(readOpened() ? "composed" : "sealed");
-  showBack(phase() === "composed");
-  if (phase() === "composed") scheduleCalendarCue();
+  setPhase(readOpened() ? "still" : "closed");
+  showBack(isSettled());
+  if (isSettled()) scheduleCalendarCue();
 
   opener?.addEventListener("click", openInvitation);
   back?.addEventListener("click", resealInvitation);
 
   /* ------------------------------------------------------------- sheet */
+
+  function sheetState(): SheetState | null {
+    return (root.dataset.sheet as SheetState | undefined) ?? null;
+  }
 
   function focusableRows(): HTMLElement[] {
     if (!sheet) return [];
@@ -315,33 +340,39 @@ function setUpExperience(root: HTMLElement): void {
   }
 
   function openSheet(): void {
-    if (!sheet || (phase() !== "composed" && phase() !== "calendar-cue")) return;
+    if (!sheet || !isSettled() || sheetState()) return;
     clearCueTimers();
+    root.removeAttribute("data-cue");
     markCalendarUsedThisSession();
     lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     sheet.setAttribute("aria-modal", "true");
     document.documentElement.setAttribute("data-sheet-open", "");
     setBackgroundInert(true);
 
-    play(
-      prefersReducedMotion() ? REDUCED_CALENDAR_OPEN_SEQUENCE : CALENDAR_OPEN_SEQUENCE,
-      undefined,
-      () => undefined,
+    root.dataset.sheet = "opening";
+    window.setTimeout(
+      () => {
+        if (root.dataset.sheet === "opening") root.dataset.sheet = "open";
+      },
+      prefersReducedMotion() ? 90 : 620,
     );
     window.setTimeout(() => sheet.focus({ preventScroll: true }), 30);
   }
 
   function closeSheet(): void {
-    if (!sheet || !["calendar-opening", "calendar-open"].includes(phase())) return;
-    play(
-      prefersReducedMotion() ? REDUCED_CALENDAR_CLOSE_SEQUENCE : CALENDAR_CLOSE_SEQUENCE,
-      undefined,
+    const state = sheetState();
+    if (!sheet || (state !== "opening" && state !== "open")) return;
+
+    root.dataset.sheet = "closing";
+    window.setTimeout(
       () => {
+        delete root.dataset.sheet;
         sheet.removeAttribute("aria-modal");
         document.documentElement.removeAttribute("data-sheet-open");
         setBackgroundInert(false);
         lastFocused?.focus({ preventScroll: true });
       },
+      prefersReducedMotion() ? 90 : 620,
     );
   }
 
@@ -359,7 +390,8 @@ function setUpExperience(root: HTMLElement): void {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (!["calendar-opening", "calendar-open"].includes(phase())) return;
+    const state = sheetState();
+    if (state !== "opening" && state !== "open") return;
 
     if (event.key === "Escape") {
       event.preventDefault();
@@ -463,8 +495,6 @@ function setUpExperience(root: HTMLElement): void {
     observer.observe(root);
   }
 }
-
-document.documentElement.dataset.displayType = displayFontFromSearch(window.location.search);
 
 const experience = document.querySelector<HTMLElement>("[data-invitation]");
 if (experience) setUpExperience(experience);

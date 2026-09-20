@@ -1,35 +1,63 @@
 ---
+/**
+ * The closed cover and the mark that opens it.
+ *
+ * Two panels part from a seam; the mark sits on the seam and answers a press.
+ * The mark is the companion's own identity - the initials under the Ocean
+ * Pavilion's A-frame roof line - drawn natively rather than imported, so it
+ * is the same brand the rest of the site uses and scales without an asset.
+ *
+ * Built in two registered pieces because the approved motion asks for two:
+ * an outer ring that turns almost imperceptibly, and an inner mark that
+ * breathes and compresses under a press. Both sit in one box, so they share a
+ * centre and can never drift apart.
+ *
+ * The studio's monogram mode expects an uploaded Canva pair; those files live
+ * in the designer's browser and the only pair in the repo is an engineering
+ * placeholder, so production draws the real identity instead.
+ */
 import { wedding } from "../../config/wedding";
 
-const mark = `${wedding.couple.first.charAt(0)}&${wedding.couple.second.charAt(0)}`;
 const openLabel = `Open ${wedding.couple.first} and ${wedding.couple.second}'s Save the Date`;
 ---
 
-<div class="cover" aria-hidden="true">
+<div class="cover" aria-hidden="true" data-cover>
+  <span class="cover__atmos"></span>
   <span class="cover__half cover__half--left"></span>
   <span class="cover__half cover__half--right"></span>
 
-  <span class="cover__lock-line cover__lock-line--upper-left"></span>
-  <span class="cover__lock-line cover__lock-line--upper-right"></span>
-  <span class="cover__lock-line cover__lock-line--lower-left"></span>
-  <span class="cover__lock-line cover__lock-line--lower-right"></span>
-
-  {
-    /* Two deliberate segments with a geometric gap, so no line can ever cross
-      the control at any device pixel ratio. */
-  }
   <span class="cover__seam cover__seam--top"></span>
   <span class="cover__seam cover__seam--bottom"></span>
 </div>
 
 <button class="opener" type="button" data-opener aria-label={openLabel}>
-  <span class="opener__assembly" aria-hidden="true">
-    <span class="opener__ring opener__ring--outer"></span>
-    <span class="opener__ring opener__ring--inner"></span>
-    <span class="opener__ticks">
-      <span></span><span></span><span></span><span></span>
+  <span class="mono" aria-hidden="true" data-monogram>
+    <span class="mono__light"></span>
+
+    {/* Outer: the slow turn. Asymmetric on purpose, or the rotation reads as nothing. */}
+    <svg class="mono__outer" viewBox="0 0 120 120" focusable="false">
+      <circle class="mono__ring" cx="60" cy="60" r="55"></circle>
+      <circle class="mono__arc" cx="60" cy="60" r="55"></circle>
+      <g class="mono__ticks">
+        <path d="M60 2.5v6"></path>
+        <path d="M60 111.5v6"></path>
+        <path d="M2.5 60h6"></path>
+        <path d="M111.5 60h6"></path>
+      </g>
+    </svg>
+
+    {/* Inner: the identity itself, breathing. */}
+    <span class="mono__inner">
+      <svg class="mono__roof" viewBox="0 0 24 8" focusable="false">
+        <path d="M2 7.2 12 1l10 6.2"></path>
+      </svg>
+      <span class="mono__initials"
+        >{wedding.couple.first.charAt(0)}<span class="mono__amp">&amp;</span>{
+          wedding.couple.second.charAt(0)
+        }</span
+      >
     </span>
-    <span class="opener__mark">{mark}</span>
   </span>
+
   <span class="opener__label" aria-hidden="true">Open</span>
 </button>

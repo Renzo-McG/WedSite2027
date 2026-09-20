@@ -2,6 +2,19 @@
  * Single source of truth for the public Save the Date and every calendar export.
  */
 
+/**
+ * Where the wedding website lives, in one place.
+ *
+ * The custom domain has not been chosen yet, so this is the current production
+ * companion. Everything that points a guest at the website reads this: the
+ * Save the Date CTA, the calendar event's URL field and the website line in
+ * the calendar description. When the domain is decided, only this changes.
+ */
+export const WEDDING_WEBSITE_URL = "https://renzo-mcg.github.io/WedSite2027/welcome/";
+
+/** The companion's entry screen, as a path, for links inside this site. */
+export const WEDDING_WEBSITE_PATH = "welcome/";
+
 export const wedding = {
   couple: {
     first: "Emily",
@@ -24,8 +37,22 @@ export const wedding = {
   location: "Cebu, Philippines",
   note: "Formal invitation to follow",
   calendar: {
-    title: "Emily & Lawrence — Wedding",
-    description: "Emily and Lawrence's wedding. Formal invitation to follow.",
+    title: "💒 Emily and Lawrence - Wedding",
+    /**
+     * One description for every destination: the .ics, Google, Apple, Outlook
+     * and any future calendar action on the wedding screens.
+     *
+     * The blank line between each section is deliberate. Calendar clients
+     * render the description as plain text, so the paragraph breaks are the
+     * only structure available, and collapsing them turns it into one wall of
+     * text on a phone. `buildIcs` escapes the newlines per RFC 5545.
+     */
+    description: [
+      "💍 Save the date for Emily and Lawrence's wedding in Cebu, Philippines.",
+      "🗓 Formal invitation and full wedding details to follow.",
+      "✈️ Travel, accommodation and trip ideas will be available on our wedding website.",
+      `🌴 Wedding website:\n${WEDDING_WEBSITE_URL}`,
+    ].join("\n\n"),
     fileName: "emily-lawrence-wedding.ics",
     /** Stable across builds so re-importing updates the event instead of duplicating it. */
     uid: "20271024-wedding@emilyandlawrence.com",
@@ -56,7 +83,8 @@ export const wedding = {
         durationSeconds: 19.269,
         desktopPosition: "50% 47%",
         mobilePosition: "52% 50%",
-        overlayStrength: 0.46,
+        /** The approved wash (settings export, 20 Sep 2026). */
+        overlayStrength: 0.52,
         brightness: 0.95,
         saturation: 0.94,
         playbackRate: 1,

@@ -35,6 +35,21 @@ html[data-sheet-open] {
   outline-offset: 3px;
 }
 
+/* Announced, never drawn. The date is set as three visual groups, so the
+   spoken form of it lives here. */
+
+.std-page .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .std {
   position: relative;
   display: grid;
@@ -139,7 +154,7 @@ html[data-sheet-open] {
 
 /* `clip` rather than `hidden`: the card must never become a scroll container,
    or focusing the sheet would shift the whole composition inside it.
-   No `isolation` here — the frosted surface needs the stage in its backdrop. */
+   No `isolation` here — the frosted material needs the stage in its backdrop. */
 
 .invitation {
   position: relative;
@@ -151,217 +166,217 @@ html[data-sheet-open] {
   overflow: clip;
 }
 
+/* The surface carries no material of its own any more. The frost is a
+   separate band so that on a phone it can be shorter than the screen and
+   open clear venue above and below by the same amount — the behaviour the
+   whole approved mobile composition rests on.
+
+   It is also the container every size and gap is measured against, which is
+   how the invitation scales as one composition rather than as six
+   independently clamped lines. */
+
 .invitation__surface {
   position: relative;
   display: grid;
   grid-template-rows: 1fr;
-  background-color: rgba(var(--invitation-tint), var(--invitation-alpha));
-  /* Highlight falls from the upper right so the material shares the stage's
-     light direction instead of contradicting it. */
-  background-image: linear-gradient(
-    214deg,
-    rgba(255, 253, 247, 0.2) 0%,
-    transparent 42%,
-    rgba(208, 202, 186, 0.2) 100%
-  );
-  backdrop-filter: blur(var(--invitation-blur)) saturate(0.9);
-  -webkit-backdrop-filter: blur(var(--invitation-blur)) saturate(0.9);
-  transition: background-color var(--dur-cover) var(--ease-material);
+  container-type: inline-size;
 }
 
 .invitation__grain {
   position: absolute;
+  z-index: 1;
   inset: 0;
   background-image: url("../assets/materials/grain.svg");
   background-size: 180px 180px;
-  opacity: 0.3;
+  opacity: 0.22;
   mix-blend-mode: multiply;
   pointer-events: none;
 }
 
-/* The breathing row needs no drawn ornament: the stage's own planting reads
-   through the frosted material, which is the botanical treatment. */
+/* --------------------------------------------------------------- frost */
+
+/* Positioned by its centre, so changing the height alone opens clear video
+   above and below by the same amount. The blur lives here, so the venue is
+   genuinely unfrosted outside the band rather than merely lighter, and the
+   feather is a share of the band's own height so it stays proportionate. */
+
+.frost {
+  position: absolute;
+  z-index: 0;
+  top: var(--frost-y);
+  right: 0;
+  left: 0;
+  height: var(--frost-height);
+  background: rgba(var(--invitation-tint), var(--frost-alpha));
+  backdrop-filter: blur(var(--frost-blur)) saturate(0.9);
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 var(--frost-feather),
+    #000 calc(100% - var(--frost-feather)),
+    transparent 100%
+  );
+  mask-repeat: no-repeat;
+  pointer-events: none;
+  transform: translateY(-50%);
+  -webkit-backdrop-filter: blur(var(--frost-blur)) saturate(0.9);
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 var(--frost-feather),
+    #000 calc(100% - var(--frost-feather)),
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+}
 
 /* ------------------------------------------------------------- content */
 
-/* Four rows: label, names and details, one bounded breathing row, then the
-   action group. Only row three flexes, and it is clamped at both ends. */
-
-/* The breathing row is bounded at both ends, so it can never balloon. Any space
-   left over after that is shared evenly above and below the whole block rather
-   than collecting in one accidental void. */
-
 .invitation__content {
-  position: relative;
+  position: absolute;
   z-index: 2;
-  display: grid;
-  grid-template-rows: auto auto minmax(var(--breath-min), var(--breath-max)) auto;
-  align-content: center;
-  padding-inline: var(--edge);
-  padding-top: max(3.25rem, calc(env(safe-area-inset-top) + 2.25rem));
-  padding-bottom: max(1.75rem, env(safe-area-inset-bottom));
+  inset: 0;
 }
 
-/* ------------------------------------------------ mobile reading frame */
+/* ----------------------------------------------------------- editorial */
 
-/* On a narrow screen the invitation no longer behaves like one continuous
-   sheet of paper. The image is left crisp at the top and bottom, while a
-   feathered reading field settles behind the copy. This keeps every text tier
-   predictable without hiding the destination behind a full-screen veil. */
+/* The invitation itself: one left-aligned column, positioned in the card
+   rather than flowed, so the approved composition holds at any height. */
 
-@media (max-width: 47.99rem) and (orientation: portrait) {
-  .std {
-    --invitation-alpha-mobile: 0.16;
-    --mobile-feather-faint: 4%;
-    --mobile-feather-mid: 8%;
-    --mobile-feather-near: 12%;
-    --mobile-feather-solid: 18%;
-    --gap-header-names: clamp(1.5rem, 5vw, 2rem);
-    --gap-names-details: clamp(1.125rem, 4vw, 1.5rem);
-    --breath-min: clamp(2rem, 5svh, 3rem);
-    --breath-max: 5.25rem;
-  }
-
-  .invitation__surface {
-    background-image: linear-gradient(
-      214deg,
-      rgba(255, 253, 247, 0.07) 0%,
-      transparent 42%,
-      rgba(208, 202, 186, 0.07) 100%
-    );
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .invitation__surface::before {
-    position: absolute;
-    z-index: 1;
-    background: rgba(var(--invitation-tint), 0.9);
-    backdrop-filter: blur(18px) saturate(0.88);
-    -webkit-backdrop-filter: blur(18px) saturate(0.88);
-    content: "";
-    inset: 0;
-    mask-image: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(0, 0, 0, 0.12) var(--mobile-feather-faint),
-      rgba(0, 0, 0, 0.45) var(--mobile-feather-mid),
-      rgba(0, 0, 0, 0.78) var(--mobile-feather-near),
-      #000 var(--mobile-feather-solid),
-      #000 calc(100% - var(--mobile-feather-solid)),
-      rgba(0, 0, 0, 0.78) calc(100% - var(--mobile-feather-near)),
-      rgba(0, 0, 0, 0.45) calc(100% - var(--mobile-feather-mid)),
-      rgba(0, 0, 0, 0.12) calc(100% - var(--mobile-feather-faint)),
-      transparent 100%
-    );
-    mask-repeat: no-repeat;
-    pointer-events: none;
-    -webkit-mask-image: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(0, 0, 0, 0.12) var(--mobile-feather-faint),
-      rgba(0, 0, 0, 0.45) var(--mobile-feather-mid),
-      rgba(0, 0, 0, 0.78) var(--mobile-feather-near),
-      #000 var(--mobile-feather-solid),
-      #000 calc(100% - var(--mobile-feather-solid)),
-      rgba(0, 0, 0, 0.78) calc(100% - var(--mobile-feather-near)),
-      rgba(0, 0, 0, 0.45) calc(100% - var(--mobile-feather-mid)),
-      rgba(0, 0, 0, 0.12) calc(100% - var(--mobile-feather-faint)),
-      transparent 100%
-    );
-    -webkit-mask-repeat: no-repeat;
-  }
-
-  .invitation__grain {
-    z-index: 1;
-    opacity: 0.22;
-  }
-
-  .invitation__content {
-    padding-bottom: max(4.5rem, calc(env(safe-area-inset-bottom) + 3.5rem));
-  }
-}
-
-.invitation__header,
-.invitation__main,
-.invitation__footer {
-  transition:
-    opacity var(--dur-content) var(--ease-material),
-    transform var(--dur-content) var(--ease-material),
-    filter var(--dur-content) var(--ease-material);
-}
-
-.label {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: var(--label-size);
-  font-weight: 500;
-  letter-spacing: var(--label-tracking);
-  text-transform: uppercase;
-}
-
-.invitation__main {
-  display: grid;
-  align-content: start;
-  gap: var(--gap-names-details);
-  margin-top: var(--gap-header-names);
-}
-
-.names {
-  position: relative;
-  left: var(--names-offset-x);
-  top: var(--names-offset-y);
-  display: grid;
-  gap: var(--names-gap);
-  margin: 0;
+.editorial {
+  position: absolute;
+  top: var(--editorial-y-mobile);
+  right: var(--inset);
+  left: var(--inset);
+  color: var(--ink);
   font-family: var(--font-display);
-  font-size: var(--names-size);
-  font-weight: 400;
-  line-height: var(--names-leading);
-  letter-spacing: -0.01em;
-  overflow: visible;
-}
-
-.names__line {
-  display: block;
-}
-
-.names__amp {
-  display: block;
-  position: relative;
-  left: var(--amp-offset-x);
-  top: var(--amp-offset-y);
-  color: var(--sage-deep);
-  font-family: var(--font-ui);
-  font-size: var(--amp-size);
-  font-weight: 500;
   line-height: 1;
 }
 
-.details {
-  display: grid;
-  gap: var(--gap-date-place);
+/* `> *`, not `p, h1`: a type selector here would out-specify a single class
+   and silently cancel every approved gap. At equal specificity the line
+   rules below win on source order, and so do the responsive overrides at the
+   foot of the file - which a two-class rule here would quietly break. */
+
+.editorial > * {
+  margin: 0;
+  font-weight: 400;
 }
 
-.details__date {
-  margin: 0;
-  font-family: var(--font-ui);
-  font-size: var(--date-size);
-  font-weight: 500;
-  line-height: 1.25;
+/* Each line carries the gap that precedes it, so every gap in the approved
+   export maps to exactly one rule and nothing collapses unexpectedly. */
+
+.editorial__cue {
+  font-size: var(--size-cue);
+  font-weight: var(--weight-cue);
+  letter-spacing: var(--tracking-cue);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.details__place {
-  margin: 0;
+.editorial__names {
+  margin-top: var(--gap-cue-names);
+  font-size: var(--size-names);
+  font-weight: var(--weight-names);
+  letter-spacing: var(--tracking-names);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.editorial__date {
+  margin-top: var(--gap-names-date);
+  font-size: var(--size-date);
+  font-weight: var(--weight-date);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: var(--tracking-date);
+  white-space: nowrap;
+}
+
+/* Three groups, kept apart as groups: the date reads as a marked day rather
+   than as a number. */
+
+.editorial__date-group + .editorial__date-group {
+  margin-left: var(--date-gap);
+}
+
+.editorial__venue {
+  margin-top: var(--gap-date-venue);
+  font-size: var(--size-venue);
+  font-weight: var(--weight-venue);
+  letter-spacing: var(--tracking-venue);
+}
+
+.editorial__location {
+  margin-top: var(--gap-venue-lines);
+  font-size: var(--size-location);
+  font-weight: var(--weight-location);
+  letter-spacing: var(--tracking-location);
+  text-transform: uppercase;
+}
+
+.editorial__note {
+  margin-top: var(--gap-before-note);
   color: var(--ink-soft);
-  font-size: var(--place-size);
-  line-height: 1.5;
+  font-size: var(--size-note);
+  font-weight: var(--weight-note);
+  letter-spacing: var(--tracking-note);
 }
 
-.invitation__footer {
+/* The connective words. They step back a few weights and lose a little size
+   rather than changing typeface — the same move the companion already makes
+   on its ampersand, so "Emily and Lawrence" reads identically in both
+   products. */
+
+.editorial__soft {
+  display: inline-block;
+  color: var(--ink-soft);
+  font-weight: var(--soft-weight);
+  letter-spacing: 0;
+  text-transform: lowercase;
+  opacity: var(--soft-opacity);
+}
+
+.editorial__soft--the {
+  font-size: var(--the-size);
+  transform: translateY(var(--the-y));
+}
+
+.editorial__soft--and {
+  font-size: var(--and-size);
+  transform: translateY(var(--and-y));
+}
+
+/* ---------------------------------------------------------- functional */
+
+/* Anchored to the foot of the card rather than flowed after the wording: the
+   pause between the invitation and the controls is part of the composition,
+   and anchoring keeps it honest at every height instead of letting it
+   collapse on a short screen. */
+
+.functional {
+  position: absolute;
+  right: var(--inset);
+  bottom: var(--zone-y);
+  left: var(--inset);
   display: grid;
   justify-items: start;
   gap: var(--gap-countdown-cta);
+}
+
+/* A grid item will not shrink below its own max-content width unless told to,
+   which on a narrow column pushes the countdown straight out of the card
+   instead of letting it wrap. */
+
+.functional > *,
+.functional__actions > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.functional__actions {
+  display: grid;
+  justify-items: start;
+  gap: 2.6cqw;
 }
 
 .countdown {
@@ -379,6 +394,65 @@ html[data-sheet-open] {
 .countdown__sep {
   padding-inline: 0.4em;
   color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------ website link */
+
+/* The way into the companion. Quieter than Save to Calendar, because the
+   Save the Date is still the thing the guest was sent, but named in full so
+   the destination never needs working out. */
+
+.website {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 44px;
+  color: var(--ink);
+  font-size: var(--countdown-size);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.website > span {
+  position: relative;
+  padding-bottom: 0.12em;
+}
+
+/* The rule under the words draws in from the left on hover, rather than the
+   whole control changing state. */
+
+.website > span::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  opacity: 0.45;
+  transform: scaleX(1);
+  transform-origin: left center;
+  transition:
+    opacity var(--dur-control) var(--ease-local),
+    transform var(--dur-control) var(--ease-local);
+}
+
+.website:hover > span::after,
+.website:focus-visible > span::after {
+  opacity: 1;
+}
+
+.website__arrow {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+  transition: transform var(--dur-control) var(--ease-local);
+}
+
+.website:hover .website__arrow,
+.website:focus-visible .website__arrow {
+  transform: translateX(0.22em);
 }
 
 /* ------------------------------------------------------------------ cta */
@@ -430,16 +504,16 @@ html[data-sheet-open] {
   }
 }
 
-.invitation[data-phase="calendar-cue"] .cta {
+.invitation[data-cue] .cta {
   animation: calendar-cue 630ms var(--ease-local) 2;
 }
 
-.invitation[data-phase="calendar-cue"] .cta__mark {
+.invitation[data-cue] .cta__mark {
   opacity: 0.9;
   transform: scaleX(1.4);
 }
 
-.invitation[data-phase="calendar-opening"] .cta {
+.invitation[data-sheet="opening"] .cta {
   transform: scale(0.99);
 }
 
@@ -537,461 +611,404 @@ html[data-sheet-open] {
 
 /* --------------------------------------------------------------- cover */
 
+/* Two panels that part from a seam. They carry a flat tint and a soft
+   vertical fall; the atmosphere is painted once on the container beneath, so
+   the bright centre of the gradient is never drawn twice against the join
+   and doubled into a hard stripe.
+
+   Deliberately no `will-change` on the halves: promoting each to its own
+   composited layer left an unfiltered bright band down the seam on phones,
+   and the panels travel smoothly without it. */
+
 .cover {
   position: absolute;
+  z-index: 5;
+  backdrop-filter: blur(16px);
   inset: 0;
-  z-index: 3;
-  pointer-events: none;
+  -webkit-backdrop-filter: blur(16px);
+  transition: backdrop-filter var(--cover-open-seconds) var(--ease-aperture);
 }
 
-/* The two halves share one continuous atmosphere: each paints a 200%-wide
-   background anchored to its own outer edge, so the gradients meet exactly at
-   the seam and separate with the material. */
+.cover__atmos {
+  position: absolute;
+  background: var(--cover-atmos);
+  inset: 0;
+  pointer-events: none;
+  transition: opacity var(--cover-open-seconds) var(--ease-aperture);
+}
 
 .cover__half {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 50%;
-  background-color: var(--glass-fill);
-  background-image: var(--cover-atmos);
-  background-size: 200% 100%;
-  backdrop-filter: blur(10px) saturate(0.9);
-  -webkit-backdrop-filter: blur(10px) saturate(0.9);
-  transition: transform var(--dur-cover) var(--ease-aperture);
+  width: 50.2%;
+  background-color: rgba(9, 16, 12, 0.82);
+  background-image: linear-gradient(178deg, rgba(28, 42, 34, 0.3) 0%, rgba(7, 13, 10, 0.46) 100%);
+  transition: transform var(--cover-open-seconds) var(--ease-aperture);
 }
 
 .cover__half--left {
   left: 0;
-  background-position: 0 0;
 }
 
 .cover__half--right {
   right: 0;
-  background-position: 100% 0;
 }
 
-.cover__lock-line {
-  position: absolute;
-  width: 28%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(230, 237, 228, 0.42));
-  opacity: 0.28;
-  transition:
-    transform var(--dur-unlock) var(--ease-material),
-    opacity var(--dur-local) var(--ease-local);
-}
-
-.cover__lock-line--upper-left,
-.cover__lock-line--upper-right {
-  top: 38%;
-}
-
-.cover__lock-line--lower-left,
-.cover__lock-line--lower-right {
-  top: 62%;
-}
-
-.cover__lock-line--upper-left,
-.cover__lock-line--lower-left {
-  left: 14%;
-  transform-origin: left center;
-}
-
-.cover__lock-line--upper-right,
-.cover__lock-line--lower-right {
-  right: 14%;
-  background: linear-gradient(90deg, rgba(230, 237, 228, 0.42), transparent);
-  transform-origin: right center;
-}
-
-/* Two segments with a geometric gap around the control. Nothing overlaps or
-   masks the line — it simply stops, so no fragment can survive at any DPR. */
+/* The seam stops short of the mark, so no line ever crosses it. */
 
 .cover__seam {
   position: absolute;
   left: 50%;
   width: var(--seam-width);
-  background: linear-gradient(
-    180deg,
-    transparent,
-    var(--glass-edge) 26%,
-    var(--glass-edge) 74%,
-    transparent
-  );
-  transform: translateX(-50%) scaleY(0.72);
-  opacity: 0.5;
-  transition:
-    transform var(--dur-seam) var(--ease-material),
-    opacity var(--dur-seam) var(--ease-material);
+  background: linear-gradient(180deg, transparent, rgba(232, 228, 216, 0.34), transparent);
+  transform: translateX(-50%);
+  transition: opacity var(--dur-seam) var(--ease-local);
 }
 
 .cover__seam--top {
-  top: 11%;
-  bottom: calc(50% + var(--seam-control-size) / 2 + var(--seam-control-gap));
-  transform-origin: bottom center;
+  top: 0;
+  height: calc(50% - var(--mono-seam-gap));
 }
 
 .cover__seam--bottom {
-  top: calc(50% + var(--seam-control-size) / 2 + var(--seam-label-clearance));
-  bottom: 11%;
-  transform-origin: top center;
+  bottom: 0;
+  height: calc(50% - var(--mono-seam-gap));
 }
 
 /* -------------------------------------------------------------- opener */
 
-/* The ring is centred on the container's exact midpoint and the label is taken
-   out of flow, so the seam gap can be derived from that same midpoint. */
-
 .opener {
   position: absolute;
-  inset: 0;
-  z-index: 4;
+  z-index: 6;
   display: grid;
-  place-content: center;
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
-  transition:
-    opacity var(--dur-control) var(--ease-material),
-    transform var(--dur-control) var(--ease-material);
+  inset: 0;
+  gap: var(--seam-control-gap);
+  place-content: center;
+  justify-items: center;
+  transition: opacity 420ms var(--ease-material);
 }
 
-.opener__assembly {
+.opener:focus-visible {
+  border-radius: 50%;
+  outline: 2px solid rgba(240, 239, 230, 0.9);
+  outline-offset: 6px;
+}
+
+/* One box for both pieces, so they share a centre and cannot drift apart. */
+
+.mono {
   position: relative;
-  display: grid;
-  place-items: center;
-  width: var(--seam-control-size);
-  height: var(--seam-control-size);
-  border-radius: 50%;
-  background: var(--glass-sheen);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition:
-    background-color var(--dur-local) var(--ease-local),
-    transform var(--dur-local) var(--ease-local),
-    filter var(--dur-local) var(--ease-local);
+  display: block;
+  width: var(--mono-size);
+  max-width: 11rem;
+  aspect-ratio: 1;
 }
 
-/* The two cover panels meet behind the opener. A softly feathered seal makes
-   that physical join disappear inside the emblem, so the deliberate seam
-   segments read as stopping above and below rather than crossing the mark. */
-
-.opener__assembly::before {
+.mono__light {
   position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(42, 56, 47, 0.98) 0 72%,
-    rgba(34, 48, 40, 0.94) 80%,
-    rgba(20, 32, 26, 0.46) 89%,
-    transparent 100%
-  );
-  content: "";
-  inset: -0.85rem;
+  background: radial-gradient(circle at 50% 48%, rgba(226, 232, 214, 0.9) 0%, transparent 68%);
+  inset: -18%;
+  opacity: var(--mono-light);
   pointer-events: none;
 }
 
-.opener__ring {
+/* Outer: the slow turn. Rotation is expressed as a signed end angle rather
+   than two keyframe sets, so reversing never restarts it mid-turn. */
+
+.mono__outer {
   position: absolute;
-  top: 50%;
-  left: 50%;
   display: block;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition:
-    transform var(--dur-align) var(--ease-material),
-    border-color var(--dur-local) var(--ease-local),
-    opacity var(--dur-local) var(--ease-local);
+  fill: none;
+  inset: 0;
+  animation: mono-turn var(--mono-rotate-duration) linear infinite;
 }
 
-.opener__ring--outer {
-  width: 100%;
-  height: 100%;
-  background: repeating-conic-gradient(
-    from 2deg,
-    rgba(238, 244, 236, 0.52) 0deg 24deg,
-    transparent 24deg 31deg
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0);
+.mono__ring {
+  stroke: rgba(232, 228, 216, 0.28);
+  stroke-width: 0.9;
 }
 
-.opener__ring--inner {
-  width: 72%;
-  height: 72%;
-  border: 1px solid rgba(238, 244, 236, 0.32);
+/* One heavier arc, so the turn is visible at all. A perfect ring would hide
+   it completely. */
+
+.mono__arc {
+  stroke: rgba(232, 228, 216, 0.72);
+  stroke-width: 1.1;
+  stroke-dasharray: 52 294;
+  stroke-linecap: round;
 }
 
-.opener__ticks {
+.mono__ticks path {
+  stroke: rgba(232, 228, 216, 0.5);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+/* Inner: the identity, breathing. */
+
+.mono__inner {
   position: absolute;
-  inset: -0.22rem;
-  transition:
-    transform var(--dur-align) var(--ease-material),
-    opacity var(--dur-local) var(--ease-local);
+  display: grid;
+  inset: 0;
+  gap: 0.34em;
+  place-content: center;
+  justify-items: center;
+  color: #e8e4d8;
+  font-family: var(--font-display);
+  font-size: calc(var(--mono-size) * 0.19);
+  line-height: 1;
+  animation: mono-breathe var(--mono-breath-duration) ease-in-out infinite;
 }
 
-.opener__ticks span {
-  position: absolute;
-  top: -0.08rem;
-  left: 50%;
-  width: 1px;
-  height: 0.38rem;
-  background: rgba(238, 244, 236, 0.56);
-  transform-origin: 50% calc(var(--seam-control-size) / 2 + 0.3rem);
+.mono__roof {
+  width: 2.1em;
+  height: 0.7em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
 }
 
-.opener__ticks span:nth-child(2) {
-  transform: rotate(90deg);
+.mono__initials {
+  display: flex;
+  align-items: baseline;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  /* The tracking is symmetrical only if the trailing space is removed. */
+  text-indent: 0.1em;
 }
 
-.opener__ticks span:nth-child(3) {
-  transform: rotate(180deg);
-}
-
-.opener__ticks span:nth-child(4) {
-  transform: rotate(270deg);
-}
-
-.opener__mark {
-  position: relative;
-  color: rgba(246, 248, 244, 0.92);
-  font-family: var(--font-ui);
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: 0.035em;
+.mono__amp {
+  padding-inline: 0.06em;
+  font-weight: 200;
+  font-size: 0.82em;
+  opacity: 0.7;
 }
 
 .opener__label {
-  position: absolute;
-  top: calc(50% + var(--seam-control-size) / 2 + 1.15rem);
-  left: 50%;
-  color: rgba(232, 238, 230, 0.78);
-  font-size: var(--label-size);
+  color: rgba(232, 228, 216, 0.7);
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: var(--label-tracking);
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  transform: translateX(-50%);
-  transition: color var(--dur-local) var(--ease-local);
 }
 
-.opener:hover .opener__assembly,
-.opener:focus-visible .opener__assembly {
-  background: rgba(238, 244, 236, 0.1);
-  filter: brightness(1.12);
-}
-
-.opener:hover .opener__label,
-.opener:focus-visible .opener__label {
-  color: rgba(242, 246, 240, 0.95);
-}
-
-.opener:active .opener__assembly {
-  transform: scale(0.97);
-}
-
-@keyframes access-breathe {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: brightness(1);
+@keyframes mono-turn {
+  to {
+    rotate: var(--mono-rotate-to);
   }
+}
+
+@keyframes mono-breathe {
   50% {
-    transform: scale(1.012);
-    filter: brightness(1.08);
+    scale: var(--mono-breath-scale);
   }
 }
 
-/* ------------------------------------------------------- phase machine */
+/* ------------------------------------------------------- entrance machine */
 
-/* Default markup state is `composed`, so the invitation is fully readable
-   with no JavaScript. The inline boot script moves it to `sealed`. */
+/* The whole entrance is one attribute on the card, so the sequence is
+   inspectable from a single place and can be read backwards for the reseal.
+   Phases and durations come from lib/entrance-machine.ts, which is fed the
+   approved settings; these rules only say what each phase looks like.
+
+   Default markup state is `still`, so the invitation is fully readable with
+   no JavaScript. The inline boot script moves a first-time visitor to
+   `closed`. */
+
+.frost,
+.editorial,
+.functional {
+  transition:
+    opacity var(--wording-arrival-seconds) var(--ease-material),
+    transform var(--wording-arrival-seconds) var(--ease-material);
+}
+
+/* Closed through venue: the film is on its own. No material, no wording, no
+   countdown - this is what gives the Ocean Pavilion its moment. */
 
 .invitation:is(
-    [data-phase="sealed"],
-    [data-phase="engaging"],
-    [data-phase="aligning"],
-    [data-phase="unlocking"],
-    [data-phase="seam-release"],
-    [data-phase="aperture-opening"],
-    [data-phase="reseal-panels"],
-    [data-phase="reseal-seam"],
-    [data-phase="reseal-locking"]
+    [data-entrance="closed"],
+    [data-entrance="acknowledge"],
+    [data-entrance="opening"],
+    [data-entrance="venue"]
   )
-  :is(.invitation__header, .invitation__main, .invitation__footer) {
+  :is(.frost, .editorial, .functional) {
   opacity: 0;
-  filter: blur(2px);
+}
+
+.invitation[data-entrance="material"] :is(.editorial, .functional) {
+  opacity: 0;
+}
+
+.invitation[data-entrance="material"] .frost {
+  opacity: 1;
+  transition-duration: var(--frost-arrival-seconds);
+}
+
+.invitation:is([data-entrance="content"], [data-entrance="functional"], [data-entrance="still"])
+  .frost {
+  opacity: 1;
+}
+
+.invitation[data-entrance="content"] .functional {
+  opacity: 0;
+}
+
+.invitation:is([data-entrance="content"], [data-entrance="functional"], [data-entrance="still"])
+  .editorial {
+  opacity: 1;
+}
+
+.invitation:is([data-entrance="functional"], [data-entrance="still"]) .functional {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------ wording arrival */
+
+/* Each line is a word inside a window: the window clips, the word rises
+   through it. The same grammar the companion uses for its own arrival
+   (styles/screen-home.css), at a slower pace.
+
+   One rule covers content, functional and still so the declaration never
+   changes as the phase advances - which is what stops the animation
+   restarting three times on its way to settled. */
+
+.rise {
+  display: inline-block;
+}
+
+.editorial :is(p, h1),
+.editorial__date-group {
+  /* The window. Padding keeps descenders off the clip edge. */
+  padding-bottom: 0.1em;
+  overflow: hidden;
+}
+
+.invitation:is([data-entrance="content"], [data-entrance="functional"], [data-entrance="still"])
+  .rise {
+  animation: rise var(--rise-duration) var(--ease-material) both;
+  animation-delay: calc(var(--step, 0) * var(--rise-step));
+}
+
+.editorial__cue .rise {
+  --step: 0;
+}
+
+.editorial__names .rise {
+  --step: 1;
+}
+
+/* The three groups resolve in turn, so the date reads left to right as it is
+   spoken rather than appearing as one block. */
+
+.editorial__date-group .rise {
+  --step: calc(2 + var(--group) * 0.5);
+}
+
+.editorial__venue .rise {
+  --step: 4;
+}
+
+.editorial__location .rise {
+  --step: 4.5;
+}
+
+.editorial__note .rise {
+  --step: 5.5;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(105%);
+  }
+}
+
+/* --------------------------------------------------------- cover travel */
+
+/* Only closed and acknowledge hold the panels shut; from `opening` onwards
+   they clear and stay clear. */
+
+.invitation:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .cover {
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+}
+
+.invitation:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .cover__atmos {
+  opacity: 0;
+}
+
+.invitation:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .cover__half--left {
+  transform: translateX(-101%);
+}
+
+.invitation:not([data-entrance="closed"]):not([data-entrance="acknowledge"]) .cover__half--right {
+  transform: translateX(101%);
+}
+
+.invitation:not([data-entrance="closed"]):not([data-entrance="acknowledge"])
+  :is(.opener, .cover__seam) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Once the cover has gone it must not intercept anything, but it is only
+   removed from the accessibility tree after it has finished travelling. */
+
+.invitation:is(
+    [data-entrance="material"],
+    [data-entrance="content"],
+    [data-entrance="functional"],
+    [data-entrance="still"]
+  )
+  .cover {
   visibility: hidden;
 }
 
-.invitation[data-phase="reseal-softening"]
-  :is(.invitation__header, .invitation__main, .invitation__footer) {
-  opacity: 0.58;
-  filter: blur(1.5px);
-  transition-duration: 300ms;
+/* Press acknowledgement: the mark compresses, immediately, before the cover
+   starts to travel. */
+
+.invitation[data-entrance="acknowledge"] .mono__inner {
+  animation-play-state: paused;
+  scale: var(--mono-press);
+  transition: scale 180ms var(--ease-local);
 }
 
-.invitation[data-phase="content-revealing"]
-  :is(.invitation__header, .invitation__main, .invitation__footer) {
-  opacity: 1;
-  filter: none;
+.invitation[data-entrance="acknowledge"] .mono__outer {
+  animation-duration: calc(var(--mono-rotate-duration) / 3);
+}
+
+/* Once settled, nothing entrance-specific keeps moving. */
+
+.invitation[data-entrance="still"] :is(.mono__outer, .mono__inner) {
+  animation-play-state: paused;
+}
+
+/* ------------------------------------------------------------- reseal */
+
+/* The reseal walks the same timeline backwards, so the panels close with
+   their own slower curve rather than snapping back. */
+
+.invitation[data-resealing] .cover {
   visibility: visible;
 }
 
-/* The paper is barely present while the cover is closed, so the destination
-   reads through the material, then resolves into being as the cover parts. */
-
-.invitation:is(
-    [data-phase="sealed"],
-    [data-phase="engaging"],
-    [data-phase="aligning"],
-    [data-phase="unlocking"],
-    [data-phase="seam-release"],
-    [data-phase="reseal-panels"],
-    [data-phase="reseal-seam"],
-    [data-phase="reseal-locking"]
-  )
-  .invitation__surface {
-  --invitation-alpha: var(--invitation-alpha-closed);
-}
-
-.invitation:is(
-    [data-phase="composed"],
-    [data-phase="calendar-cue"],
-    [data-phase="calendar-opening"],
-    [data-phase="calendar-open"],
-    [data-phase="calendar-closing"]
-  )
-  :is(.cover, .opener) {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.invitation:is(
-    [data-phase="aperture-opening"],
-    [data-phase="content-revealing"],
-    [data-phase="composed"],
-    [data-phase="calendar-cue"],
-    [data-phase="calendar-opening"],
-    [data-phase="calendar-open"],
-    [data-phase="calendar-closing"],
-    [data-phase="reseal-softening"]
-  )
-  .cover__half--left {
-  transform: translateX(-102%);
-}
-
-.invitation:is(
-    [data-phase="aperture-opening"],
-    [data-phase="content-revealing"],
-    [data-phase="composed"],
-    [data-phase="calendar-cue"],
-    [data-phase="calendar-opening"],
-    [data-phase="calendar-open"],
-    [data-phase="calendar-closing"],
-    [data-phase="reseal-softening"]
-  )
-  .cover__half--right {
-  transform: translateX(102%);
-}
-
-.invitation:is(
-    [data-phase="reseal-panels"],
-    [data-phase="reseal-seam"],
-    [data-phase="reseal-locking"]
-  )
-  .cover__half {
+.invitation[data-resealing] .cover__half {
   transition-duration: var(--dur-close);
   transition-timing-function: var(--ease-reseal);
 }
 
-.invitation:is(
-    [data-phase="seam-release"],
-    [data-phase="aperture-opening"],
-    [data-phase="reseal-seam"]
-  )
-  .cover__seam {
-  transform: translateX(-50%) scaleY(1);
-  opacity: 1;
-  box-shadow: 0 0 0.75rem rgba(244, 236, 209, 0.5);
-}
-
-.invitation[data-phase="aperture-opening"] .cover__seam {
-  opacity: 0;
-  transition-delay: 120ms;
-}
-
-.invitation[data-phase="sealed"] .opener__assembly {
-  animation: access-breathe 4.8s ease-in-out infinite;
-}
-
-.invitation[data-phase="engaging"] .opener__assembly {
-  transform: scale(0.985);
-  filter: brightness(1.12);
-}
-
-.invitation:is([data-phase="aligning"], [data-phase="unlocking"], [data-phase="seam-release"])
-  .opener__ring--outer {
-  transform: translate(-50%, -50%) rotate(88deg);
-}
-
-.invitation:is([data-phase="aligning"], [data-phase="unlocking"], [data-phase="seam-release"])
-  .opener__ring--inner {
-  transform: translate(-50%, -50%) rotate(-34deg);
-}
-
-.invitation:is([data-phase="aligning"], [data-phase="unlocking"]) .cover__lock-line {
-  opacity: 0.78;
-}
-
-.invitation:is(
-    [data-phase="unlocking"],
-    [data-phase="seam-release"],
-    [data-phase="aperture-opening"]
-  )
-  .cover__lock-line {
-  transform: scaleX(0);
-  opacity: 0;
-}
-
-.invitation:is(
-    [data-phase="aperture-opening"],
-    [data-phase="content-revealing"],
-    [data-phase="composed"],
-    [data-phase="calendar-cue"],
-    [data-phase="calendar-opening"],
-    [data-phase="calendar-open"],
-    [data-phase="calendar-closing"],
-    [data-phase="reseal-softening"],
-    [data-phase="reseal-panels"],
-    [data-phase="reseal-seam"]
-  )
-  .cover__lock-line {
-  transform: scaleX(0);
-  opacity: 0;
-}
-
-.invitation:is([data-phase="reseal-softening"], [data-phase="reseal-panels"]) .cover__seam {
-  opacity: 0;
-}
-
-.invitation[data-phase="reseal-locking"] .cover__lock-line {
-  transform: scaleX(1);
-  opacity: 0.62;
-}
-
-.invitation:is(
-    [data-phase="aperture-opening"],
-    [data-phase="content-revealing"],
-    [data-phase="reseal-softening"],
-    [data-phase="reseal-panels"],
-    [data-phase="reseal-seam"],
-    [data-phase="reseal-locking"]
-  )
-  .opener {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+.invitation[data-resealing] :is(.editorial, .functional, .frost) {
+  transition-duration: 420ms;
 }
 
 /* --------------------------------------------------------------- sheet */
@@ -1138,28 +1155,22 @@ html[data-sheet-open] {
 
 /* ---------------------------------------------------------- sheet open */
 
-.invitation:is(
-    [data-phase="calendar-opening"],
-    [data-phase="calendar-open"],
-    [data-phase="calendar-closing"]
-  )
-  .sheet-layer,
+.invitation:is([data-sheet="opening"], [data-sheet="open"], [data-sheet="closing"]) .sheet-layer,
 .std:not([data-enhanced]) .sheet-layer:target {
   visibility: visible;
 }
 
-.invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"]) .sheet-scrim,
+.invitation:is([data-sheet="opening"], [data-sheet="open"]) .sheet-scrim,
 .std:not([data-enhanced]) .sheet-layer:target .sheet-scrim {
   opacity: 1;
 }
 
-.invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"]) .sheet,
+.invitation:is([data-sheet="opening"], [data-sheet="open"]) .sheet,
 .std:not([data-enhanced]) .sheet-layer:target .sheet {
   transform: translateY(0);
 }
 
-.invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"])
-  :is(.sheet__header, .sheet__providers),
+.invitation:is([data-sheet="opening"], [data-sheet="open"]) :is(.sheet__header, .sheet__providers),
 .std:not([data-enhanced]) .sheet-layer:target :is(.sheet__header, .sheet__providers) {
   opacity: 1;
   transform: none;
@@ -1182,27 +1193,16 @@ html[data-sheet-open] {
     object-position: var(--video-position-desktop, var(--stage-position-desktop));
   }
 
-  /* The staged card is a fixed-proportion object, so its type and spacing are
-     expressed as a share of its own height. The composition then holds
-     identically from a short laptop to a large display, instead of the content
-     overflowing a card that cannot grow. */
+  /* The invitation becomes a portrait object presented on the stage. Because
+     every size and gap is a share of the card's own width, the composition
+     that was designed on a phone arrives here unchanged - only larger. */
 
   .invitation {
-    --invitation-alpha: var(--invitation-alpha-desktop);
-    --label-size: 1.6cqh;
-    --names-size: 12.1cqh;
-    --date-size: 3.6cqh;
-    --place-size: 2.2cqh;
-    --countdown-size: 1.66cqh;
-    --gap-header-names: 6cqh;
-    --gap-names-details: 4.4cqh;
-    --gap-date-place: 1.1cqh;
-    --gap-countdown-cta: 2.4cqh;
-    --gap-cta-note: 3cqh;
-    --breath-min: 4cqh;
-    --breath-max: 9cqh;
-    --invitation-pad-y: 6.6cqh;
-    --invitation-pad-x: 6.2cqh;
+    /* A 5:7 card is proportionally shorter than a phone screen, so the
+       functional zone is anchored nearer the foot than it is on a phone.
+       At the phone's 18% the controls run into the note while the bottom of
+       the card sits empty. */
+    --zone-y: 9%;
 
     width: auto;
     height: min(84svh, 49rem);
@@ -1212,7 +1212,22 @@ html[data-sheet-open] {
     border: 1px solid var(--invitation-border);
     border-radius: var(--invitation-radius);
     box-shadow: var(--invitation-shadow);
-    container-type: size;
+  }
+
+  .editorial {
+    top: var(--editorial-y-desktop);
+  }
+
+  /* On a computer the card is already an object with edges, so the band fills
+     it and the feather is dropped: the frosted-height control is plainly a
+     phone tool and cannot quietly alter the desktop composition. */
+
+  .frost {
+    top: 50%;
+    height: 100%;
+    background: rgba(var(--invitation-tint), var(--invitation-alpha-desktop));
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 
   /* A brighter halo immediately behind the object, so it sits in the scene
@@ -1238,14 +1253,23 @@ html[data-sheet-open] {
     pointer-events: none;
   }
 
-  .invitation__content {
-    padding: var(--invitation-pad-y) var(--invitation-pad-x);
+  .invitation__surface {
+    border-radius: inherit;
+    overflow: clip;
+  }
+
+  .countdown {
+    font-size: 2.6cqw;
+  }
+
+  .website {
+    font-size: 2.6cqw;
   }
 
   .cta {
-    min-height: 6.2cqh;
-    padding: 1.6cqh 2.9cqh;
-    font-size: 1.92cqh;
+    min-height: 0;
+    padding: 2.4cqw 4.2cqw;
+    font-size: 2.7cqw;
   }
 
   /* On the stage rather than the paper, so it takes the stage's light. */
@@ -1283,184 +1307,138 @@ html[data-sheet-open] {
   .sheet {
     border-radius: 0.75rem 0.75rem 0 0;
   }
-
-  html[data-display-type="sirivennela"] .std .invitation {
-    --names-size: 15.1cqh;
-    --names-leading: 0.75;
-    --names-gap: 0.08em;
-    --names-offset-y: 0.04em;
-  }
-
-  html[data-display-type="montecarlo"] .std .invitation {
-    --names-size: 14.1cqh;
-    --names-leading: 0.82;
-    --names-gap: 0.05em;
-    --names-offset-y: 0;
-  }
-
-  html[data-display-type="corinthia"] .std .invitation {
-    --names-size: 16.2cqh;
-    --names-leading: 0.7;
-    --names-gap: 0.1em;
-    --names-offset-y: 0.08em;
-  }
-
-  html[data-display-type="parisienne"] .std .invitation {
-    --names-size: 13.2cqh;
-    --names-leading: 0.86;
-    --names-gap: 0.05em;
-    --names-offset-y: 0;
-  }
 }
 
-@media (max-width: 47.99rem) and (max-height: 38rem) {
+/* ------------------------------------------------------- narrow phones */
+
+/* Below about 360px the composition is the same, but the functional zone
+   needs a little more of the card or the calendar control crowds the note. */
+
+@media (max-width: 22.5rem) {
   .std {
-    --mobile-feather-faint: 2%;
-    --mobile-feather-mid: 4%;
-    --mobile-feather-near: 7%;
-    --mobile-feather-solid: 10%;
-  }
-
-  .invitation__content {
-    --gap-header-names: 1.35rem;
-    --gap-names-details: 1rem;
-    --breath-min: 1.25rem;
-    --breath-max: 2rem;
-    padding-top: max(1.5rem, calc(env(safe-area-inset-top) + 1rem));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-
-  html[data-display-type="sirivennela"] .std {
-    --names-size: 4.35rem;
-  }
-
-  html[data-display-type="montecarlo"] .std {
-    --names-size: 4rem;
-  }
-
-  html[data-display-type="corinthia"] .std {
-    --names-size: 4.8rem;
-  }
-
-  html[data-display-type="parisienne"] .std {
-    --names-size: 3.9rem;
+    --zone-y: 14%;
+    --editorial-y-mobile: 34%;
   }
 }
 
-/* Short landscape screens keep the full-bleed invitation, but recompose its
-   reading frame into two calm columns so the action never falls below the
-   viewport. */
+/* ----------------------------------------------------- short landscape */
 
-@media (max-height: 40rem) and (min-width: 34rem) {
+/* Landscape phones are wide and very short. The band and the anchored
+   functional zone would collide, so the invitation becomes two columns: the
+   wording on the left, the controls beside it, both vertically centred. The
+   frost fills the screen here because there is no room to show venue above
+   and below and still read the invitation. */
+
+@media (max-height: 30rem) and (min-width: 34rem) and (orientation: landscape) {
   .invitation {
-    --label-size: 0.65rem;
-    --names-size: clamp(3.35rem, 8vw, 4.5rem);
-    --names-leading: 0.74;
-    --names-gap: 0.05em;
-    --date-size: clamp(1rem, 2.5vw, 1.35rem);
-    --place-size: 0.8125rem;
-    --countdown-size: 0.6875rem;
     height: 100svh;
     min-height: 100svh;
   }
 
-  .invitation__content {
-    grid-template-rows: auto auto;
-    grid-template-columns: minmax(0, 1.12fr) minmax(12.5rem, 0.88fr);
-    align-content: center;
-    column-gap: clamp(1.5rem, 6vw, 4rem);
-    padding: 1.25rem clamp(2rem, 6vw, 4rem);
+  .frost {
+    top: 50%;
+    height: 100%;
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 
-  .invitation__header {
-    grid-column: 1;
-    grid-row: 1;
+  .editorial {
+    top: 50%;
+    right: auto;
+    width: 52%;
+    transform: translateY(-50%);
   }
 
-  .invitation__main {
-    grid-column: 1;
-    grid-row: 2;
-    gap: 0.75rem;
-    margin-top: 0.875rem;
+  .editorial__cue {
+    font-size: 2.6cqw;
   }
 
-  .invitation__breath {
-    display: none;
+  .editorial__names {
+    font-size: 4.1cqw;
   }
 
-  .invitation__footer {
-    grid-column: 2;
-    grid-row: 1 / 3;
-    align-self: center;
-    gap: 0.875rem;
+  .editorial__date {
+    font-size: 3.3cqw;
   }
 
-  .note {
-    margin-top: 0;
+  .editorial__venue {
+    font-size: 2.35cqw;
   }
 
-  html[data-display-type="montecarlo"] .std {
-    --names-size: clamp(3.15rem, 7.5vw, 4.15rem);
+  .editorial__location {
+    font-size: 2.3cqw;
   }
 
-  html[data-display-type="corinthia"] .std {
-    --names-size: clamp(3.7rem, 9vw, 5rem);
+  .editorial__note {
+    margin-top: 3.5cqw;
+    font-size: 1.95cqw;
   }
 
-  html[data-display-type="parisienne"] .std {
-    --names-size: clamp(3rem, 7.2vw, 4rem);
+  .functional {
+    top: 50%;
+    bottom: auto;
+    left: auto;
+    width: 38%;
+    gap: 2.2cqw;
+    transform: translateY(-50%);
+  }
+
+  .countdown,
+  .website {
+    font-size: 1.9cqw;
   }
 }
 
 /* --------------------------------------------- no backdrop-filter support */
 
 /* Without the blur the material would read as a flat transparent panel, so the
-   surface becomes considerably more opaque and keeps its own depth. */
+   frost becomes considerably more opaque and keeps its own depth. */
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .std {
+    --frost-alpha: 0.95;
     --invitation-alpha-desktop: 0.95;
-    --invitation-alpha-mobile: 0.96;
-    --invitation-alpha-closed: 0.4;
     --glass-fill: rgba(11, 19, 15, 0.9);
   }
 }
 
 /* ------------------------------------------------------ reduced motion */
 
+/* A deliberately authored short version rather than every duration set to
+   nearly zero: the cover still clears and the venue still gets its own brief
+   beat, so the interaction stays legible, but nothing loops and nothing
+   lingers. The wording resolves in place instead of rising. */
+
 @media (prefers-reduced-motion: reduce) {
-  .invitation__header,
-  .invitation__main,
-  .invitation__footer,
-  .invitation__surface,
-  .cover__half,
-  .cover__seam,
-  .cover__lock-line,
-  .opener,
-  .opener__assembly,
-  .opener__ring,
-  .opener__ticks,
+  .std {
+    --cover-open-seconds: 220ms;
+    --frost-arrival-seconds: 200ms;
+    --wording-arrival-seconds: 200ms;
+    --rise-duration: 200ms;
+    --rise-step: 0ms;
+  }
+
+  .mono__outer,
+  .mono__inner {
+    animation: none;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+    }
+  }
+
   .cta,
   .sheet,
-  .sheet-scrim {
+  .sheet-scrim,
+  .website__arrow {
     transition-duration: 120ms;
     transition-delay: 0ms;
   }
 
-  .invitation[data-phase="sealed"] .invitation__header,
-  .invitation[data-phase="sealed"] .invitation__main,
-  .invitation[data-phase="sealed"] .invitation__footer {
-    transform: none;
-  }
-
-  .invitation[data-phase="sealed"] .opener__assembly,
-  .invitation[data-phase="calendar-cue"] .cta {
+  .invitation[data-cue] .cta {
     animation: none;
-  }
-
-  .cover__half--left,
-  .cover__half--right {
-    transition-property: opacity;
   }
 
   .sheet {
@@ -1472,41 +1450,44 @@ html[data-sheet-open] {
    operating-system preference remains the primary production path. */
 
 html[data-reduced-motion] {
-  .invitation__header,
-  .invitation__main,
-  .invitation__footer,
-  .invitation__surface,
-  .cover__half,
-  .cover__seam,
-  .cover__lock-line,
-  .opener,
-  .opener__assembly,
-  .opener__ring,
-  .opener__ticks,
+  .std {
+    --cover-open-seconds: 220ms;
+    --frost-arrival-seconds: 200ms;
+    --wording-arrival-seconds: 200ms;
+    --rise-duration: 200ms;
+    --rise-step: 0ms;
+  }
+
+  .mono__outer,
+  .mono__inner {
+    animation: none;
+  }
+
+  .rise {
+    animation-name: rise-fade !important;
+  }
+
   .cta,
   .sheet,
-  .sheet-scrim {
+  .sheet-scrim,
+  .website__arrow {
     transition-duration: 120ms;
     transition-delay: 0ms;
   }
 
-  .invitation[data-phase="sealed"] .invitation__header,
-  .invitation[data-phase="sealed"] .invitation__main,
-  .invitation[data-phase="sealed"] .invitation__footer {
-    transform: none;
-  }
-
-  .invitation[data-phase="sealed"] .opener__assembly,
-  .invitation[data-phase="calendar-cue"] .cta {
+  .invitation[data-cue] .cta {
     animation: none;
-  }
-
-  .cover__half--left,
-  .cover__half--right {
-    transition-property: opacity;
   }
 
   .sheet {
     transition-property: opacity;
+  }
+}
+
+/* The reduced-motion arrival: presence without travel. */
+
+@keyframes rise-fade {
+  from {
+    opacity: 0;
   }
 }

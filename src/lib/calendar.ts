@@ -1,4 +1,4 @@
-import { wedding } from "../config/wedding";
+import { WEDDING_WEBSITE_URL, wedding } from "../config/wedding";
 
 const CRLF = "\r\n";
 
@@ -42,6 +42,9 @@ export function buildIcs(): string {
     `SUMMARY:${escapeText(wedding.calendar.title)}`,
     `LOCATION:${escapeText(eventLocation)}`,
     `DESCRIPTION:${escapeText(wedding.calendar.description)}`,
+    // The website twice over: readable in the description above, and here in
+    // the field clients surface as their own "link" affordance.
+    `URL;VALUE=URI:${WEDDING_WEBSITE_URL}`,
     "STATUS:CONFIRMED",
     "TRANSP:TRANSPARENT",
     "END:VEVENT",

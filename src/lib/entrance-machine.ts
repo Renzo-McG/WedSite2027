@@ -105,6 +105,35 @@ export function entranceDuration(timing: EntranceTiming): number {
 }
 
 /**
+ * The reseal: the same timeline read backwards.
+ *
+ * Closing is not the opening played in rewind at the same pace. The venue
+ * hold exists to give the film a moment before the invitation arrives, and
+ * there is nothing to wait for on the way out, so it is dropped; the layers
+ * simply leave in the reverse order they came, each over a fraction of its
+ * arrival, and the cover then closes on its own slower curve.
+ *
+ * Expressed here rather than as its own constant so it can never drift out of
+ * step with the arrival it reverses.
+ */
+export function reverseEntrance(timing: EntranceTiming): EntranceStep[] {
+  const leaving = Math.max(0, Math.round(timing.artworkArrival * 0.45));
+  const material = Math.max(0, Math.round(timing.frostArrival * 0.45));
+
+  const contentAt = 0;
+  const materialAt = contentAt + leaving;
+  const venueAt = materialAt + material;
+  const closedAt = venueAt + Math.max(0, Math.round(timing.coverOpen * 0.2));
+
+  return [
+    { phase: "content", at: contentAt },
+    { phase: "material", at: materialAt },
+    { phase: "venue", at: venueAt },
+    { phase: "closed", at: closedAt },
+  ];
+}
+
+/**
  * The moment the venue is on its own — cover gone, nothing of the invitation
  * yet. Used by the studio's "jump to the venue moment" checkpoint and by the
  * tests that guarantee the beat actually exists.
