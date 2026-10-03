@@ -65,5 +65,40 @@ function largeTitle(): void {
   observer.observe(title);
 }
 
+function calendarPicker(): void {
+  const dialog = document.querySelector<HTMLDialogElement>("[data-calendar-dialog]");
+  if (!dialog) return;
+  const menu = document.querySelector<HTMLElement>("#site-menu");
+  const close = dialog.querySelector<HTMLButtonElement>("[data-calendar-close]");
+  let returnFocus: HTMLElement | null = null;
+
+  document.querySelectorAll<HTMLButtonElement>("[data-calendar-open]").forEach((button) => {
+    button.addEventListener("click", () => {
+      returnFocus = button.closest("#site-menu")
+        ? document.querySelector<HTMLElement>(".appbar__menu")
+        : button;
+      if (menu?.matches(":popover-open")) menu.hidePopover();
+      dialog.showModal();
+      close?.focus({ preventScroll: true });
+    });
+  });
+
+  close?.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (event) => {
+    if (event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if (
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom
+    ) {
+      dialog.close();
+    }
+  });
+  dialog.addEventListener("close", () => returnFocus?.focus({ preventScroll: true }));
+}
+
 startClock();
 largeTitle();
+calendarPicker();

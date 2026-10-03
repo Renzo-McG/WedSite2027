@@ -5,6 +5,59 @@
 
 /* ================================================================== tabs */
 
+.travel-film {
+  position: relative;
+  height: clamp(72px, 23vw, 230px);
+  margin: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--deep);
+  isolation: isolate;
+}
+
+.travel-film::after {
+  position: absolute;
+  inset: 42% 0 0;
+  background: linear-gradient(transparent, rgba(11, 37, 36, 0.52));
+  content: "";
+  pointer-events: none;
+}
+
+.travel-film__still,
+.travel-film__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 55%;
+}
+
+.travel-film__caption {
+  position: absolute;
+  z-index: 1;
+  bottom: 18px;
+  left: 20px;
+  color: white;
+  font-size: var(--t-sm);
+  font-weight: 650;
+}
+
+.travel-film__credit {
+  z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .travel-film {
+    border-radius: 14px;
+  }
+
+  .travel-film__caption {
+    bottom: 14px;
+    left: 14px;
+  }
+}
+
 .tabs {
   display: grid;
   gap: 22px;
@@ -43,6 +96,10 @@
    keeps the explorer controls above the persistent tab bar instead of making
    the guest scroll just to discover them. */
 @media (max-width: 1023px) and (max-height: 600px) and (orientation: landscape) {
+  .travel-film {
+    display: none;
+  }
+
   .screen {
     gap: 12px;
   }
@@ -1586,41 +1643,42 @@
   font-size: var(--t-sm);
 }
 
-/*
- * Where to get Grab. Compact buttons in the site's own language rather than
- * the official store badges, which would be the only brand marks anywhere in
- * the companion. They wrap onto their own line on a narrow phone.
- */
 .way__apps {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 10px;
-  margin-top: 6px;
+  gap: 6px 8px;
+  margin-top: 10px;
 }
 
 .way__apps-label {
-  color: var(--ink-3);
+  flex-basis: 100%;
+  color: var(--ink-2);
   font-size: var(--t-xs);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .way__app {
-  min-height: 36px;
-  padding: 5px 12px;
-  border-radius: var(--pill);
-  color: var(--deep);
-  background: var(--sand);
-  box-shadow: inset 0 0 0 1px var(--line);
-  font-size: var(--t-xs);
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border-radius: 8px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .way__app:hover {
-    background: var(--paper);
-    box-shadow: inset 0 0 0 1px var(--lagoon);
-  }
+.way__app img {
+  display: block;
+  width: auto;
+  height: 40px;
+  max-width: 100%;
+}
+
+.way__app--google img {
+  height: 50px;
+}
+
+.way__app:focus-visible {
+  outline: 2px solid var(--lagoon);
+  outline-offset: 3px;
 }
 
 /* ============================================================== checklist */

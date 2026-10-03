@@ -4,7 +4,7 @@ import { countdownLabel, countdownParts, countdownUnits } from "../../lib/countd
 
 /**
  * Rendered at build time so the countdown is meaningful without JavaScript,
- * then kept live to the second by the client script.
+ * then updated at minute boundaries by the client script.
  */
 const target = new Date(wedding.date.countdownTarget).getTime();
 const parts = countdownParts(target, Date.now());

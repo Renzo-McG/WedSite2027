@@ -14,12 +14,11 @@ function before(days: number, hours: number, minutes: number, seconds: number): 
 }
 
 describe("countdown", () => {
-  it("splits the remaining time down to seconds", () => {
+  it("splits the remaining time into calm minute-resolution units", () => {
     expect(countdownParts(target, before(2, 3, 4, 5))).toEqual({
       days: 2,
       hours: 3,
       minutes: 4,
-      seconds: 5,
     });
   });
 
@@ -28,21 +27,19 @@ describe("countdown", () => {
     expect(countdownParts(target, target + 1000)).toBeNull();
   });
 
-  it("pads hours, minutes and seconds so the line keeps a stable width", () => {
-    expect(countdownUnits({ days: 446, hours: 4, minutes: 12, seconds: 9 })).toEqual([
+  it("pads hours and minutes so the line keeps a stable width", () => {
+    expect(countdownUnits({ days: 446, hours: 4, minutes: 12 })).toEqual([
       "446 days",
       "04 hours",
       "12 minutes",
-      "09 seconds",
     ]);
   });
 
   it("offers a compact form for narrow viewports", () => {
-    expect(countdownUnitsCompact({ days: 446, hours: 4, minutes: 12, seconds: 9 })).toEqual([
+    expect(countdownUnitsCompact({ days: 446, hours: 4, minutes: 12 })).toEqual([
       "446 days",
       "04h",
       "12m",
-      "09s",
     ]);
   });
 
@@ -52,7 +49,7 @@ describe("countdown", () => {
   });
 
   it("keeps the accessible label coarse so seconds are never announced", () => {
-    const parts = { days: 446, hours: 4, minutes: 12, seconds: 9 };
+    const parts = { days: 446, hours: 4, minutes: 12 };
     const label = countdownLabel(parts, "24 October 2027");
     expect(label).toBe("446 days until 24 October 2027");
     expect(label).not.toContain("second");

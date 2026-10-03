@@ -1,7 +1,7 @@
 ---
 /**
- * App-icon monogram. The roof line over the initials is the Ocean Pavilion's
- * A-frame, the venue's own architecture.
+ * A small architectural signature drawn from the Ocean Pavilion's nested
+ * timber A-frames. The baseline and supports keep it distinct from a play icon.
  */
 interface Props {
   size?: "sm" | "md";
@@ -10,8 +10,9 @@ const { size = "md" } = Astro.props;
 ---
 
 <span class:list={["monogram", `monogram--${size}`]} aria-hidden="true">
-  <svg class="monogram__roof" viewBox="0 0 24 8" focusable="false">
-    <path d="M2 7.2 12 1l10 6.2"></path>
+  <svg class="monogram__pavilion" viewBox="0 0 40 40" fill="none" focusable="false">
+    <path d="M7.5 29.5 20 9l12.5 20.5"></path>
+    <path d="M12.5 29.5 20 16l7.5 13.5"></path>
+    <path d="M15.5 29.5V23M24.5 29.5V23M8 30.5h24"></path>
   </svg>
-  <span class="monogram__initials">E<span class="monogram__amp">&amp;</span>L</span>
 </span>

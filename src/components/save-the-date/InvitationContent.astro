@@ -36,7 +36,12 @@ const websiteHref = `${import.meta.env.BASE_URL}welcome/`;
     <div class="invitation__actions">
       <a class="cta" href="#calendar-enclosure" data-sheet-open>
         <span>Save to Calendar</span>
-        <span class="cta__mark" aria-hidden="true"></span>
+        <span class="cta__icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" focusable="false">
+            <rect x="2.5" y="4.5" width="15" height="13" rx="2"></rect>
+            <path d="M2.5 8h15M6.5 2.5v4M13.5 2.5v4M6.5 11.5h2M11.5 11.5h2"></path>
+          </svg>
+        </span>
       </a>
       <a class="website-link" href={websiteHref}>
         Explore our website <span class="website-link__arrow" aria-hidden="true">→</span>

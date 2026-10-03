@@ -46,6 +46,7 @@ const landFrom = pct(along(-0.55));
 const landTo = pct(along(0.62));
 const heading = (Math.atan2(r1.y - r0.y, r1.x - r0.x) * 180) / Math.PI;
 const optionIcons = { Grab: "phone", "Metered taxi": "taxi", "Hotel car": "car" } as const;
+const base = import.meta.env.BASE_URL;
 ---
 
 <div class="arrive" data-arrive>
@@ -136,11 +137,28 @@ const optionIcons = { Grab: "phone", "Metered taxi": "taxi", "Hotel car": "car" 
               <span class="way__detail">{option.detail}</span>
               {"apps" in option && option.apps && (
                 <span class="way__apps">
-                  <span class="way__apps-label">Get the app</span>
+                  <span class="way__apps-label">Download the Grab app before you travel</span>
                   {option.apps.map((app) => (
-                    <ExternalLink href={app.href} site={app.site} class="way__app">
-                      {app.store}
-                    </ExternalLink>
+                    <a
+                      class:list={["way__app", app.store === "Google Play" && "way__app--google"]}
+                      href={app.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Get Grab on ${app.store} (opens a new tab)`}
+                    >
+                      <img
+                        src={`${base}assets/store-badges/${app.store === "App Store" ? "app-store.svg" : "google-play.png"}`}
+                        alt={
+                          app.store === "App Store"
+                            ? "Download on the App Store"
+                            : "Get it on Google Play"
+                        }
+                        width={app.store === "App Store" ? 120 : 130}
+                        height={40}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </a>
                   ))}
                 </span>
               )}

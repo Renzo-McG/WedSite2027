@@ -15,11 +15,15 @@ describe("v1.2 experience state machine", () => {
       "unlocking",
       "seam-release",
       "aperture-opening",
+      "venue-hold",
+      "material-revealing",
+      "material-settling",
       "content-revealing",
       "composed",
     ]);
     expect(OPEN_SEQUENCE.find((step) => step.phase === "seam-release")?.at).toBe(760);
-    expect(OPEN_SEQUENCE.at(-1)?.at).toBe(3650);
+    expect(OPEN_SEQUENCE.find((step) => step.phase === "material-revealing")?.at).toBe(5900);
+    expect(OPEN_SEQUENCE.at(-1)?.at).toBe(9650);
   });
 
   it("does not permit a video reset until the reseal has fully resolved", () => {

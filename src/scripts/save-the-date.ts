@@ -20,9 +20,6 @@ import {
 } from "../lib/experience-machine";
 import { selectStageVideo, type StageVideo } from "../lib/stage-video";
 
-const STORAGE_KEY = "eandl.save-the-date.v1";
-const OPENED = "opened";
-const CALENDAR_USED_KEY = "eandl.calendar-used:v1";
 const COMPACT_COUNTDOWN = "(max-width: 26rem)";
 
 interface StageMediaController {
@@ -43,38 +40,6 @@ function storageOrNull(kind: "localStorage" | "sessionStorage"): Storage | null 
     return window[kind];
   } catch {
     return null;
-  }
-}
-
-function readOpened(): boolean {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) === OPENED;
-  } catch {
-    return false;
-  }
-}
-
-function writeOpened(): void {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, OPENED);
-  } catch {
-    // Blocked storage simply replays the opening on a later visit.
-  }
-}
-
-function hasUsedCalendarThisSession(): boolean {
-  try {
-    return window.sessionStorage.getItem(CALENDAR_USED_KEY) === "used";
-  } catch {
-    return false;
-  }
-}
-
-function markCalendarUsedThisSession(): void {
-  try {
-    window.sessionStorage.setItem(CALENDAR_USED_KEY, "used");
-  } catch {
-    // The finite cue may replay on refresh when session storage is blocked.
   }
 }
 
@@ -124,8 +89,10 @@ function configureStageVideo(stage: HTMLElement | null): StageMediaController {
   video.playbackRate = selected.playbackRate;
 
   let started = false;
+  let requested = false;
   let ended = false;
   let environmentPaused = false;
+  let playToken = 0;
 
   const markFailure = (): void => {
     stage.dataset.videoState = "fallback";
@@ -136,14 +103,16 @@ function configureStageVideo(stage: HTMLElement | null): StageMediaController {
   const playWithoutBlocking = (): void => {
     if (prefersReducedMotion() || ended || environmentPaused) return;
     started = true;
+    const token = ++playToken;
     stage.dataset.videoState = "starting";
     const promise = video.play();
     if (promise) {
       promise
         .then(() => {
-          stage.dataset.videoState = "playing";
+          if (token === playToken) stage.dataset.videoState = "playing";
         })
         .catch(() => {
+          if (token !== playToken) return;
           started = false;
           markFailure();
         });
@@ -162,11 +131,23 @@ function configureStageVideo(stage: HTMLElement | null): StageMediaController {
 
   return {
     start(): void {
-      if (started || ended) return;
+      // Deliberate Open owns a fresh playback, even after a previous final-frame hold.
+      ++playToken;
+      video.pause();
+      try {
+        video.currentTime = 0;
+      } catch {
+        // Before metadata is ready the source is already positioned at its start.
+      }
+      video.hidden = false;
+      requested = true;
+      started = false;
+      ended = false;
       playWithoutBlocking();
     },
     resetAfterSeal(): void {
       // Called only after the reseal sequence has reached the fully sealed state.
+      ++playToken;
       video.pause();
       try {
         video.currentTime = 0;
@@ -174,15 +155,18 @@ function configureStageVideo(stage: HTMLElement | null): StageMediaController {
         // A failed/unavailable source is already presenting the static fallback.
       }
       started = false;
+      requested = false;
       ended = false;
       stage.dataset.videoState = "sealed";
     },
     setEnvironmentPaused(paused: boolean): void {
       environmentPaused = paused;
-      if (!started || ended) return;
+      if (!requested || ended) return;
       if (paused) {
-        video.pause();
-        stage.dataset.videoState = "paused";
+        if (started) {
+          video.pause();
+          stage.dataset.videoState = "paused";
+        }
       } else {
         playWithoutBlocking();
       }
@@ -203,7 +187,6 @@ function setUpExperience(root: HTMLElement): void {
   const stageMedia = configureStageVideo(stage);
 
   let phaseTimers: number[] = [];
-  let cueTimers: number[] = [];
   let lastFocused: HTMLElement | null = null;
 
   page?.setAttribute("data-enhanced", "");
@@ -219,11 +202,6 @@ function setUpExperience(root: HTMLElement): void {
   function clearPhaseTimers(): void {
     phaseTimers.forEach((timer) => window.clearTimeout(timer));
     phaseTimers = [];
-  }
-
-  function clearCueTimers(): void {
-    cueTimers.forEach((timer) => window.clearTimeout(timer));
-    cueTimers = [];
   }
 
   function play(
@@ -248,26 +226,8 @@ function setUpExperience(root: HTMLElement): void {
     if (back) back.hidden = !visible;
   }
 
-  function scheduleCalendarCue(): void {
-    clearCueTimers();
-    if (hasUsedCalendarThisSession() || phase() !== "composed") return;
-
-    cueTimers.push(
-      window.setTimeout(() => {
-        if (phase() !== "composed") return;
-        setPhase("calendar-cue");
-        cueTimers.push(
-          window.setTimeout(() => {
-            if (phase() === "calendar-cue") setPhase("composed");
-          }, 1260),
-        );
-      }, 760),
-    );
-  }
-
   function openInvitation(): void {
     if (phase() !== "sealed") return;
-    clearCueTimers();
     showBack(false);
     play(
       prefersReducedMotion() ? REDUCED_OPEN_SEQUENCE : OPEN_SEQUENCE,
@@ -275,16 +235,13 @@ function setUpExperience(root: HTMLElement): void {
         if (next === "seam-release") stageMedia.start();
       },
       () => {
-        writeOpened();
         showBack(true);
-        scheduleCalendarCue();
       },
     );
   }
 
   function resealInvitation(): void {
     if (phase() !== "composed" && phase() !== "calendar-cue") return;
-    clearCueTimers();
     showBack(false);
     play(prefersReducedMotion() ? REDUCED_RESEAL_SEQUENCE : RESEAL_SEQUENCE, undefined, () => {
       // The media reset is intentionally after the final sealed state.
@@ -293,9 +250,16 @@ function setUpExperience(root: HTMLElement): void {
     });
   }
 
-  setPhase(readOpened() ? "composed" : "sealed");
-  showBack(phase() === "composed");
-  if (phase() === "composed") scheduleCalendarCue();
+  setPhase("sealed");
+  showBack(false);
+
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+    clearPhaseTimers();
+    setPhase("sealed");
+    showBack(false);
+    stageMedia.resetAfterSeal();
+  });
 
   opener?.addEventListener("click", openInvitation);
   back?.addEventListener("click", resealInvitation);
@@ -316,8 +280,6 @@ function setUpExperience(root: HTMLElement): void {
 
   function openSheet(): void {
     if (!sheet || (phase() !== "composed" && phase() !== "calendar-cue")) return;
-    clearCueTimers();
-    markCalendarUsedThisSession();
     lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     sheet.setAttribute("aria-modal", "true");
     document.documentElement.setAttribute("data-sheet-open", "");
@@ -429,7 +391,7 @@ function setUpExperience(root: HTMLElement): void {
           render();
           schedule();
         },
-        1000 - (Date.now() % 1000),
+        60_000 - (Date.now() % 60_000),
       );
     };
 

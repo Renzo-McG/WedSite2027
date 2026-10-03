@@ -1,0 +1,47 @@
+---
+import Icon from "./Icon.astro";
+import { calendarProviders } from "../../lib/calendar";
+
+const base = import.meta.env.BASE_URL;
+const providers = calendarProviders(base);
+---
+
+<dialog class="calendar-picker" data-calendar-dialog aria-labelledby="calendar-picker-title">
+  <div class="calendar-picker__head">
+    <div>
+      <p class="calendar-picker__eyebrow">Emily & Lawrence</p>
+      <h2 id="calendar-picker-title">Save to Calendar</h2>
+    </div>
+    <button
+      class="calendar-picker__close"
+      type="button"
+      data-calendar-close
+      aria-label="Close calendar options"
+    >
+      <Icon name="close" size={20} />
+    </button>
+  </div>
+  <p class="calendar-picker__intro">Choose where to keep Sunday, 24 October 2027.</p>
+  <ul class="calendar-picker__providers">
+    {
+      providers.map((provider) => (
+        <li>
+          <a
+            class="calendar-picker__provider"
+            href={provider.href}
+            target={provider.external ? "_blank" : undefined}
+            rel={provider.external ? "noopener noreferrer" : undefined}
+            download={provider.external ? undefined : true}
+            aria-label={`${provider.name}${provider.external ? " (opens in a new tab)" : " (downloads calendar file)"}`}
+          >
+            <img src={`${base}provider-assets/${provider.icon}`} alt="" width="28" height="28" />
+            <span>{provider.name}</span>
+            <span class="calendar-picker__cue" aria-hidden="true">
+              {provider.cue}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</dialog>

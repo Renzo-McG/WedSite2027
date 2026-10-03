@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildIcs, googleCalendarUrl } from "../src/lib/calendar";
+import { buildIcs, calendarProviders, googleCalendarUrl } from "../src/lib/calendar";
 
 describe("calendar enclosure export", () => {
   const ics = buildIcs();
@@ -31,5 +31,17 @@ describe("calendar enclosure export", () => {
     expect(url.searchParams.get("dates")).toBe("20271024/20271025");
     expect(url.searchParams.get("text")).toBe("Emily & Lawrence — Wedding");
     expect(url.searchParams.get("location")).toBe("Shangri-La Mactan, Cebu, Philippines");
+  });
+
+  it("shares the same three provider destinations across both experiences", () => {
+    const providers = calendarProviders("/WedSite2027/");
+    expect(providers.map((provider) => provider.name)).toEqual([
+      "Google Calendar",
+      "Apple Calendar",
+      "Microsoft Outlook",
+    ]);
+    expect(providers[0]?.href).toBe(googleCalendarUrl());
+    expect(providers[1]?.href).toBe("/WedSite2027/emily-lawrence-wedding.ics");
+    expect(providers[2]?.href).toBe(providers[1]?.href);
   });
 });

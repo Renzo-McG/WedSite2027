@@ -34,6 +34,16 @@
   filter: saturate(calc(1 + var(--p) * 0.25)) sepia(calc(var(--p) * 0.22));
 }
 
+.vow__film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 36% 40%;
+  filter: saturate(1.06);
+}
+
 /* Golden hour: a sun that sinks across the Pavilion as you scroll. */
 .vow__light {
   position: absolute;
@@ -307,51 +317,8 @@ html:active-view-transition-type(morph) .vow__line > span {
   color: var(--ink-2);
 }
 
-.providers {
-  display: grid;
-  gap: 10px;
-}
-
-@media (min-width: 720px) {
-  .providers {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.provider {
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
-  align-items: center;
-  gap: 12px;
-  min-height: 60px;
-  padding: 12px 16px;
-  border-radius: var(--r-md);
-  background: var(--paper);
-  box-shadow:
-    var(--shadow-1),
-    inset 0 0 0 1px var(--line);
-  font-weight: 700;
-  transition:
-    box-shadow var(--d-base) var(--ease-out),
-    transform var(--d-press) var(--ease-out);
-}
-
-.provider:active {
-  transform: scale(0.98);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .provider:hover {
-    box-shadow:
-      var(--shadow-2),
-      inset 0 0 0 1px var(--line-2);
-  }
-}
-
-.provider__cue {
-  color: var(--ink-3);
-  font-size: var(--t-xs);
-  font-weight: 650;
+.keep__calendar {
+  justify-self: start;
 }
 
 .next {

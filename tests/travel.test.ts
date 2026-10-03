@@ -307,9 +307,10 @@ describe("product shell", () => {
     expect(welcomeSource).toContain("intersectionRatio < 0.18");
     expect(welcomeSource).toContain('addEventListener("toggle"');
     expect(journeySource).not.toMatch(/window\.addEventListener\("(wheel|touchmove|keydown)"/);
-    expect(journeySource).toContain('stage.addEventListener("pointerdown"');
-    expect(journeySource).toContain("rect.bottom < window.innerHeight * 0.35");
-    expect(journeySource).toContain("intersectionRatio < 0.22");
+    expect(journeySource).not.toContain('stage.addEventListener("pointerdown"');
+    expect(journeySource).not.toContain('window.addEventListener("scroll"');
+    expect(journeySource).toContain('stage.addEventListener("click"');
+    expect(journeySource).toContain('stage.dataset.motionOwner = "user"');
     expect(journeySource).toContain('addEventListener("toggle"');
   });
 
@@ -321,7 +322,7 @@ describe("product shell", () => {
     expect(flightPlannerSource).toContain("First flight");
     expect(flightPlannerSource).toContain("Onward flight");
     expect(journeySource).toContain("for (const input of inputs)");
-    expect(journeySource).toContain("preview(input.value, 2700)");
+    expect(journeySource).toContain("preview(input.value, 3800)");
   });
 
   it("identifies every external link", () => {

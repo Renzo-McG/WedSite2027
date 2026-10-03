@@ -32,19 +32,12 @@ import CalendarSheet from "./CalendarSheet.astro";
   </button>
 </div>
 
-<!-- Runs before first paint so returning visitors never see the closed state
-     flash, and first-time visitors never see the open one. -->
+<!-- Every navigation begins with the invitation sealed. The composed markup
+     remains available when JavaScript is disabled. -->
 <script is:inline>
   (function () {
     const root = document.querySelector("[data-invitation]");
-    if (!root) return;
-    let opened = false;
-    try {
-      opened = window.localStorage.getItem("eandl.save-the-date.v1") === "opened";
-    } catch {
-      /* Blocked storage simply replays the opening next visit. */
-    }
-    root.setAttribute("data-phase", opened ? "composed" : "sealed");
+    root?.setAttribute("data-phase", "sealed");
   })();
 </script>
 

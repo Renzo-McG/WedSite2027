@@ -5,10 +5,13 @@
  */
 import AppShell from "../../layouts/AppShell.astro";
 import ScreenHeader from "../../components/app/ScreenHeader.astro";
+import Picture from "../../components/app/Picture.astro";
+import Credit from "../../components/app/Credit.astro";
 import Icon from "../../components/app/Icon.astro";
 import FlightPlanner from "../../components/travel/FlightPlanner.astro";
 import ArrivalPanel from "../../components/travel/ArrivalPanel.astro";
 import PrepChecklist from "../../components/travel/PrepChecklist.astro";
+import { venueImages } from "../../data/site";
 import "../../styles/screen-travel.css";
 import "../../styles/map.css";
 
@@ -17,6 +20,7 @@ const tabs = [
   { id: "arriving", label: "Arriving", icon: "pin" as const, heading: "Arriving in Cebu" },
   { id: "prepare", label: "Before you fly", icon: "passport" as const, heading: "Before you fly" },
 ];
+const base = import.meta.env.BASE_URL;
 ---
 
 <AppShell
@@ -25,6 +29,24 @@ const tabs = [
   description="How to fly from London to Cebu for the wedding: three good routes compared, planning fares, arriving at Mactan-Cebu airport and what to do before you fly."
 >
   <ScreenHeader title="Travel" lead="London to Cebu, with one change on the way." />
+
+  <figure class="travel-film" data-scroll-film>
+    <Picture
+      image={venueImages.aerial}
+      sizes="(min-width: 1024px) calc(100vw - 248px), 100vw"
+      class="travel-film__still"
+    />
+    <video
+      class="travel-film__video scroll-film__video"
+      data-film-video
+      data-src={`${base}assets/guide/film/pavilion-coast.mp4`}
+      muted
+      playsinline
+      preload="none"
+      aria-hidden="true"></video>
+    <figcaption class="travel-film__caption">The Ocean Pavilion awaits in Cebu.</figcaption>
+    <Credit image={venueImages.aerial} class="travel-film__credit" />
+  </figure>
 
   <div class="tabs" data-tabs>
     <div
@@ -94,5 +116,6 @@ const tabs = [
     import "../../scripts/app/arrive";
     import "../../scripts/app/checklist";
     import "../../scripts/app/fare-scale";
+    import "../../scripts/app/scroll-film";
   </script>
 </AppShell>

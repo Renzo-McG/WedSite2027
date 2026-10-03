@@ -332,6 +332,7 @@
   position: relative;
   display: grid;
   gap: 18px;
+  overflow-anchor: none;
 }
 
 @media (max-width: 1023px) {
@@ -344,6 +345,16 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
+  }
+
+  .stay[data-enhanced] .hotels[data-sorting] {
+    scroll-snap-type: none;
+  }
+
+  .stay[data-enhanced] .hotels[data-sorting] .hotel__card {
+    animation: none !important;
+    opacity: 1;
+    scale: 1;
   }
 
   .stay[data-enhanced] .hotels::-webkit-scrollbar {

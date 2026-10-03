@@ -31,6 +31,9 @@ if (root) {
 
   let active = "";
   let drive: Tween | null = null;
+  let sorting = false;
+  let sortEpoch = 0;
+  let sortAnimations: Animation[] = [];
 
   /** Where a pin sits, as percentages of the map. */
   const spot = (id: string) => {
@@ -200,6 +203,7 @@ if (root) {
     if (!phone.matches || !("IntersectionObserver" in window)) return;
     observer = new IntersectionObserver(
       (entries) => {
+        if (sorting) return;
         const best = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
@@ -212,7 +216,8 @@ if (root) {
   phone.addEventListener("change", watchRail);
   watchRail();
 
-  // Sorting: reorder the DOM, animate the move, renumber, hop the pins.
+  // Sorting preserves card identity, active hotel and map state. Only position
+  // belongs to the sort; rank labels update without competing motion.
   const renumber = () => {
     cards().forEach((card, i) => {
       const id = card.dataset.hotel!;
@@ -221,32 +226,6 @@ if (root) {
       for (const el of [rank, pinRank]) {
         if (!el || el.textContent === String(i + 1)) continue;
         el.textContent = String(i + 1);
-        if (!reduceMotion()) {
-          el.animate(
-            [
-              { transform: "translateY(60%)", opacity: 0 },
-              { transform: "none", opacity: 1 },
-            ],
-            {
-              duration: 360,
-              delay: i * 50,
-              easing: "cubic-bezier(0.23, 1, 0.32, 1)",
-              fill: "backwards",
-            },
-          );
-        }
-      }
-      if (!reduceMotion()) {
-        pin(id)
-          ?.querySelector<HTMLElement>(".pin__body")
-          ?.animate(
-            [
-              { transform: "none" },
-              { transform: "translateY(-10px)", offset: 0.4 },
-              { transform: "none" },
-            ],
-            { duration: 520, delay: 120 + i * 70, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
-          );
       }
     });
   };
@@ -254,7 +233,13 @@ if (root) {
   const sort = root.querySelector<HTMLElement>("[data-sort]");
   sort?.addEventListener("change", (event) => {
     const by = (event.target as HTMLInputElement).value as "distance" | "price";
+    const epoch = ++sortEpoch;
+    sorting = true;
+    observer?.disconnect();
+    list.dataset.sorting = "";
     const before = new Map(cards().map((c) => [c, c.getBoundingClientRect()]));
+    sortAnimations.forEach((animation) => animation.cancel());
+    sortAnimations = [];
     const sorted = cards().sort(
       (a, b) =>
         Number(a.dataset[by]) - Number(b.dataset[by]) ||
@@ -269,30 +254,37 @@ if (root) {
       const dot = dots?.querySelector(`[data-dot="${card.dataset.hotel}"]`);
       if (dot) dots!.appendChild(dot);
     });
-    list.scrollTo({ left: 0 });
+    if (phone.matches) {
+      const selected = sorted.find((card) => card.dataset.hotel === active);
+      if (selected)
+        list.scrollLeft = selected.offsetLeft - (list.clientWidth - selected.clientWidth) / 2;
+    }
     renumber();
     if (!reduceMotion()) {
-      sorted.forEach((card, i) => {
+      sorted.forEach((card) => {
         const was = before.get(card)!;
         const now = card.getBoundingClientRect();
         const dx = was.left - now.left;
         const dy = was.top - now.top;
         if (!dx && !dy) return;
-        card.animate(
-          [
-            { transform: `translate(${dx}px, ${dy}px)`, zIndex: 2 },
-            { transform: `translate(${dx / 2}px, ${dy / 2}px) scale(1.03)`, offset: 0.5 },
-            { transform: "none", zIndex: 2 },
-          ],
-          { duration: 620, delay: i * 30, easing: "cubic-bezier(0.77, 0, 0.175, 1)" },
+        sortAnimations.push(
+          card.animate(
+            [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "translate(0, 0)" }],
+            { duration: 620, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+          ),
         );
       });
     }
-    const first = sorted[0]?.dataset.hotel;
-    if (first) {
-      active = "";
-      setActive(first);
-    }
+    window.setTimeout(
+      () => {
+        if (epoch !== sortEpoch) return;
+        sorting = false;
+        delete list.dataset.sorting;
+        sortAnimations = [];
+        watchRail();
+      },
+      reduceMotion() ? 0 : 640,
+    );
   });
 
   // Details: a sheet that grows out of the photograph.

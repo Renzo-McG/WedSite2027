@@ -5,6 +5,9 @@ export type ExperiencePhase =
   | "unlocking"
   | "seam-release"
   | "aperture-opening"
+  | "venue-hold"
+  | "material-revealing"
+  | "material-settling"
   | "content-revealing"
   | "composed"
   | "calendar-cue"
@@ -28,8 +31,11 @@ export const OPEN_SEQUENCE: readonly ExperienceStep[] = [
   { phase: "unlocking", at: 520 },
   { phase: "seam-release", at: 760 },
   { phase: "aperture-opening", at: 980 },
-  { phase: "content-revealing", at: 1850 },
-  { phase: "composed", at: 3650 },
+  { phase: "venue-hold", at: 2400 },
+  { phase: "material-revealing", at: 5900 },
+  { phase: "material-settling", at: 6950 },
+  { phase: "content-revealing", at: 7250 },
+  { phase: "composed", at: 9650 },
 ];
 
 export const RESEAL_SEQUENCE: readonly ExperienceStep[] = [
@@ -42,8 +48,11 @@ export const RESEAL_SEQUENCE: readonly ExperienceStep[] = [
 
 export const REDUCED_OPEN_SEQUENCE: readonly ExperienceStep[] = [
   { phase: "engaging", at: 0 },
-  { phase: "content-revealing", at: 70 },
-  { phase: "composed", at: 170 },
+  { phase: "venue-hold", at: 70 },
+  { phase: "material-revealing", at: 1370 },
+  { phase: "material-settling", at: 1490 },
+  { phase: "content-revealing", at: 1610 },
+  { phase: "composed", at: 1740 },
 ];
 
 export const REDUCED_RESEAL_SEQUENCE: readonly ExperienceStep[] = [

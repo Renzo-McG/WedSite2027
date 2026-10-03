@@ -2,19 +2,18 @@ export interface CountdownParts {
   days: number;
   hours: number;
   minutes: number;
-  seconds: number;
 }
 
 /** Returns null once the target has passed, so callers can show a resolved date. */
 export function countdownParts(targetMs: number, nowMs: number): CountdownParts | null {
-  const totalSeconds = Math.floor((targetMs - nowMs) / 1000);
-  if (totalSeconds <= 0) return null;
+  const remaining = targetMs - nowMs;
+  if (remaining <= 0) return null;
+  const totalMinutes = Math.floor(remaining / 60_000);
 
   return {
-    days: Math.floor(totalSeconds / 86400),
-    hours: Math.floor((totalSeconds % 86400) / 3600),
-    minutes: Math.floor((totalSeconds % 3600) / 60),
-    seconds: totalSeconds % 60,
+    days: Math.floor(totalMinutes / 1440),
+    hours: Math.floor((totalMinutes % 1440) / 60),
+    minutes: totalMinutes % 60,
   };
 }
 
@@ -27,7 +26,7 @@ export function formatUnit(value: number, singular: string): string {
 }
 
 /**
- * Full wording for wider viewports. Hours, minutes and seconds stay two-digit so
+ * Full wording for wider viewports. Hours and minutes stay two-digit so
  * the line holds a stable width as the numbers change.
  */
 export function countdownUnits(parts: CountdownParts): string[] {
@@ -35,18 +34,12 @@ export function countdownUnits(parts: CountdownParts): string[] {
     formatUnit(parts.days, "day"),
     `${pad(parts.hours)} hours`,
     `${pad(parts.minutes)} minutes`,
-    `${pad(parts.seconds)} seconds`,
   ];
 }
 
-/** Compact wording for narrow viewports: `446 days · 04h · 12m · 09s`. */
+/** Compact wording for narrow viewports: `446 days · 04h · 12m`. */
 export function countdownUnitsCompact(parts: CountdownParts): string[] {
-  return [
-    formatUnit(parts.days, "day"),
-    `${pad(parts.hours)}h`,
-    `${pad(parts.minutes)}m`,
-    `${pad(parts.seconds)}s`,
-  ];
+  return [formatUnit(parts.days, "day"), `${pad(parts.hours)}h`, `${pad(parts.minutes)}m`];
 }
 
 /**

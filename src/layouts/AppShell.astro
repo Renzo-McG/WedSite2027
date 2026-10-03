@@ -14,10 +14,10 @@
 import BaseLayout from "./BaseLayout.astro";
 import Icon from "../components/app/Icon.astro";
 import Monogram from "../components/app/Monogram.astro";
+import CalendarPicker from "../components/app/CalendarPicker.astro";
 import Names from "../components/app/Names.astro";
 import Coastline from "../components/app/Coastline.astro";
 import { destinations, type Destination } from "../data/site";
-import { googleCalendarUrl } from "../lib/calendar";
 import manropeFont from "../assets/fonts/manrope-400-600-latin.woff2?url";
 import viewTransitionCss from "../styles/view-transitions.css?raw";
 import "../styles/app.css";
@@ -167,10 +167,10 @@ const order = destinations.map((d) => d.id);
       </nav>
 
       <div class="rail__foot">
-        <a class="rail__quiet" href={`${base}emily-lawrence-wedding.ics`} download>
+        <button class="rail__quiet" type="button" data-calendar-open>
           <Icon name="calendar" size={16} />
-          Add to calendar
-        </a>
+          Save to Calendar
+        </button>
         <a class="rail__quiet" href={base}>
           <Icon name="chevron-left" size={16} />
           The Save the Date
@@ -263,26 +263,17 @@ const order = destinations.map((d) => d.id);
       </nav>
 
       <div class="sheet__actions" style="--i: 5">
-        <a class="button button--secondary" href={`${base}emily-lawrence-wedding.ics`} download>
+        <button class="button button--secondary" type="button" data-calendar-open>
           <Icon name="calendar" size={18} />
-          Add to calendar
-        </a>
-        <a
-          class="button button--ghost"
-          href={googleCalendarUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Google Calendar
-          <Icon name="arrow-out" size={16} />
-          <span class="visually-hidden">(opens google.com in a new tab)</span>
-        </a>
+          Save to Calendar
+        </button>
         <a class="sheet__std" href={base}>
           <Icon name="chevron-left" size={16} />
           Back to the Save the Date
         </a>
       </div>
     </div>
+    <CalendarPicker />
   </div>
 
   <script>

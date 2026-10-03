@@ -166,7 +166,10 @@ html[data-sheet-open] {
   );
   backdrop-filter: blur(var(--invitation-blur)) saturate(0.9);
   -webkit-backdrop-filter: blur(var(--invitation-blur)) saturate(0.9);
-  transition: background-color var(--dur-cover) var(--ease-material);
+  clip-path: inset(0 0 0 0);
+  transition:
+    background-color var(--dur-cover) var(--ease-material),
+    clip-path var(--dur-material) var(--ease-material);
 }
 
 .invitation__grain {
@@ -211,15 +214,15 @@ html[data-sheet-open] {
 
 @media (max-width: 47.99rem) and (orientation: portrait) {
   .std {
-    --invitation-alpha-mobile: 0.16;
+    --invitation-alpha-mobile: 0.14;
     --mobile-feather-faint: 4%;
     --mobile-feather-mid: 8%;
     --mobile-feather-near: 12%;
     --mobile-feather-solid: 18%;
-    --gap-header-names: clamp(1.5rem, 5vw, 2rem);
-    --gap-names-details: clamp(1.125rem, 4vw, 1.5rem);
-    --breath-min: clamp(2rem, 5svh, 3rem);
-    --breath-max: 5.25rem;
+    --gap-header-names: clamp(1.25rem, 4.25vw, 1.625rem);
+    --gap-names-details: clamp(1rem, 3.5vw, 1.25rem);
+    --breath-min: clamp(1.5rem, 4svh, 2.5rem);
+    --breath-max: 3.75rem;
   }
 
   .invitation__surface {
@@ -236,7 +239,7 @@ html[data-sheet-open] {
   .invitation__surface::before {
     position: absolute;
     z-index: 1;
-    background: rgba(var(--invitation-tint), 0.9);
+    background: rgba(var(--invitation-tint), 0.83);
     backdrop-filter: blur(18px) saturate(0.88);
     -webkit-backdrop-filter: blur(18px) saturate(0.88);
     content: "";
@@ -418,53 +421,73 @@ html[data-sheet-open] {
     box-shadow var(--dur-local) var(--ease-local);
 }
 
-@keyframes calendar-cue {
+@keyframes calendar-icon-invite {
   0%,
+  3%,
+  12%,
   100% {
-    transform: scale(1);
-    border-color: rgba(255, 255, 255, 0.18);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),
-      0 0.5rem 1.25rem rgba(19, 31, 24, 0.18);
+    transform: none;
   }
-  50% {
-    transform: scale(1.01);
-    border-color: rgba(255, 255, 255, 0.34);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.24),
-      0 0.65rem 1.5rem rgba(19, 31, 24, 0.22);
+
+  7% {
+    transform: translateY(-2px);
   }
 }
 
-.invitation[data-phase="calendar-cue"] .cta {
-  animation: calendar-cue 630ms var(--ease-local) 2;
+@keyframes website-arrow-invite {
+  0%,
+  48%,
+  60%,
+  100% {
+    transform: none;
+  }
+
+  54% {
+    transform: translateX(3px);
+  }
 }
 
-.invitation[data-phase="calendar-cue"] .cta__mark {
-  opacity: 0.9;
-  transform: scaleX(1.4);
+.invitation[data-phase="composed"] .cta:not(:hover, :focus-visible, :active) .cta__icon {
+  animation: calendar-icon-invite 10s ease-in-out 2s infinite;
+}
+
+.invitation[data-phase="composed"]
+  .website-link:not(:hover, :focus-visible, :active)
+  .website-link__arrow {
+  animation: website-arrow-invite 10s ease-in-out 2s infinite;
 }
 
 .invitation[data-phase="calendar-opening"] .cta {
   transform: scale(0.99);
 }
 
-.cta__mark {
-  display: block;
-  width: 1.25rem;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.4;
-  transform-origin: left center;
+.cta__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
   transition:
     transform var(--dur-local) var(--ease-local),
     opacity var(--dur-local) var(--ease-local);
 }
 
-.cta:hover .cta__mark,
-.cta:focus-visible .cta__mark {
-  opacity: 1;
-  transform: scaleX(1.4);
+.cta__icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cta:hover .cta__icon,
+.cta:focus-visible .cta__icon {
+  transform: translateY(-2px);
+}
+
+.cta:active .cta__icon {
+  transform: translateY(1px);
 }
 
 .cta:hover {
@@ -513,6 +536,10 @@ html[data-sheet-open] {
 .website-link:hover .website-link__arrow,
 .website-link:focus-visible .website-link__arrow {
   transform: translateX(0.2rem);
+}
+
+.website-link:active .website-link__arrow {
+  transform: translateX(0.1rem);
 }
 
 .note {
@@ -832,6 +859,9 @@ html[data-sheet-open] {
     [data-phase="unlocking"],
     [data-phase="seam-release"],
     [data-phase="aperture-opening"],
+    [data-phase="venue-hold"],
+    [data-phase="material-revealing"],
+    [data-phase="material-settling"],
     [data-phase="reseal-panels"],
     [data-phase="reseal-seam"],
     [data-phase="reseal-locking"]
@@ -840,6 +870,21 @@ html[data-sheet-open] {
   opacity: 0;
   filter: blur(2px);
   visibility: hidden;
+}
+
+/* Hold the film with no paper; then expand a narrow central band into the
+   full material. The existing composition stays laid out underneath. */
+.invitation:is(
+    [data-phase="sealed"],
+    [data-phase="engaging"],
+    [data-phase="aligning"],
+    [data-phase="unlocking"],
+    [data-phase="seam-release"],
+    [data-phase="aperture-opening"],
+    [data-phase="venue-hold"]
+  )
+  .invitation__surface {
+  clip-path: inset(50% 0 50% 0);
 }
 
 .invitation[data-phase="reseal-softening"]
@@ -857,36 +902,27 @@ html[data-sheet-open] {
   transition: none;
 }
 
-/* Reveal the copy in reading order within the existing content beat. The
-   composed state remains static, including on a returning visit. */
+/* Four information beats. Related lines resolve together; the next idea
+   arrives only after the previous one has nearly settled. */
 .invitation[data-phase="content-revealing"]
-  :is(.label, .names__line, .details__date, .details__place, .invitation__footer) {
-  animation: copy-arrive 700ms cubic-bezier(0.25, 0.65, 0.3, 1) both;
+  :is(.invitation__header, .names, .details, .countdown, .invitation__actions, .note) {
+  animation: copy-arrive 660ms cubic-bezier(0.25, 0.65, 0.3, 1) both;
 }
 
-.invitation[data-phase="content-revealing"] .label {
+.invitation[data-phase="content-revealing"] :is(.invitation__header, .names) {
   animation-delay: 0ms;
 }
 
-.invitation[data-phase="content-revealing"] .names__line:first-child {
-  animation-delay: 230ms;
+.invitation[data-phase="content-revealing"] .details {
+  animation-delay: 570ms;
 }
 
-.invitation[data-phase="content-revealing"] .names__line--second {
-  animation-delay: 500ms;
+.invitation[data-phase="content-revealing"] .countdown {
+  animation-delay: 1170ms;
 }
 
-.invitation[data-phase="content-revealing"] .details__date {
-  animation-delay: 850ms;
-}
-
-.invitation[data-phase="content-revealing"] .details__place {
-  animation-delay: 1000ms;
-}
-
-.invitation[data-phase="content-revealing"] .invitation__footer {
-  animation-delay: 1210ms;
-  animation-duration: 520ms;
+.invitation[data-phase="content-revealing"] :is(.invitation__actions, .note) {
+  animation-delay: 1740ms;
 }
 
 @keyframes copy-arrive {
@@ -932,6 +968,9 @@ html[data-sheet-open] {
 
 .invitation:is(
     [data-phase="aperture-opening"],
+    [data-phase="venue-hold"],
+    [data-phase="material-revealing"],
+    [data-phase="material-settling"],
     [data-phase="content-revealing"],
     [data-phase="composed"],
     [data-phase="calendar-cue"],
@@ -946,6 +985,9 @@ html[data-sheet-open] {
 
 .invitation:is(
     [data-phase="aperture-opening"],
+    [data-phase="venue-hold"],
+    [data-phase="material-revealing"],
+    [data-phase="material-settling"],
     [data-phase="content-revealing"],
     [data-phase="composed"],
     [data-phase="calendar-cue"],
@@ -1014,6 +1056,9 @@ html[data-sheet-open] {
 
 .invitation:is(
     [data-phase="aperture-opening"],
+    [data-phase="venue-hold"],
+    [data-phase="material-revealing"],
+    [data-phase="material-settling"],
     [data-phase="content-revealing"],
     [data-phase="composed"],
     [data-phase="calendar-cue"],
@@ -1040,6 +1085,9 @@ html[data-sheet-open] {
 
 .invitation:is(
     [data-phase="aperture-opening"],
+    [data-phase="venue-hold"],
+    [data-phase="material-revealing"],
+    [data-phase="material-settling"],
     [data-phase="content-revealing"],
     [data-phase="reseal-softening"],
     [data-phase="reseal-panels"],
@@ -1252,25 +1300,37 @@ html[data-sheet-open] {
     --date-size: 3.6cqh;
     --place-size: 2.2cqh;
     --countdown-size: 1.66cqh;
-    --gap-header-names: 6cqh;
-    --gap-names-details: 4.4cqh;
-    --gap-date-place: 1.1cqh;
-    --gap-countdown-cta: 2.4cqh;
-    --gap-cta-note: 3cqh;
-    --breath-min: 4cqh;
-    --breath-max: 9cqh;
-    --invitation-pad-y: 6.6cqh;
+    --gap-header-names: 4.6cqh;
+    --gap-names-details: 3.4cqh;
+    --gap-date-place: 0.9cqh;
+    --gap-countdown-cta: 1.8cqh;
+    --gap-cta-note: 2.3cqh;
+    --breath-min: 3cqh;
+    --breath-max: 6.5cqh;
+    --invitation-pad-y: 6.1cqh;
     --invitation-pad-x: 6.2cqh;
 
     width: auto;
-    height: min(84svh, 49rem);
-    min-height: 30rem;
+    height: min(79svh, 47rem);
+    min-height: 29rem;
     max-width: min(90vw, 35rem);
     aspect-ratio: 5 / 7;
     border: 1px solid var(--invitation-border);
     border-radius: var(--invitation-radius);
     box-shadow: var(--invitation-shadow);
     container-type: size;
+    transition:
+      border-color var(--dur-material) var(--ease-material),
+      box-shadow var(--dur-material) var(--ease-material);
+  }
+
+  .invitation:is(
+    [data-phase="aperture-opening"],
+    [data-phase="venue-hold"],
+    [data-phase="material-revealing"]
+  ) {
+    border-color: transparent;
+    box-shadow: none;
   }
 
   /* A brighter halo immediately behind the object, so it sits in the scene
@@ -1294,6 +1354,15 @@ html[data-sheet-open] {
     content: "";
     inset: 0;
     pointer-events: none;
+    transition: opacity var(--dur-material) var(--ease-material);
+  }
+
+  .invitation:is(
+      [data-phase="aperture-opening"],
+      [data-phase="venue-hold"],
+      [data-phase="material-revealing"]
+    )::after {
+    opacity: 0;
   }
 
   .invitation__content {
@@ -1499,7 +1568,7 @@ html[data-sheet-open] {
   }
 
   .invitation[data-phase="content-revealing"]
-    :is(.label, .names__line, .details__date, .details__place, .invitation__footer) {
+    :is(.invitation__header, .names, .details, .countdown, .invitation__actions, .note) {
     animation: none;
   }
 
@@ -1527,8 +1596,9 @@ html[data-sheet-open] {
   }
 
   .invitation[data-phase="sealed"] .opener__assembly::after,
-  .invitation[data-phase="calendar-cue"] .cta {
-    animation: none;
+  .invitation[data-phase="composed"] .cta__icon,
+  .invitation[data-phase="composed"] .website-link__arrow {
+    animation: none !important;
   }
 
   .cover__half--left,
@@ -1551,7 +1621,7 @@ html[data-reduced-motion] {
   }
 
   .invitation[data-phase="content-revealing"]
-    :is(.label, .names__line, .details__date, .details__place, .invitation__footer) {
+    :is(.invitation__header, .names, .details, .countdown, .invitation__actions, .note) {
     animation: none;
   }
 
@@ -1579,8 +1649,9 @@ html[data-reduced-motion] {
   }
 
   .invitation[data-phase="sealed"] .opener__assembly::after,
-  .invitation[data-phase="calendar-cue"] .cta {
-    animation: none;
+  .invitation[data-phase="composed"] .cta__icon,
+  .invitation[data-phase="composed"] .website-link__arrow {
+    animation: none !important;
   }
 
   .cover__half--left,

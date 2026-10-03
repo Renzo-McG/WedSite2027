@@ -60,3 +60,34 @@ export function googleCalendarUrl(): string {
   url.searchParams.set("details", wedding.calendar.description);
   return url.toString();
 }
+
+/** One provider model for the Save the Date and the Wedding Website. */
+export function calendarProviders(base: string) {
+  const icsHref = `${base.replace(/\/?$/, "/")}${wedding.calendar.fileName}`;
+  return [
+    {
+      id: "google",
+      name: "Google Calendar",
+      icon: "google-calendar.svg",
+      href: googleCalendarUrl(),
+      cue: "↗",
+      external: true,
+    },
+    {
+      id: "apple",
+      name: "Apple Calendar",
+      icon: "apple.svg",
+      href: icsHref,
+      cue: ".ics",
+      external: false,
+    },
+    {
+      id: "outlook",
+      name: "Microsoft Outlook",
+      icon: "outlook.svg",
+      href: icsHref,
+      cue: ".ics",
+      external: false,
+    },
+  ] as const;
+}
