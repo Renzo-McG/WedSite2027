@@ -37,17 +37,18 @@ content, material, media and controls are untouched.
 | 320 x 568 | 46.40px | 230.92 / 281px | Passed |
 | 430 x 932 | 62px | 308.55 / 379.41px | Passed |
 | 768 x 1024 | 64.124px | 319.10 / 461.05px | Passed |
-| 1440 x 900 | Desktop rule implemented | Final after-capture pending | Browser approval blocked |
+| 1440 x 900 | 61.828px | 307.69 / 444.52px | Passed |
 
-The four completed comparisons have no document overflow or name wrapping.
+All five comparisons have no document overflow or name wrapping.
 Computed font, size, weight, colour and line height of the label, date, venue,
 countdown, CTA and note match live production. Their vertical position differs
-by at most 0.008px (browser rounding). The existing two-line date at 320px is
+by at most 0.016px (browser rounding). The existing two-line date at 320px is
 preserved.
 
-Final 1440 x 900 navigation was blocked by automatic browser review following
-a usage-limit failure. A user-requested continuation was also rejected.
-The desktop before capture exists; a final desktop after capture is still required.
+The final desktop review and capture were completed after browser access was
+restored and the user approved continuation. Both names remain weight 450;
+the ampersand alone is 650. The second line occupies 307.69px of the available
+444.52px and remains together.
 
 ## Validation
 
@@ -68,6 +69,7 @@ test and build commands were then run directly from the installed binaries.
 - `after-mobile-320x568.png`
 - `after-mobile-430x932.png`
 - `after-tablet-768x1024.png`
+- `after-desktop-1440x900.png`
 - `before-mobile-390x844.png`
 - `before-mobile-320x568.png`
 - `before-desktop-1440x900.png`
