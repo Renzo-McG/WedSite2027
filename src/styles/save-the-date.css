@@ -678,15 +678,14 @@ html[data-sheet-open] {
 }
 
 .cover__seam--bottom {
-  top: calc(50% + var(--seam-control-size) / 2 + var(--seam-label-clearance));
+  top: calc(50% + var(--seam-control-size) / 2 + var(--seam-control-gap));
   bottom: 11%;
   transform-origin: top center;
 }
 
 /* -------------------------------------------------------------- opener */
 
-/* The ring is centred on the container's exact midpoint and the label is taken
-   out of flow, so the seam gap can be derived from that same midpoint. */
+/* The seal and the seam share the container's exact midpoint. */
 
 .opener {
   position: absolute;
@@ -710,30 +709,27 @@ html[data-sheet-open] {
   width: var(--seam-control-size);
   height: var(--seam-control-size);
   border-radius: 50%;
-  background: var(--glass-sheen);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: rgba(22, 34, 27, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition:
     background-color var(--dur-local) var(--ease-local),
-    transform var(--dur-local) var(--ease-local),
-    filter var(--dur-local) var(--ease-local);
+    transform var(--dur-local) var(--ease-local);
 }
 
-/* The two cover panels meet behind the opener. A softly feathered seal makes
-   that physical join disappear inside the emblem, so the deliberate seam
-   segments read as stopping above and below rather than crossing the mark. */
+/* A narrow feather hides the join between the cover halves without drawing a
+   separate dark disc around the seal. */
 
 .opener__assembly::before {
   position: absolute;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(42, 56, 47, 0.98) 0 72%,
-    rgba(34, 48, 40, 0.94) 80%,
-    rgba(20, 32, 26, 0.46) 89%,
+    rgba(22, 34, 27, 0.82) 0 61%,
+    rgba(22, 34, 27, 0.5) 73%,
     transparent 100%
   );
   content: "";
-  inset: -0.85rem;
+  inset: -0.45rem;
   pointer-events: none;
 }
 
@@ -746,93 +742,54 @@ html[data-sheet-open] {
   transform: translate(-50%, -50%);
   transition:
     transform var(--dur-align) var(--ease-material),
-    border-color var(--dur-local) var(--ease-local),
     opacity var(--dur-local) var(--ease-local);
 }
 
 .opener__ring--outer {
   width: 100%;
   height: 100%;
-  background: repeating-conic-gradient(
-    from 2deg,
-    rgba(238, 244, 236, 0.52) 0deg 24deg,
-    transparent 24deg 31deg
+  background: conic-gradient(
+    from -24deg,
+    transparent 0deg,
+    rgba(238, 244, 236, 0.66) 24deg,
+    rgba(238, 244, 236, 0.28) 135deg,
+    rgba(238, 244, 236, 0.28) 260deg,
+    rgba(238, 244, 236, 0.62) 335deg,
+    transparent 360deg
   );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0);
   mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0);
 }
 
-.opener__ring--inner {
-  width: 72%;
-  height: 72%;
-  border: 1px solid rgba(238, 244, 236, 0.32);
-}
-
-.opener__ticks {
-  position: absolute;
-  inset: -0.22rem;
-  transition:
-    transform var(--dur-align) var(--ease-material),
-    opacity var(--dur-local) var(--ease-local);
-}
-
-.opener__ticks span {
-  position: absolute;
-  top: -0.08rem;
-  left: 50%;
-  width: 1px;
-  height: 0.38rem;
-  background: rgba(238, 244, 236, 0.56);
-  transform-origin: 50% calc(var(--seam-control-size) / 2 + 0.3rem);
-}
-
-.opener__ticks span:nth-child(2) {
-  transform: rotate(90deg);
-}
-
-.opener__ticks span:nth-child(3) {
-  transform: rotate(180deg);
-}
-
-.opener__ticks span:nth-child(4) {
-  transform: rotate(270deg);
-}
-
 .opener__mark {
   position: relative;
   color: rgba(246, 248, 244, 0.92);
-  font-family: var(--font-ui);
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: 0.035em;
-}
-
-.opener__label {
-  position: absolute;
-  top: calc(50% + var(--seam-control-size) / 2 + 1.15rem);
-  left: 50%;
-  color: rgba(232, 238, 230, 0.78);
-  font-size: var(--label-size);
-  font-weight: 500;
-  letter-spacing: var(--label-tracking);
+  font-family: "Manrope", var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  padding-left: 0.16em;
   text-transform: uppercase;
-  transform: translateX(-50%);
   transition: color var(--dur-local) var(--ease-local);
 }
 
 .opener:hover .opener__assembly,
 .opener:focus-visible .opener__assembly {
-  background: rgba(238, 244, 236, 0.1);
-  filter: brightness(1.12);
+  background: rgba(29, 43, 34, 0.82);
 }
 
-.opener:hover .opener__label,
-.opener:focus-visible .opener__label {
-  color: rgba(242, 246, 240, 0.95);
+.opener:hover .opener__ring--outer,
+.opener:focus-visible .opener__ring--outer {
+  opacity: 0.82;
+}
+
+.opener:hover .opener__mark,
+.opener:focus-visible .opener__mark {
+  color: #fff;
 }
 
 .opener:active .opener__assembly {
-  transform: scale(0.97);
+  transform: scale(0.985);
 }
 
 @keyframes access-breathe {
@@ -842,8 +799,8 @@ html[data-sheet-open] {
     filter: brightness(1);
   }
   50% {
-    transform: scale(1.012);
-    filter: brightness(1.08);
+    transform: scale(1.006);
+    filter: brightness(1.03);
   }
 }
 
@@ -1023,11 +980,6 @@ html[data-sheet-open] {
 .invitation:is([data-phase="aligning"], [data-phase="unlocking"], [data-phase="seam-release"])
   .opener__ring--outer {
   transform: translate(-50%, -50%) rotate(88deg);
-}
-
-.invitation:is([data-phase="aligning"], [data-phase="unlocking"], [data-phase="seam-release"])
-  .opener__ring--inner {
-  transform: translate(-50%, -50%) rotate(-34deg);
 }
 
 .invitation:is([data-phase="aligning"], [data-phase="unlocking"]) .cover__lock-line {
@@ -1545,7 +1497,6 @@ html[data-sheet-open] {
   .opener,
   .opener__assembly,
   .opener__ring,
-  .opener__ticks,
   .cta,
   .sheet,
   .sheet-scrim {
@@ -1598,7 +1549,6 @@ html[data-reduced-motion] {
   .opener,
   .opener__assembly,
   .opener__ring,
-  .opener__ticks,
   .cta,
   .sheet,
   .sheet-scrim {

@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import SaveTheDateExperience from "../components/save-the-date/SaveTheDateExperience.astro";
 import { wedding } from "../config/wedding";
 import plusJakartaFont from "../assets/fonts/plus-jakarta-sans-latin.woff2?url";
+import manropeFont from "../assets/fonts/manrope-400-600-latin.woff2?url";
 import { DEFAULT_DISPLAY_FONT, DISPLAY_FONT_IDS } from "../lib/display-font";
 import "../styles/fonts.css";
 import "../styles/save-the-date.tokens.css";
@@ -37,6 +38,7 @@ const description = `${wedding.date.display} · ${wedding.venue}, ${wedding.loca
       })();
     </script>
     <link rel="preload" href={plusJakartaFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={manropeFont} as="font" type="font/woff2" crossorigin />
   </Fragment>
   <SaveTheDateExperience />
 </BaseLayout>

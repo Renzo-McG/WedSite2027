@@ -1,7 +1,6 @@
 ---
 import { wedding } from "../../config/wedding";
 
-const mark = `${wedding.couple.first.charAt(0)}&${wedding.couple.second.charAt(0)}`;
 const openLabel = `Open ${wedding.couple.first} and ${wedding.couple.second}'s Save the Date`;
 ---
 
@@ -25,11 +24,6 @@ const openLabel = `Open ${wedding.couple.first} and ${wedding.couple.second}'s S
 <button class="opener" type="button" data-opener aria-label={openLabel}>
   <span class="opener__assembly" aria-hidden="true">
     <span class="opener__ring opener__ring--outer"></span>
-    <span class="opener__ring opener__ring--inner"></span>
-    <span class="opener__ticks">
-      <span></span><span></span><span></span><span></span>
-    </span>
-    <span class="opener__mark">{mark}</span>
+    <span class="opener__mark">Open</span>
   </span>
-  <span class="opener__label" aria-hidden="true">Open</span>
 </button>
