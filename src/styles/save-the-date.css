@@ -1021,7 +1021,14 @@ html[data-sheet-open] {
   box-shadow: 0 0 0.75rem rgba(244, 236, 209, 0.5);
 }
 
-.invitation[data-phase="aperture-opening"] .cover__seam {
+.invitation:is(
+    [data-phase="aperture-opening"],
+    [data-phase="venue-hold"],
+    [data-phase="material-revealing"],
+    [data-phase="material-settling"],
+    [data-phase="content-revealing"]
+  )
+  .cover__seam {
   opacity: 0;
   transition-delay: 120ms;
 }
