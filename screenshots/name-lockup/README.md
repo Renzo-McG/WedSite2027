@@ -7,7 +7,7 @@ uncommitted changes are preserved in the original checkout.
 
 Before: Sirivennela names with a small ampersand on its own middle row.
 After: Manrope, Emily on line one, & Lawrence together on line two. Both names
-use weight 450. Only the ampersand uses 650, in the existing sage-deep colour
+use weight 400. Only the ampersand uses 650, in the existing sage-deep colour
 (`#4e6157`). The live date uses Plus Jakarta Sans; it is preserved unchanged.
 
 ## Exact typography rules
@@ -17,38 +17,40 @@ Only the name markup, a page-level stylesheet import, and the new scoped
 content, material, media and controls are untouched.
 
 - Self-hosted Manrope, variable weights 200-800, normal style, swap display.
-- Visible name rows: weight 450; line height 1.08; tracking -0.045em; no wrapping.
+- Visible name rows: weight 400; line height 1.08; tracking -0.045em; no wrapping.
 - Phone size: `clamp(2.75rem, 14.5vw, 3.875rem)`.
 - Staged tablet/desktop: `8.2cqh` at minimum width 48rem and height 40rem.
 - Existing short landscape layout: `clamp(2rem, 5.5vw, 3rem)`.
 - Inter-line gap: 0.08 times the visible font size.
 - Ampersand: 1em, weight 650, existing sage-deep colour, inline-block with
   0.08em trailing margin plus the normal word space.
-- The lockup is vertically centred in the original name slot. Minimum block
-  height retains the original two full-name rows, small ampersand row, and
-  two gaps: `calc(var(--names-size) * (2 * var(--names-leading) + 0.19) + 2 * var(--names-gap))`.
+- The lockup is vertically centred in a shortened version of the original
+  name slot. Its minimum block height subtracts
+  `clamp(1.5rem, 3.5vw, 3.25rem)` from the original slot height. This brings
+  SAVE THE DATE and Sunday closer to the names without changing their own styles.
 - Old optical left/top offsets reset to zero for this lockup only.
 
 ## Browser verification
 
 | Viewport | Name size | & Lawrence text width / available width | Result |
 | --- | --- | --- | --- |
-| 390 x 844 | 56.55px | 281.44 / 344.20px | Passed |
-| 320 x 568 | 46.40px | 230.92 / 281px | Passed |
-| 430 x 932 | 62px | 308.55 / 379.41px | Passed |
-| 768 x 1024 | 64.124px | 319.10 / 461.05px | Passed |
-| 1440 x 900 | 61.828px | 307.69 / 444.52px | Passed |
+| 390 x 844 | 56.55px | 279.55 / 344px | Passed |
+| 320 x 568 | 46.40px | 229.37 / 281px | Passed |
+| 430 x 932 | 62px | 306.48 / 379px | Passed |
+| 768 x 1024 | 64.124px | 316.95 / 461px | Passed |
+| 1440 x 900 | 61.828px | 305.62 / 445px | Passed |
 
-All five comparisons have no document overflow or name wrapping.
-Computed font, size, weight, colour and line height of the label, date, venue,
-countdown, CTA and note match live production. Their vertical position differs
-by at most 0.016px (browser rounding). The existing two-line date at 320px is
-preserved.
+All five viewports have no document overflow or name wrapping. The label,
+date, venue, countdown, CTA and note retain their production typography and
+colours. The shortened name slot intentionally brings their vertical positions
+closer together. At 390px it closes the space on each side of the names by
+roughly 12px; at 1440px by roughly 25px. The existing two-line date at 320px
+is preserved.
 
 The final desktop review and capture were completed after browser access was
-restored and the user approved continuation. Both names remain weight 450;
-the ampersand alone is 650. The second line occupies 307.69px of the available
-444.52px and remains together.
+restored and the user approved continuation. Both names now have weight 400;
+the ampersand alone is 650. The second line occupies 305.62px of the available
+445px and remains together.
 
 ## Validation
 
