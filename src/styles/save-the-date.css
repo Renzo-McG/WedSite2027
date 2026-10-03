@@ -836,6 +836,51 @@ html[data-sheet-open] {
   opacity: 1;
   filter: none;
   visibility: visible;
+  transition: none;
+}
+
+/* Reveal the copy in reading order within the existing content beat. The
+   composed state remains static, including on a returning visit. */
+.invitation[data-phase="content-revealing"]
+  :is(.label, .names__line, .details__date, .details__place, .invitation__footer) {
+  animation: copy-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.invitation[data-phase="content-revealing"] .label {
+  animation-delay: 0ms;
+}
+
+.invitation[data-phase="content-revealing"] .names__line:first-child {
+  animation-delay: 130ms;
+}
+
+.invitation[data-phase="content-revealing"] .names__line--second {
+  animation-delay: 270ms;
+}
+
+.invitation[data-phase="content-revealing"] .details__date {
+  animation-delay: 460ms;
+}
+
+.invitation[data-phase="content-revealing"] .details__place {
+  animation-delay: 560ms;
+}
+
+.invitation[data-phase="content-revealing"] .invitation__footer {
+  animation-delay: 690ms;
+  animation-duration: 390ms;
+}
+
+@keyframes copy-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(0.16em);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* The paper is barely present while the cover is closed, so the destination
@@ -1429,6 +1474,16 @@ html[data-sheet-open] {
 /* ------------------------------------------------------ reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
+  .invitation[data-phase="content-revealing"]
+    :is(.invitation__header, .invitation__main, .invitation__footer) {
+    transition: opacity 100ms linear;
+  }
+
+  .invitation[data-phase="content-revealing"]
+    :is(.label, .names__line, .details__date, .details__place, .invitation__footer) {
+    animation: none;
+  }
+
   .invitation__header,
   .invitation__main,
   .invitation__footer,
@@ -1472,6 +1527,16 @@ html[data-sheet-open] {
    operating-system preference remains the primary production path. */
 
 html[data-reduced-motion] {
+  .invitation[data-phase="content-revealing"]
+    :is(.invitation__header, .invitation__main, .invitation__footer) {
+    transition: opacity 100ms linear;
+  }
+
+  .invitation[data-phase="content-revealing"]
+    :is(.label, .names__line, .details__date, .details__place, .invitation__footer) {
+    animation: none;
+  }
+
   .invitation__header,
   .invitation__main,
   .invitation__footer,
