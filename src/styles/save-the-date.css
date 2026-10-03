@@ -365,11 +365,9 @@ html[data-sheet-open] {
 }
 
 .invitation__actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  column-gap: 1rem;
-  row-gap: 0.25rem;
+  display: grid;
+  justify-items: start;
+  gap: 0.25rem;
 }
 
 .countdown {
@@ -733,6 +731,17 @@ html[data-sheet-open] {
   pointer-events: none;
 }
 
+/* A single outward trace invites touch without making the seal throb. */
+.opener__assembly::after {
+  position: absolute;
+  border: 1px solid rgba(238, 244, 236, 0.68);
+  border-radius: 50%;
+  content: "";
+  inset: -0.2rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .opener__ring {
   position: absolute;
   top: 50%;
@@ -792,15 +801,22 @@ html[data-sheet-open] {
   transform: scale(0.985);
 }
 
-@keyframes access-breathe {
+@keyframes open-pulse {
   0%,
-  100% {
-    transform: scale(1);
-    filter: brightness(1);
+  18% {
+    opacity: 0;
+    transform: scale(0.94);
   }
-  50% {
-    transform: scale(1.006);
-    filter: brightness(1.03);
+
+  28% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+
+  72%,
+  100% {
+    opacity: 0;
+    transform: scale(1.24);
   }
 }
 
@@ -968,8 +984,8 @@ html[data-sheet-open] {
   transition-delay: 120ms;
 }
 
-.invitation[data-phase="sealed"] .opener__assembly {
-  animation: access-breathe 4.8s ease-in-out infinite;
+.invitation[data-phase="sealed"] .opener__assembly::after {
+  animation: open-pulse 3.4s ease-out infinite;
 }
 
 .invitation[data-phase="engaging"] .opener__assembly {
@@ -1510,7 +1526,7 @@ html[data-sheet-open] {
     transform: none;
   }
 
-  .invitation[data-phase="sealed"] .opener__assembly,
+  .invitation[data-phase="sealed"] .opener__assembly::after,
   .invitation[data-phase="calendar-cue"] .cta {
     animation: none;
   }
@@ -1562,7 +1578,7 @@ html[data-reduced-motion] {
     transform: none;
   }
 
-  .invitation[data-phase="sealed"] .opener__assembly,
+  .invitation[data-phase="sealed"] .opener__assembly::after,
   .invitation[data-phase="calendar-cue"] .cta {
     animation: none;
   }
