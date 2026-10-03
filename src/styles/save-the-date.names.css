@@ -1,0 +1,57 @@
+/* The approved invitation keeps its original name slot and surrounding layout.
+   Only the two-line lockup uses the companion's Manrope family. */
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../assets/fonts/manrope-400-600-latin.woff2") format("woff2");
+}
+
+.names--lockup {
+  --lockup-size: clamp(2.75rem, 14.5vw, 3.875rem);
+
+  /* Retain the three-row baseline's occupied height so the label, details,
+     countdown and actions stay where they were. Legacy em values resolve
+     against the unchanged parent font size; the visible rows set their own. */
+  min-block-size: calc(
+    var(--names-size) * (2 * var(--names-leading) + 0.19) + 2 * var(--names-gap)
+  );
+  left: 0;
+  top: 0;
+  align-content: center;
+  gap: calc(var(--lockup-size) * 0.08);
+  font-family: "Manrope", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  font-weight: 450;
+}
+
+.names--lockup .names__line {
+  font-size: var(--lockup-size);
+  font-weight: 450;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+}
+
+.names--lockup .names__amp {
+  position: static;
+  display: inline-block;
+  margin-inline-end: 0.08em;
+  color: var(--sage-deep);
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: 650;
+  line-height: inherit;
+}
+
+@media (min-width: 48rem) and (min-height: 40rem) {
+  .names--lockup {
+    --lockup-size: 8.2cqh;
+  }
+}
+
+@media (max-height: 40rem) and (min-width: 34rem) {
+  .names--lockup {
+    --lockup-size: clamp(2rem, 5.5vw, 3rem);
+  }
+}

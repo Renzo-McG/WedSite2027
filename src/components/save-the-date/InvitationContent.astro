@@ -9,10 +9,11 @@ import Countdown from "./Countdown.astro";
   </header>
 
   <main class="invitation__main">
-    <h1 class="names">
+    <h1 class="names names--lockup">
       <span class="names__line">{wedding.couple.first}</span>
-      <span class="names__amp">&amp;</span>
-      <span class="names__line">{wedding.couple.second}</span>
+      <span class="names__line names__line--second">
+        <span class="names__amp">&amp;</span>{" "}{wedding.couple.second}
+      </span>
     </h1>
     <div class="details">
       <p class="details__date">{wedding.date.display}</p>
