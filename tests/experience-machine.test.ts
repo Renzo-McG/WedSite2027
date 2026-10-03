@@ -19,7 +19,7 @@ describe("v1.2 experience state machine", () => {
       "composed",
     ]);
     expect(OPEN_SEQUENCE.find((step) => step.phase === "seam-release")?.at).toBe(760);
-    expect(OPEN_SEQUENCE.at(-1)?.at).toBe(2980);
+    expect(OPEN_SEQUENCE.at(-1)?.at).toBe(3650);
   });
 
   it("does not permit a video reset until the reseal has fully resolved", () => {

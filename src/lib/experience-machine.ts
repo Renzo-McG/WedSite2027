@@ -29,7 +29,7 @@ export const OPEN_SEQUENCE: readonly ExperienceStep[] = [
   { phase: "seam-release", at: 760 },
   { phase: "aperture-opening", at: 980 },
   { phase: "content-revealing", at: 1850 },
-  { phase: "composed", at: 2980 },
+  { phase: "composed", at: 3650 },
 ];
 
 export const RESEAL_SEQUENCE: readonly ExperienceStep[] = [
