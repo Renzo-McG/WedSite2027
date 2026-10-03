@@ -1,6 +1,24 @@
 import { wedding } from "../config/wedding";
+import { siteUrl } from "../config/site";
 
 const CRLF = "\r\n";
+const encoder = new TextEncoder();
+
+/** Fold by UTF-8 octets without splitting a Unicode code point. */
+function foldLine(line: string): string {
+  let folded = "";
+  let octets = 0;
+  for (const character of line) {
+    const size = encoder.encode(character).length;
+    if (octets + size > 75) {
+      folded += `${CRLF} `;
+      octets = 1;
+    }
+    folded += character;
+    octets += size;
+  }
+  return folded;
+}
 
 /** RFC 5545 §3.3.11 text escaping. */
 function escapeText(value: string): string {
@@ -42,13 +60,14 @@ export function buildIcs(): string {
     `SUMMARY:${escapeText(wedding.calendar.title)}`,
     `LOCATION:${escapeText(eventLocation)}`,
     `DESCRIPTION:${escapeText(wedding.calendar.description)}`,
+    `URL:${siteUrl}`,
     "STATUS:CONFIRMED",
     "TRANSP:TRANSPARENT",
     "END:VEVENT",
     "END:VCALENDAR",
   ];
 
-  return `${lines.join(CRLF)}${CRLF}`;
+  return `${lines.map(foldLine).join(CRLF)}${CRLF}`;
 }
 
 export function googleCalendarUrl(): string {

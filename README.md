@@ -75,9 +75,9 @@ or `pnpm validate`.
 
 ## GitHub Pages
 
-The Astro configuration uses:
+`src/config/site.ts` keeps the guest-facing `siteUrl` separate from the current deployment base path. The calendar description, ICS `URL`, and canonical/OG page URLs derive from `siteUrl`; Astro route and asset paths use the deployment base path. The current values are:
 
-- site origin: `https://renzo-mcg.github.io`
+- public site URL: `https://renzo-mcg.github.io/WedSite2027/`
 - base path: `/WedSite2027`
 - static output
 - directory-style routes with trailing slashes
@@ -91,6 +91,8 @@ Intended deployed routes:
 - `https://renzo-mcg.github.io/WedSite2027/design-lab/preview/`
 
 The Design Lab is a public static route when deployed. `noindex, nofollow` discourages search indexing, but obscurity is not access control. Do not store secrets, guest records, or private wedding data in it.
+
+**Final acceptance gate after a custom domain is purchased:** update the public URL and deployment base path in `src/config/site.ts` as appropriate; check canonical and OG URLs, calendar descriptions and ICS `URL`, absolute/share links, redirects, GitHub Pages assumptions, and sitemap/robots if present. Then test the new live domain from a fresh visit on mobile and desktop. The GitHub Pages URL remains canonical until that gate is complete.
 
 ## Canonical token flow
 
@@ -136,7 +138,7 @@ DTSTART;VALUE=DATE:20271024
 DTEND;VALUE=DATE:20271025
 ```
 
-The ICS is generated from `src/config/wedding.ts` by `src/lib/calendar.ts` and emitted as a static file at build time by `src/pages/emily-lawrence-wedding.ics.ts`, so `/WedSite2027/emily-lawrence-wedding.ics` works without JavaScript and there is no hand-maintained copy to drift.
+The ICS is generated from `src/config/wedding.ts` and `src/config/site.ts` by `src/lib/calendar.ts` and emitted as a static UTF-8 file at build time by `src/pages/emily-lawrence-wedding.ics.ts`, so `/WedSite2027/emily-lawrence-wedding.ics` works without JavaScript and there is no hand-maintained copy to drift. Long lines are folded by UTF-8 octets for calendar import compatibility.
 
 The countdown assumes midnight at the start of the wedding date in Cebu (`Asia/Manila`, UTC+08:00), equivalent to `2027-10-23T16:00:00Z`, because no ceremony time is confirmed. It shows days, hours, minutes and seconds, updated on a timer aligned to the whole second. The seconds add visual precision only — they do not change that assumption.
 

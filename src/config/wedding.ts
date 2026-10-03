@@ -1,6 +1,7 @@
 /**
  * Single source of truth for the public Save the Date and every calendar export.
  */
+import { siteUrl } from "./site";
 
 export const wedding = {
   couple: {
@@ -24,8 +25,21 @@ export const wedding = {
   location: "Cebu, Philippines",
   note: "Formal invitation to follow",
   calendar: {
-    title: "Emily & Lawrence — Wedding",
-    description: "Emily and Lawrence's wedding. Formal invitation to follow.",
+    title: "Emily & Lawrence | Wedding",
+    description: [
+      "We’d love for you to join us in Cebu as we celebrate our wedding at Shangri-La Mactan. 💚",
+      "",
+      "✈️ Planning your trip?",
+      "We’ll share travel guidance, accommodation recommendations and the latest wedding details on our website.",
+      "",
+      "🌐 Wedding website",
+      siteUrl,
+      "",
+      "🕊️ More details to follow",
+      "The full schedule and further wedding information will be added closer to the date.",
+      "",
+      "Formal invitation to follow.",
+    ].join("\n"),
     fileName: "emily-lawrence-wedding.ics",
     /** Stable across builds so re-importing updates the event instead of duplicating it. */
     uid: "20271024-wedding@emilyandlawrence.com",

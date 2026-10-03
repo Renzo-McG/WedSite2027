@@ -1,4 +1,6 @@
 ---
+import { canonicalPageUrl } from "../config/site";
+
 interface Props {
   title: string;
   description: string;
@@ -8,7 +10,7 @@ interface Props {
 }
 
 const { title, description, noindex = false, className = "", themeColor } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const canonical = canonicalPageUrl(Astro.url.pathname);
 ---
 
 <!doctype html>
