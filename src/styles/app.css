@@ -7,6 +7,11 @@
  * and timber, from the Ocean Pavilion's roof, kept for the wedding itself.
  * One typeface (Manrope, variable 200 to 800) carries both the quiet UI and
  * the expressive display moments. Screen styles live in ./screen-*.css.
+ *
+ * Every rule is scoped to the website's pages (body.app-page), mostly through
+ * :where() so it adds no specificity: the root page bundles this stylesheet
+ * alongside the Save the Date's, and neither may style the other (see
+ * save-the-date.css and tests/style-isolation.test.ts).
  */
 
 @font-face {
@@ -170,7 +175,7 @@
   background: var(--lagoon);
 }
 
-.visually-hidden {
+:where(.app-page) .visually-hidden {
   position: absolute !important;
   width: 1px;
   height: 1px;
@@ -182,7 +187,7 @@
   border: 0;
 }
 
-.skip {
+:where(.app-page) .skip {
   position: fixed;
   z-index: 100;
   top: 12px;
@@ -195,22 +200,22 @@
   transform: translateY(-160%);
 }
 
-.skip:focus {
+:where(.app-page) .skip:focus {
   transform: none;
 }
 
-.num {
+:where(.app-page) .num {
   font-variant-numeric: tabular-nums;
 }
 
 /* ================================================================== shell */
 
-.app {
+:where(.app-page) .app {
   min-height: 100vh;
   min-height: 100dvh;
 }
 
-.screen {
+:where(.app-page) .screen {
   display: grid;
   gap: 32px;
   width: 100%;
@@ -229,7 +234,7 @@
 
 /* -------------------------------------------------------------- app bar */
 
-.appbar {
+:where(.app-page) .appbar {
   position: sticky;
   z-index: 20;
   top: 0;
@@ -251,19 +256,19 @@
   view-transition-name: appbar;
 }
 
-.appbar[data-titled] {
+:where(.app-page) .appbar[data-titled] {
   box-shadow: 0 1px 0 var(--line);
 }
 
 /* Over a full-bleed photograph the bar is clear until the photograph passes. */
-.app--immersive .appbar:not([data-titled]) {
+:where(.app-page) .app--immersive .appbar:not([data-titled]) {
   color: #fff;
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
-.appbar__brand {
+:where(.app-page) .appbar__brand {
   display: grid;
   place-items: center;
   width: 44px;
@@ -271,7 +276,7 @@
   border-radius: var(--r-sm);
 }
 
-.appbar__title {
+:where(.app-page) .appbar__title {
   overflow: hidden;
   font-size: var(--t-base);
   font-weight: 650;
@@ -286,12 +291,12 @@
     transform var(--d-base) var(--ease-out);
 }
 
-.appbar[data-titled] .appbar__title {
+:where(.app-page) .appbar[data-titled] .appbar__title {
   opacity: 1;
   transform: none;
 }
 
-.appbar__menu {
+:where(.app-page) .appbar__menu {
   display: grid;
   place-items: center;
   width: 44px;
@@ -306,25 +311,25 @@
     transform var(--d-press) var(--ease-out);
 }
 
-.appbar__menu:active {
+:where(.app-page) .appbar__menu:active {
   transform: scale(0.92);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .appbar__menu:hover {
+  :where(.app-page) .appbar__menu:hover {
     background: color-mix(in srgb, currentColor 10%, transparent);
   }
 }
 
 /* Three lines that fold into a cross while the menu is open. */
-.burger {
+:where(.app-page) .burger {
   position: relative;
   display: block;
   width: 20px;
   height: 14px;
 }
 
-.burger span {
+:where(.app-page) .burger span {
   position: absolute;
   left: 0;
   height: 2px;
@@ -336,37 +341,37 @@
     width var(--d-nav) var(--ease-drawer);
 }
 
-.burger span:nth-child(1) {
+:where(.app-page) .burger span:nth-child(1) {
   top: 0;
   width: 20px;
 }
 
-.burger span:nth-child(2) {
+:where(.app-page) .burger span:nth-child(2) {
   top: 6px;
   width: 20px;
 }
 
-.burger span:nth-child(3) {
+:where(.app-page) .burger span:nth-child(3) {
   top: 12px;
   width: 13px;
 }
 
-.app:has(.sheet:popover-open) .burger span:nth-child(1) {
+:where(.app-page) .app:has(.sheet:popover-open) .burger span:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
 }
 
-.app:has(.sheet:popover-open) .burger span:nth-child(2) {
+:where(.app-page) .app:has(.sheet:popover-open) .burger span:nth-child(2) {
   opacity: 0;
 }
 
-.app:has(.sheet:popover-open) .burger span:nth-child(3) {
+:where(.app-page) .app:has(.sheet:popover-open) .burger span:nth-child(3) {
   width: 20px;
   transform: translateY(-6px) rotate(-45deg);
 }
 
 /* ------------------------------------------------------------- tab bar */
 
-.tabbar {
+:where(.app-page) .tabbar {
   position: fixed;
   z-index: 30;
   right: 10px;
@@ -386,12 +391,12 @@
   view-transition-name: tabbar;
 }
 
-.tabbar ul {
+:where(.app-page) .tabbar ul {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-.tabbar__tab {
+:where(.app-page) .tabbar__tab {
   position: relative;
   display: grid;
   min-height: 54px;
@@ -400,11 +405,11 @@
   transition: transform var(--d-press) var(--ease-out);
 }
 
-.tabbar__tab:active {
+:where(.app-page) .tabbar__tab:active {
   transform: scale(0.94);
 }
 
-.tabbar__ink {
+:where(.app-page) .tabbar__ink {
   display: grid;
   justify-items: center;
   align-content: center;
@@ -413,11 +418,11 @@
   transition: color var(--d-fast) var(--ease-out);
 }
 
-.tabbar__tab[aria-current="page"] {
+:where(.app-page) .tabbar__tab[aria-current="page"] {
   color: var(--deep);
 }
 
-.tabbar__label {
+:where(.app-page) .tabbar__label {
   font-size: var(--t-2xs);
   font-weight: 650;
   letter-spacing: 0.01em;
@@ -427,15 +432,15 @@
 
 /* The active indicator. Only the current tab renders one, and it carries a
    shared view-transition name, so navigating glides it from tab to tab. */
-.tabbar__pill,
-.rail__pill {
+:where(.app-page) .tabbar__pill,
+:where(.app-page) .rail__pill {
   position: absolute;
   z-index: -1;
   inset: 0;
   border-radius: inherit;
 }
 
-.tabbar__pill {
+:where(.app-page) .tabbar__pill {
   background: linear-gradient(180deg, #92e6da, var(--shallows));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
@@ -444,8 +449,8 @@
 }
 
 /* The arriving tab draws its own icon. */
-[aria-current="page"] > .tabbar__ink .icon :is(path, circle, rect, ellipse),
-.rail__link[aria-current="page"] .icon :is(path, circle, rect, ellipse) {
+:where(.app-page) [aria-current="page"] > .tabbar__ink .icon :is(path, circle, rect, ellipse),
+:where(.app-page) .rail__link[aria-current="page"] .icon :is(path, circle, rect, ellipse) {
   stroke-dasharray: 1;
   animation: icon-draw 700ms var(--ease-in-out) both 140ms;
 }
@@ -461,27 +466,27 @@
 
 /* ------------------------------------------------------------ side rail */
 
-.rail {
+:where(.app-page) .rail {
   display: none;
 }
 
 @media (min-width: 1024px) {
-  .app {
+  :where(.app-page) .app {
     display: grid;
     grid-template-columns: var(--rail) minmax(0, 1fr);
   }
 
-  .appbar,
-  .tabbar {
+  :where(.app-page) .appbar,
+  :where(.app-page) .tabbar {
     display: none;
   }
 
-  .screen {
+  :where(.app-page) .screen {
     gap: 40px;
     padding: 40px clamp(28px, 3.6vw, 60px) 80px;
   }
 
-  .rail {
+  :where(.app-page) .rail {
     position: sticky;
     top: 0;
     display: flex;
@@ -500,7 +505,7 @@
   }
 }
 
-.rail__brand {
+:where(.app-page) .rail__brand {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -508,12 +513,12 @@
   border-radius: var(--r-md);
 }
 
-.rail__brand-text {
+:where(.app-page) .rail__brand-text {
   display: grid;
   line-height: 1.25;
 }
 
-.rail__names {
+:where(.app-page) .rail__names {
   color: #fff;
   font-size: var(--t-base);
   font-weight: 650;
@@ -525,23 +530,23 @@
  * sit in; the ampersand steps back a few weights and loses a little size, so
  * it joins the names rather than belonging to either one.
  */
-.names__amp {
+:where(.app-page) .names__amp {
   font-weight: 300;
   font-size: 0.92em;
   opacity: 0.75;
 }
 
-.rail__meta {
+:where(.app-page) .rail__meta {
   font-size: var(--t-xs);
   font-weight: 500;
 }
 
-.rail__nav ul {
+:where(.app-page) .rail__nav ul {
   display: grid;
   gap: 2px;
 }
 
-.rail__link {
+:where(.app-page) .rail__link {
   position: relative;
   display: flex;
   align-items: center;
@@ -557,21 +562,21 @@
     background-color var(--d-fast) var(--ease-out);
 }
 
-.rail__link[aria-current="page"] {
+:where(.app-page) .rail__link[aria-current="page"] {
   color: #fff;
 }
 
-.rail__link[aria-current="page"] .icon {
+:where(.app-page) .rail__link[aria-current="page"] .icon {
   color: var(--shallows);
 }
 
-.rail__pill {
+:where(.app-page) .rail__pill {
   background: rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   view-transition-name: rail-pill;
 }
 
-.rail__pill::before {
+:where(.app-page) .rail__pill::before {
   content: "";
   position: absolute;
   top: 12px;
@@ -583,24 +588,24 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .rail__link:not([aria-current]):hover {
+  :where(.app-page) .rail__link:not([aria-current]):hover {
     color: #fff;
     background: rgba(255, 255, 255, 0.04);
   }
 
-  .rail__quiet:hover {
+  :where(.app-page) .rail__quiet:hover {
     color: #fff;
   }
 }
 
-.rail__foot {
+:where(.app-page) .rail__foot {
   display: grid;
   justify-items: start;
   gap: 2px;
   margin-top: auto;
 }
 
-.rail__quiet {
+:where(.app-page) .rail__quiet {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -618,13 +623,13 @@
   transition: color var(--d-fast) var(--ease-out);
 }
 
-.rail__quiet:hover,
-.rail__quiet:focus-visible {
+:where(.app-page) .rail__quiet:hover,
+:where(.app-page) .rail__quiet:focus-visible {
   color: #fff;
 }
 
 /* Mactan's real coastline, as a quiet contour under the navigation. */
-.rail__coast {
+:where(.app-page) .rail__coast {
   position: absolute;
   z-index: -1;
   right: -90px;
@@ -637,14 +642,14 @@
   stroke-linejoin: round;
 }
 
-.rail__coast .coast__runway {
+:where(.app-page) .rail__coast .coast__runway {
   stroke: rgba(125, 220, 207, 0.1);
   stroke-width: 30;
 }
 
 /* -------------------------------------------------------------- monogram */
 
-.monogram {
+:where(.app-page) .monogram {
   position: relative;
   display: inline-grid;
   place-items: center;
@@ -659,12 +664,12 @@
     0 4px 12px -4px rgba(49, 25, 9, 0.42);
 }
 
-.monogram--sm {
+:where(.app-page) .monogram--sm {
   width: 36px;
   height: 36px;
 }
 
-.monogram::before {
+:where(.app-page) .monogram::before {
   position: absolute;
   border: 1px solid rgba(255, 255, 255, 0.88);
   border-radius: 50%;
@@ -672,7 +677,7 @@
   inset: 3px;
 }
 
-.monogram__pavilion {
+:where(.app-page) .monogram__pavilion {
   position: relative;
   width: 29px;
   height: 29px;
@@ -683,14 +688,14 @@
   stroke-linejoin: round;
 }
 
-.monogram--sm .monogram__pavilion {
+:where(.app-page) .monogram--sm .monogram__pavilion {
   width: 24px;
   height: 24px;
 }
 
 /* ------------------------------------------------------------ menu sheet */
 
-.sheet {
+:where(.app-page) .sheet {
   position: fixed;
   inset: auto 0 0;
   width: 100%;
@@ -711,17 +716,17 @@
     display var(--d-nav) allow-discrete;
 }
 
-.sheet:popover-open {
+:where(.app-page) .sheet:popover-open {
   transform: none;
 }
 
 @starting-style {
-  .sheet:popover-open {
+  :where(.app-page) .sheet:popover-open {
     transform: translateY(100%);
   }
 }
 
-.sheet::backdrop {
+:where(.app-page) .sheet::backdrop {
   background: rgba(3, 24, 22, 0);
   -webkit-backdrop-filter: blur(0);
   backdrop-filter: blur(0);
@@ -732,21 +737,21 @@
     display var(--d-nav) allow-discrete;
 }
 
-.sheet:popover-open::backdrop {
+:where(.app-page) .sheet:popover-open::backdrop {
   background: rgba(3, 24, 22, 0.45);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
 
 @starting-style {
-  .sheet:popover-open::backdrop {
+  :where(.app-page) .sheet:popover-open::backdrop {
     background: rgba(3, 24, 22, 0);
     -webkit-backdrop-filter: blur(0);
     backdrop-filter: blur(0);
   }
 }
 
-.sheet::before {
+:where(.app-page) .sheet::before {
   content: "";
   display: block;
   width: 40px;
@@ -756,7 +761,7 @@
   background: var(--line-2);
 }
 
-.sheet__head {
+:where(.app-page) .sheet__head {
   display: grid;
   grid-template-columns: auto 1fr 44px;
   align-items: center;
@@ -764,18 +769,18 @@
   padding: 2px 6px 18px;
 }
 
-.sheet__names {
+:where(.app-page) .sheet__names {
   font-weight: 700;
   letter-spacing: -0.015em;
 }
 
-.sheet__meta {
+:where(.app-page) .sheet__meta {
   color: var(--ink-3);
   font-size: var(--t-xs);
   font-weight: 500;
 }
 
-.sheet__close {
+:where(.app-page) .sheet__close {
   display: grid;
   place-items: center;
   width: 44px;
@@ -788,19 +793,19 @@
   transition: transform var(--d-press) var(--ease-out);
 }
 
-.sheet__close:active {
+:where(.app-page) .sheet__close:active {
   transform: scale(0.92);
 }
 
-.sheet__nav {
+:where(.app-page) .sheet__nav {
   display: grid;
   gap: 4px;
   margin-bottom: 18px;
 }
 
 /* The rows arrive one after another as the sheet rises. */
-.sheet__nav > li,
-.sheet__actions {
+:where(.app-page) .sheet__nav > li,
+:where(.app-page) .sheet__actions {
   transition:
     opacity 360ms var(--ease-out),
     transform 460ms var(--ease-drawer);
@@ -808,14 +813,14 @@
 }
 
 @starting-style {
-  .sheet:popover-open .sheet__nav > li,
-  .sheet:popover-open .sheet__actions {
+  :where(.app-page) .sheet:popover-open .sheet__nav > li,
+  :where(.app-page) .sheet:popover-open .sheet__actions {
     opacity: 0;
     transform: translateY(18px);
   }
 }
 
-.sheet__link {
+:where(.app-page) .sheet__link {
   display: grid;
   grid-template-columns: 48px 1fr auto;
   align-items: center;
@@ -828,15 +833,15 @@
     transform var(--d-press) var(--ease-out);
 }
 
-.sheet__link:active {
+:where(.app-page) .sheet__link:active {
   transform: scale(0.98);
 }
 
-.sheet__link[aria-current="page"] {
+:where(.app-page) .sheet__link[aria-current="page"] {
   background: var(--lagoon-tint);
 }
 
-.sheet__icon {
+:where(.app-page) .sheet__icon {
   display: grid;
   place-items: center;
   width: 48px;
@@ -846,33 +851,33 @@
   background: var(--deep);
 }
 
-.sheet__link[data-current] .sheet__icon,
-.sheet__link[aria-current="page"] .sheet__icon {
+:where(.app-page) .sheet__link[data-current] .sheet__icon,
+:where(.app-page) .sheet__link[aria-current="page"] .sheet__icon {
   color: var(--deep);
   background: var(--shallows);
 }
 
-.sheet__text {
+:where(.app-page) .sheet__text {
   display: grid;
   line-height: 1.3;
 }
 
-.sheet__label {
+:where(.app-page) .sheet__label {
   font-size: var(--t-md);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.sheet__blurb {
+:where(.app-page) .sheet__blurb {
   color: var(--ink-3);
   font-size: var(--t-sm);
 }
 
-.sheet__chev {
+:where(.app-page) .sheet__chev {
   color: var(--ink-3);
 }
 
-.sheet__actions {
+:where(.app-page) .sheet__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -881,7 +886,7 @@
   border-top: 1px solid var(--line);
 }
 
-.sheet__std {
+:where(.app-page) .sheet__std {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -894,7 +899,7 @@
 
 /* ============================================================ components */
 
-.button {
+:where(.app-page) .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -914,11 +919,11 @@
     transform var(--d-press) var(--ease-out);
 }
 
-.button:active {
+:where(.app-page) .button:active {
   transform: scale(0.97);
 }
 
-.button--primary {
+:where(.app-page) .button--primary {
   color: #fff;
   background: var(--lagoon);
   box-shadow:
@@ -926,12 +931,12 @@
     0 8px 18px -8px rgba(7, 94, 89, 0.6);
 }
 
-.button--secondary {
+:where(.app-page) .button--secondary {
   color: var(--lagoon-strong);
   background: var(--lagoon-tint);
 }
 
-.button--ghost {
+:where(.app-page) .button--ghost {
   color: var(--ink);
   background: var(--paper);
   box-shadow: inset 0 0 0 1px var(--line-2);
@@ -939,7 +944,7 @@
 
 /* One provider choice for the site, available from navigation and the
    wedding screen. It uses the site's own surface rather than STD paper. */
-.calendar-picker {
+:where(.app-page) .calendar-picker {
   position: fixed;
   inset: 0;
   width: min(440px, calc(100% - 32px));
@@ -954,19 +959,19 @@
   overflow-y: auto;
 }
 
-.calendar-picker::backdrop {
+:where(.app-page) .calendar-picker::backdrop {
   background: rgba(3, 24, 22, 0.54);
   backdrop-filter: blur(3px);
 }
 
-.calendar-picker__head {
+:where(.app-page) .calendar-picker__head {
   display: flex;
   justify-content: space-between;
   align-items: start;
   gap: 16px;
 }
 
-.calendar-picker__eyebrow {
+:where(.app-page) .calendar-picker__eyebrow {
   margin-bottom: 4px;
   color: var(--ink-3);
   font-size: var(--t-xs);
@@ -975,12 +980,12 @@
   text-transform: uppercase;
 }
 
-.calendar-picker__head h2 {
+:where(.app-page) .calendar-picker__head h2 {
   font-size: var(--t-xl);
   letter-spacing: -0.035em;
 }
 
-.calendar-picker__close {
+:where(.app-page) .calendar-picker__close {
   display: grid;
   place-items: center;
   flex: none;
@@ -994,18 +999,18 @@
   cursor: pointer;
 }
 
-.calendar-picker__intro {
+:where(.app-page) .calendar-picker__intro {
   margin: 10px 0 18px;
   color: var(--ink-2);
   font-size: var(--t-sm);
 }
 
-.calendar-picker__providers {
+:where(.app-page) .calendar-picker__providers {
   display: grid;
   gap: 8px;
 }
 
-.calendar-picker__provider {
+:where(.app-page) .calendar-picker__provider {
   display: grid;
   grid-template-columns: 28px 1fr auto;
   align-items: center;
@@ -1019,19 +1024,19 @@
   transition: background-color var(--d-fast) var(--ease-out);
 }
 
-.calendar-picker__provider:hover,
-.calendar-picker__provider:focus-visible {
+:where(.app-page) .calendar-picker__provider:hover,
+:where(.app-page) .calendar-picker__provider:focus-visible {
   background: var(--lagoon-tint);
 }
 
-.calendar-picker__cue {
+:where(.app-page) .calendar-picker__cue {
   color: var(--ink-3);
   font-size: var(--t-xs);
   font-weight: 650;
 }
 
 @media (max-width: 719px) {
-  .calendar-picker {
+  :where(.app-page) .calendar-picker {
     inset: auto 0 0;
     width: 100%;
     max-width: none;
@@ -1043,21 +1048,21 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .button--primary:hover {
+  :where(.app-page) .button--primary:hover {
     background: var(--lagoon-strong);
   }
 
-  .button--secondary:hover {
+  :where(.app-page) .button--secondary:hover {
     background: var(--lagoon-soft);
   }
 
-  .button--ghost:hover {
+  :where(.app-page) .button--ghost:hover {
     background: var(--ivory);
   }
 }
 
 /* External links. */
-.xlink {
+:where(.app-page) .xlink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1071,31 +1076,31 @@
     transform var(--d-press) var(--ease-out);
 }
 
-.xlink__icon {
+:where(.app-page) .xlink__icon {
   flex: none;
   transition: transform var(--d-fast) var(--ease-out);
 }
 
-.xlink--plain {
+:where(.app-page) .xlink--plain {
   color: var(--lagoon-strong);
 }
 
-.xlink--plain .xlink__label {
+:where(.app-page) .xlink--plain .xlink__label {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, var(--lagoon) 35%, transparent);
   text-decoration-thickness: 1.5px;
   text-underline-offset: 0.25em;
 }
 
-.xlink--primary,
-.xlink--secondary {
+:where(.app-page) .xlink--primary,
+:where(.app-page) .xlink--secondary {
   justify-content: center;
   min-height: 48px;
   padding: 12px 18px;
   border-radius: var(--pill);
 }
 
-.xlink--primary {
+:where(.app-page) .xlink--primary {
   color: #fff;
   background: var(--lagoon);
   box-shadow:
@@ -1103,36 +1108,36 @@
     0 8px 18px -8px rgba(7, 94, 89, 0.6);
 }
 
-.xlink--secondary {
+:where(.app-page) .xlink--secondary {
   color: var(--ink);
   background: var(--paper);
   box-shadow: inset 0 0 0 1px var(--line-2);
 }
 
-.xlink--primary:active,
-.xlink--secondary:active {
+:where(.app-page) .xlink--primary:active,
+:where(.app-page) .xlink--secondary:active {
   transform: scale(0.97);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .xlink:hover .xlink__icon {
+  :where(.app-page) .xlink:hover .xlink__icon {
     transform: translate(2px, -2px);
   }
 
-  .xlink--plain:hover .xlink__label {
+  :where(.app-page) .xlink--plain:hover .xlink__label {
     text-decoration-color: currentColor;
   }
 
-  .xlink--primary:hover {
+  :where(.app-page) .xlink--primary:hover {
     background: var(--lagoon-strong);
   }
 
-  .xlink--secondary:hover {
+  :where(.app-page) .xlink--secondary:hover {
     background: var(--ivory);
   }
 }
 
-.card {
+:where(.app-page) .card {
   padding: 20px;
   border-radius: var(--r-lg);
   background: var(--paper);
@@ -1142,12 +1147,12 @@
 }
 
 @media (min-width: 640px) {
-  .card {
+  :where(.app-page) .card {
     padding: 24px;
   }
 }
 
-.chip {
+:where(.app-page) .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1161,17 +1166,17 @@
   white-space: nowrap;
 }
 
-.chip--lagoon {
+:where(.app-page) .chip--lagoon {
   color: var(--lagoon-strong);
   background: var(--lagoon-tint);
 }
 
-.chip--timber {
+:where(.app-page) .chip--timber {
   color: var(--timber-ink);
   background: var(--timber-tint);
 }
 
-.freshness {
+:where(.app-page) .freshness {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1180,13 +1185,13 @@
   font-weight: 600;
 }
 
-.credit {
+:where(.app-page) .credit {
   color: var(--ink-3);
   font-size: var(--t-2xs);
   font-weight: 500;
 }
 
-.credit a {
+:where(.app-page) .credit a {
   position: relative;
   text-decoration: underline;
   text-underline-offset: 0.2em;
@@ -1194,33 +1199,33 @@
 
 /* The licence link stays small to look at but gets a finger-sized target;
    kept modest so it never reaches over the controls around a photograph. */
-.credit a::after {
+:where(.app-page) .credit a::after {
   position: absolute;
   content: "";
   inset: -5px 0;
 }
 
-.note {
+:where(.app-page) .note {
   color: var(--ink-3);
   font-size: var(--t-sm);
   line-height: 1.55;
 }
 
 /* Screen header, with the large title the app bar takes over on scroll. */
-.screen-head {
+:where(.app-page) .screen-head {
   display: grid;
   gap: 10px;
   padding-top: 6px;
 }
 
-.screen-head__title {
+:where(.app-page) .screen-head__title {
   font-size: var(--t-title);
   font-weight: 750;
   letter-spacing: -0.045em;
   line-height: 0.98;
 }
 
-.screen-head__lead {
+:where(.app-page) .screen-head__lead {
   max-width: 36rem;
   color: var(--ink-2);
   font-size: var(--t-md);
@@ -1228,36 +1233,36 @@
 }
 
 /* Film is progressive enhancement; the image remains until a decoded seek succeeds. */
-.scroll-film__video {
+:where(.app-page) .scroll-film__video {
   opacity: 0;
   transition: opacity 260ms ease;
 }
 
-[data-film-ready] .scroll-film__video {
+:where(.app-page) [data-film-ready] .scroll-film__video {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scroll-film__video {
+  :where(.app-page) .scroll-film__video {
     display: none;
   }
 }
 
 /* Section titles inside a screen: confident, not shouty. */
-.section-title {
+:where(.app-page) .section-title {
   font-size: var(--t-xl);
   font-weight: 750;
   letter-spacing: -0.035em;
   line-height: 1.08;
 }
 
-.section-lead {
+:where(.app-page) .section-lead {
   max-width: 38rem;
   color: var(--ink-2);
 }
 
 /* Segmented control, shared by tabs, route choice, trip length and sort. */
-.segmented {
+:where(.app-page) .segmented {
   position: relative;
   display: inline-grid;
   grid-auto-columns: minmax(0, 1fr);
@@ -1270,7 +1275,7 @@
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-.segmented__option {
+:where(.app-page) .segmented__option {
   position: relative;
   z-index: 1;
   display: flex;
@@ -1290,24 +1295,24 @@
   transition: color var(--d-fast) var(--ease-out);
 }
 
-.segmented__option[aria-selected="true"],
-.segmented__input:checked + .segmented__option {
+:where(.app-page) .segmented__option[aria-selected="true"],
+:where(.app-page) .segmented__input:checked + .segmented__option {
   color: #fff;
 }
 
-.segmented__input {
+:where(.app-page) .segmented__input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.segmented__input:focus-visible + .segmented__option {
+:where(.app-page) .segmented__input:focus-visible + .segmented__option {
   outline: 2.5px solid var(--lagoon);
   outline-offset: 1px;
 }
 
 /* The sliding thumb sits under the selected option (--index set by :has()). */
-.segmented__thumb {
+:where(.app-page) .segmented__thumb {
   position: absolute;
   z-index: 0;
   top: 4px;
@@ -1321,27 +1326,27 @@
   transition: transform var(--d-nav) var(--ease-drawer);
 }
 
-.segmented:has(> .segmented__input:nth-of-type(2):checked),
-.segmented:has(> [role="tab"]:nth-of-type(2)[aria-selected="true"]) {
+:where(.app-page) .segmented:has(> .segmented__input:nth-of-type(2):checked),
+:where(.app-page) .segmented:has(> [role="tab"]:nth-of-type(2)[aria-selected="true"]) {
   --index: 1;
 }
 
-.segmented:has(> .segmented__input:nth-of-type(3):checked),
-.segmented:has(> [role="tab"]:nth-of-type(3)[aria-selected="true"]) {
+:where(.app-page) .segmented:has(> .segmented__input:nth-of-type(3):checked),
+:where(.app-page) .segmented:has(> [role="tab"]:nth-of-type(3)[aria-selected="true"]) {
   --index: 2;
 }
 
-.segmented--compact {
+:where(.app-page) .segmented--compact {
   max-width: 320px;
 }
 
-.segmented--compact .segmented__option {
+:where(.app-page) .segmented--compact .segmented__option {
   min-height: 40px;
   font-size: var(--t-xs);
 }
 
 /* Photo credit laid over a photograph. */
-.photo-credit {
+:where(.app-page) .photo-credit {
   position: absolute;
   z-index: 2;
   right: 10px;

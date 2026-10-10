@@ -8,7 +8,7 @@
   src: url("../assets/fonts/manrope-400-600-latin.woff2") format("woff2");
 }
 
-.names--lockup {
+:where(.std-page) .names--lockup {
   --lockup-size: clamp(2.75rem, 14.5vw, 3.875rem);
 
   /* Shorten the old three-row slot to bring the label and date closer to the
@@ -26,7 +26,7 @@
   font-weight: 400;
 }
 
-.names--lockup .names__line {
+:where(.std-page) .names--lockup .names__line {
   font-size: var(--lockup-size);
   font-weight: 400;
   line-height: 1.08;
@@ -34,7 +34,7 @@
   white-space: nowrap;
 }
 
-.names--lockup .names__amp {
+:where(.std-page) .names--lockup .names__amp {
   position: static;
   display: inline-block;
   margin-inline-end: 0.08em;
@@ -46,13 +46,13 @@
 }
 
 @media (min-width: 48rem) and (min-height: 40rem) {
-  .names--lockup {
+  :where(.std-page) .names--lockup {
     --lockup-size: 8.2cqh;
   }
 }
 
 @media (max-height: 40rem) and (min-width: 34rem) {
-  .names--lockup {
+  :where(.std-page) .names--lockup {
     --lockup-size: clamp(2rem, 5.5vw, 3rem);
   }
 }
