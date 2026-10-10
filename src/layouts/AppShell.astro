@@ -21,6 +21,9 @@ import { destinations, type Destination } from "../data/site";
 import manropeFont from "../assets/fonts/manrope-400-600-latin.woff2?url";
 import viewTransitionCss from "../styles/view-transitions.css?raw";
 import "../styles/app.css";
+// Kept after the stylesheet: imported earlier, it changes the order the build
+// emits the shared and screen stylesheets on several guest pages.
+import { routeHref, routes } from "../config/routes";
 
 interface Props {
   screen: Destination["id"];
@@ -33,6 +36,8 @@ interface Props {
 
 const { screen, title, description, preload = [], immersive = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const homeHref = routeHref(base, routes.home);
+const saveTheDateHref = routeHref(base, routes.saveTheDate);
 const current = destinations.find((d) => d.id === screen)!;
 const order = destinations.map((d) => d.id);
 ---
@@ -138,7 +143,7 @@ const order = destinations.map((d) => d.id);
 
     <!-- Desktop side rail: who, and where you can go. Nothing else. -->
     <aside class="rail" aria-label="Emily & Lawrence">
-      <a class="rail__brand" href={`${base}welcome/`}>
+      <a class="rail__brand" href={homeHref}>
         <Monogram />
         <span class="rail__brand-text">
           <Names class="rail__names" />
@@ -171,7 +176,7 @@ const order = destinations.map((d) => d.id);
           <Icon name="calendar" size={16} />
           Save to Calendar
         </button>
-        <a class="rail__quiet" href={base}>
+        <a class="rail__quiet" href={saveTheDateHref}>
           <Icon name="chevron-left" size={16} />
           The Save the Date
         </a>
@@ -181,7 +186,7 @@ const order = destinations.map((d) => d.id);
 
     <!-- Phone and tablet app bar -->
     <header class="appbar" data-appbar>
-      <a class="appbar__brand" href={`${base}welcome/`} aria-label="Emily & Lawrence, home">
+      <a class="appbar__brand" href={homeHref} aria-label="Emily & Lawrence, home">
         <Monogram size="sm" />
       </a>
       <p class="appbar__title" data-appbar-title>{current.title}</p>
@@ -267,7 +272,7 @@ const order = destinations.map((d) => d.id);
           <Icon name="calendar" size={18} />
           Save to Calendar
         </button>
-        <a class="sheet__std" href={base}>
+        <a class="sheet__std" href={saveTheDateHref}>
           <Icon name="chevron-left" size={16} />
           Back to the Save the Date
         </a>

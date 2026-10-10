@@ -17,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # GitHub Pages serves this project under /WedSite2027/. Other hosts build at the root.
+      BASE_PATH: /WedSite2027
     steps:
       - name: Check out repository
         uses: actions/checkout@v7

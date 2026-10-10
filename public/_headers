@@ -1,0 +1,7 @@
+# Cloudflare Pages response headers (root deployment). GitHub Pages ignores this file.
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/emily-lawrence-wedding.ics
+  Content-Type: text/calendar; charset=utf-8

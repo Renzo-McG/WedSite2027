@@ -1,0 +1,48 @@
+---
+/**
+ * The whole Save the Date page. Rendered at the site root today and also at
+ * save-the-date/, its permanent address after the custom-domain cutover.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SaveTheDateExperience from "./SaveTheDateExperience.astro";
+import { wedding } from "../../config/wedding";
+import plusJakartaFont from "../../assets/fonts/plus-jakarta-sans-latin.woff2?url";
+import manropeFont from "../../assets/fonts/manrope-400-600-latin.woff2?url";
+import { DEFAULT_DISPLAY_FONT, DISPLAY_FONT_IDS } from "../../lib/display-font";
+import "../../styles/fonts.css";
+import "../../styles/save-the-date.tokens.css";
+import "../../styles/save-the-date.css";
+import "../../styles/save-the-date.names.css";
+
+const title = `${wedding.couple.first} & ${wedding.couple.second} — Save the Date`;
+const description = `${wedding.date.display} · ${wedding.venue}, ${wedding.location}`;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  noindex
+  themeColor="#0d1512"
+  className="std-page"
+>
+  <Fragment slot="head">
+    <script
+      is:inline
+      define:vars={{ displayFontIds: DISPLAY_FONT_IDS, defaultDisplayFont: DEFAULT_DISPLAY_FONT }}
+    >
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const value = params.get("type");
+        document.documentElement.dataset.displayType = displayFontIds.includes(value)
+          ? value
+          : defaultDisplayFont;
+        if (params.get("motion") === "reduced") {
+          document.documentElement.setAttribute("data-reduced-motion", "");
+        }
+      })();
+    </script>
+    <link rel="preload" href={plusJakartaFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={manropeFont} as="font" type="font/woff2" crossorigin />
+  </Fragment>
+  <SaveTheDateExperience />
+</BaseLayout>
