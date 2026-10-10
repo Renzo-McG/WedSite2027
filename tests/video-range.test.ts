@@ -10,17 +10,25 @@ import routes from "../public/_routes.json";
 import stageFunction from "../functions/assets/stage/video/[file].ts?raw";
 import filmFunction from "../functions/assets/guide/film/[file].ts?raw";
 import { wedding } from "../src/config/wedding";
+import { filmSizes } from "../src/config/films";
 import travelPage from "../src/pages/travel/index.astro?raw";
 import weddingPage from "../src/pages/wedding/index.astro?raw";
 
 const films = import.meta.glob("../public/**/*.{mp4,webm,mov,m4v}");
+/** The real films as base64 data URLs, so their exact byte sizes can be checked. */
+const filmData = import.meta.glob<string>("../public/**/*.mp4", {
+  query: "?inline",
+  import: "default",
+  eager: true,
+});
 
 /** A realistic file: patterned bytes, delivered in uneven chunks like a network body. */
 const SIZE = 300_007;
-const bytes = Uint8Array.from({ length: SIZE }, (_, i) => (i * 31 + 7) % 251);
+const bytes = Uint8Array.from({ length: 700_000 }, (_, i) => (i * 31 + 7) % 251);
 const ETAG = '"film-v1"';
 
-function asset(chunk = 7_919, size = SIZE): Response {
+/** `declareLength: false` mimics the Pages asset binding, which omits Content-Length. */
+function asset(chunk = 7_919, size = SIZE, declareLength = true): Response {
   const body = new ReadableStream<Uint8Array>({
     start(controller) {
       for (let i = 0; i < size; i += chunk)
@@ -28,14 +36,13 @@ function asset(chunk = 7_919, size = SIZE): Response {
       controller.close();
     },
   });
-  return new Response(body, {
-    headers: {
-      "content-type": "video/mp4",
-      "content-length": String(size),
-      etag: ETAG,
-      "cache-control": "public, max-age=0, must-revalidate",
-    },
+  const headers = new Headers({
+    "content-type": "video/mp4",
+    etag: ETAG,
+    "cache-control": "public, max-age=0, must-revalidate",
   });
+  if (declareLength) headers.set("content-length", String(size));
+  return new Response(body, { headers });
 }
 
 function get(headers: Record<string, string> = {}, method = "GET"): Request {
@@ -118,7 +125,7 @@ describe("serveVideo", () => {
     expect(response.headers.get("content-type")).toBe("video/mp4");
     expect(response.headers.get("content-length")).toBe(String(SIZE));
     expect(response.headers.get("etag")).toBe(ETAG);
-    expect(await body(response)).toEqual(bytes);
+    expect(await body(response)).toEqual(bytes.slice(0, SIZE));
   });
 
   it.each([
@@ -169,6 +176,16 @@ describe("serveVideo", () => {
     });
     expect(serveVideo(get({ range: "bytes=0-1" }), unknown)).toBe(unknown);
   });
+
+  it("takes the length from the known size when the asset reports none", async () => {
+    const response = serveVideo(get({ range: "bytes=100-199" }), asset(7_919, SIZE, false), SIZE);
+    expect(response.status).toBe(206);
+    expect(response.headers.get("content-range")).toBe(`bytes 100-199/${SIZE}`);
+    expect(await body(response)).toEqual(bytes.slice(100, 200));
+    const whole = serveVideo(get(), asset(7_919, SIZE, false), SIZE);
+    expect(whole.headers.get("content-length")).toBe(String(SIZE));
+    expect((await body(whole)).byteLength).toBe(SIZE);
+  });
 });
 
 describe("Pages Function", () => {
@@ -182,7 +199,8 @@ describe("Pages Function", () => {
           fetch: async (input) => {
             const request = input instanceof Request ? input : new Request(input);
             calls.push(`${request.method} ${request.headers.get("range") ?? "whole"}`);
-            return asset();
+            const size = filmSizes[new URL(request.url).pathname] ?? SIZE;
+            return asset(7_919, size, false);
           },
         },
       },
@@ -200,6 +218,7 @@ describe("Pages Function", () => {
     const response = await onVideoRequest(ctx);
     expect(calls).toEqual(["GET whole"]);
     expect(response.status).toBe(206);
+    expect(response.headers.get("content-range")).toBe("bytes 10-19/693154");
     expect(await body(response)).toEqual(bytes.slice(10, 20));
   });
 
@@ -244,5 +263,15 @@ describe("Function routing", () => {
     ];
     expect(used.length).toBe(3);
     for (const path of used) expect(routes.include).toContain(path);
+  });
+
+  it("knows the exact size of every film, matching the files in public/", () => {
+    expect(Object.keys(filmSizes).sort()).toEqual([...routes.include].sort());
+    for (const [file, dataUrl] of Object.entries(filmData)) {
+      const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+      const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+      const path = file.replace("../public", "");
+      expect(filmSizes[path], path).toBe((base64.length * 3) / 4 - padding);
+    }
   });
 });

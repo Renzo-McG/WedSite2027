@@ -12,6 +12,7 @@
  * the range, never held in memory, and the response goes out through a
  * FixedLengthStream so the Workers runtime sends an exact Content-Length.
  */
+import { filmSizes } from "../config/films";
 
 export interface ByteRange {
   start: number;
@@ -106,11 +107,13 @@ function withExactLength(
 
 /**
  * Answers a GET or HEAD for a film from the complete deployed asset.
- * `asset` must be an unconditional, non-range GET of the same file.
+ * `asset` must be an unconditional, non-range GET of the same file. The
+ * asset's own Content-Length wins; `knownSize` covers the Pages asset binding,
+ * which does not report one.
  */
-export function serveVideo(request: Request, asset: Response): Response {
+export function serveVideo(request: Request, asset: Response, knownSize?: number): Response {
   const declared = asset.headers.get("content-length");
-  const size = declared === null ? NaN : Number(declared);
+  const size = declared === null ? (knownSize ?? NaN) : Number(declared);
   if (!asset.ok || !asset.body || !Number.isInteger(size) || size < 0) return asset;
 
   const headers = new Headers();
@@ -129,7 +132,7 @@ export function serveVideo(request: Request, asset: Response): Response {
       void asset.body?.cancel();
       return new Response(null, { status, headers });
     }
-    return new Response(asset.body, { status, headers });
+    return new Response(withExactLength(asset.body!, size), { status, headers });
   };
 
   if (etag && request.headers.get("if-none-match") === etag) return whole(304);
@@ -171,12 +174,13 @@ export async function onVideoRequest(context: VideoFunctionContext): Promise<Res
   }
   // An unconditional whole-file GET of the deployed asset; the range is cut here.
   const asset = await env.ASSETS.fetch(new Request(request.url, { method: "GET" }));
-  const response = serveVideo(request, asset);
-  // TEMPORARY preview diagnostic (remove before merge): which path served the film.
+  const response = serveVideo(request, asset, filmSizes[pathname]);
+  // TEMPORARY preview diagnostic (remove before merge): which path served the film,
+  // and which headers the asset binding actually returned.
   const tagged = new Response(response.body, response);
   tagged.headers.set(
     "X-Video-Range",
-    `${response === asset ? "passthrough" : "served"}; asset=${asset.status}; asset-length=${asset.headers.get("content-length") ?? "none"}`,
+    `${response === asset ? "passthrough" : "served"}; asset=${asset.status}; asset-length=${asset.headers.get("content-length") ?? "none"}; asset-headers=${[...asset.headers.keys()].join(",")}`,
   );
   return tagged;
 }
