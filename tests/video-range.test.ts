@@ -216,9 +216,9 @@ describe("Pages Function", () => {
 
   it("is mounted only at the two film folders", () => {
     for (const source of [stageFunction, filmFunction]) {
-      expect(source).toContain(
-        'export { onVideoRequest as onRequest } from "../../../../src/lib/video-range"',
-      );
+      // A plain exported const, which Pages' route detection reliably recognises.
+      expect(source).toContain('from "../../../../src/lib/video-range"');
+      expect(source).toContain("export const onRequest = (context: VideoFunctionContext) =>");
     }
   });
 });
