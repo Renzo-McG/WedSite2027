@@ -870,7 +870,7 @@ export const holidayLengths: HolidayLength[] = [
 
 export const tripGuidance = {
   window:
-    "Completely optional, and still to be confirmed — we'll share anything we arrange here once we know more. Everything else is your holiday, so plan it however you like.",
+    "Completely optional, and still to be confirmed. We'll share anything we arrange here once we know more. Everything else is your holiday, so plan it however you like.",
   gettingAround:
     "Cebu is a hub: fast ferries leave Cebu City for Bohol, and Mactan-Cebu airport has direct flights to Siargao, El Nido and Coron, so there is no need to go back through Manila.",
   defaultDays: 10 as const,

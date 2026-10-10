@@ -29,7 +29,7 @@ const venueMap = `https://www.google.com/maps/search/?api=1&query=${encodeURICom
 <AppShell
   screen="wedding"
   immersive
-  title="The wedding — Emily & Lawrence"
+  title="The wedding | Emily & Lawrence"
   description="Emily and Lawrence's wedding: Sunday 24 October 2027 at the Ocean Pavilion, Shangri-La Mactan, Cebu, Philippines."
   preload={[
     {
@@ -45,6 +45,8 @@ const venueMap = `https://www.google.com/maps/search/?api=1&query=${encodeURICom
         class="vow__film scroll-film__video"
         data-film-video
         data-src={`${base}assets/guide/film/pavilion-approach.mp4`}
+        data-film-clean-from="2"
+        data-film-clean-media="(min-width: 48rem)"
         muted
         playsinline
         preload="none"
