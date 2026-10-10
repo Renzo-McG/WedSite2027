@@ -1197,7 +1197,7 @@
 .credit a::after {
   position: absolute;
   content: "";
-  inset: -10px -6px;
+  inset: -5px 0;
 }
 
 .note {
