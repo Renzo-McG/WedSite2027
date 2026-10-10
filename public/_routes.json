@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "include": [
+    "/assets/stage/video/venue-ocean-pavilion.mp4",
+    "/assets/guide/film/pavilion-coast.mp4",
+    "/assets/guide/film/pavilion-approach.mp4"
+  ],
+  "exclude": []
+}
