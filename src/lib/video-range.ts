@@ -174,13 +174,5 @@ export async function onVideoRequest(context: VideoFunctionContext): Promise<Res
   }
   // An unconditional whole-file GET of the deployed asset; the range is cut here.
   const asset = await env.ASSETS.fetch(new Request(request.url, { method: "GET" }));
-  const response = serveVideo(request, asset, filmSizes[pathname]);
-  // TEMPORARY preview diagnostic (remove before merge): which path served the film,
-  // and which headers the asset binding actually returned.
-  const tagged = new Response(response.body, response);
-  tagged.headers.set(
-    "X-Video-Range",
-    `${response === asset ? "passthrough" : "served"}; asset=${asset.status}; asset-length=${asset.headers.get("content-length") ?? "none"}; asset-headers=${[...asset.headers.keys()].join(",")}`,
-  );
-  return tagged;
+  return serveVideo(request, asset, filmSizes[pathname]);
 }
