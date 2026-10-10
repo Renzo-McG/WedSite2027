@@ -354,6 +354,10 @@ html[data-sheet-open] {
   line-height: 1.25;
 }
 
+.details__date-day {
+  white-space: nowrap;
+}
+
 .details__place {
   margin: 0;
   color: var(--ink-soft);
@@ -545,7 +549,7 @@ html[data-sheet-open] {
 .note {
   margin: calc(var(--gap-cta-note) - var(--gap-countdown-cta)) 0 0;
   color: var(--ink-faint);
-  font-size: var(--label-size);
+  font-size: var(--note-size, var(--label-size));
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1306,7 +1310,10 @@ html[data-sheet-open] {
     --names-size: 12.1cqh;
     --date-size: 3.6cqh;
     --place-size: 2.2cqh;
-    --countdown-size: 1.66cqh;
+    /* Countdown and note stay quiet but readable at desk distance: a share of
+       the card like everything else, capped at 13 px and 12.5 px. */
+    --countdown-size: min(1.8cqh, 0.8125rem);
+    --note-size: min(1.76cqh, 0.78125rem);
     --gap-header-names: 4.6cqh;
     --gap-names-details: 3.4cqh;
     --gap-date-place: 0.9cqh;

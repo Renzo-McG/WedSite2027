@@ -15,6 +15,18 @@ document.querySelectorAll<HTMLElement>("[data-scroll-film]").forEach((scene) => 
   let seekStarted = 0;
   let slowSeeks = 0;
 
+  // Some source footage opens with a burned-in caption. Where the crop shows it
+  // (data-film-clean-media), the still stays up until the film is past those
+  // frames (data-film-clean-from, in seconds), then the film fades in as usual.
+  const cleanFrom = Number(video.dataset.filmCleanFrom) || 0;
+  const cleanMedia = video.dataset.filmCleanMedia
+    ? window.matchMedia(video.dataset.filmCleanMedia)
+    : null;
+  const showFrame = () => {
+    const holdStill = cleanFrom > 0 && (!cleanMedia || cleanMedia.matches) && target < cleanFrom;
+    scene.toggleAttribute("data-film-ready", !holdStill);
+  };
+
   const fallback = () => {
     if (failed) return;
     failed = true;
@@ -26,8 +38,7 @@ document.querySelectorAll<HTMLElement>("[data-scroll-film]").forEach((scene) => 
   const seek = () => {
     if (!loaded || failed || video.seeking) return;
     if (Math.abs(video.currentTime - target) < 0.07) {
-      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA)
-        scene.setAttribute("data-film-ready", "");
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) showFrame();
       return;
     }
     seekStarted = performance.now();
@@ -61,7 +72,7 @@ document.querySelectorAll<HTMLElement>("[data-scroll-film]").forEach((scene) => 
   });
   video.addEventListener("seeked", () => {
     if (seekStarted && performance.now() - seekStarted > 450 && ++slowSeeks >= 3) return fallback();
-    scene.setAttribute("data-film-ready", "");
+    showFrame();
     seek();
   });
   video.addEventListener("error", fallback);

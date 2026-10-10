@@ -1187,8 +1187,17 @@
 }
 
 .credit a {
+  position: relative;
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+/* The licence link stays small to look at but gets a finger-sized target;
+   kept modest so it never reaches over the controls around a photograph. */
+.credit a::after {
+  position: absolute;
+  content: "";
+  inset: -10px -6px;
 }
 
 .note {
