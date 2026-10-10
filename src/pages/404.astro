@@ -1,0 +1,166 @@
+---
+/**
+ * Served for any address that does not exist. Its presence also stops
+ * Cloudflare Pages treating the site as a single-page app (which would answer
+ * every unknown URL with the Save the Date and a 200). It can be shown at any
+ * depth, so every link is absolute from the deployment base. No JavaScript.
+ *
+ * Styled on its own with the Wedding website's palette rather than importing
+ * app.css: sharing that stylesheet changes how the build splits CSS, and with
+ * it the stylesheet order on the guest pages.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Monogram from "../components/app/Monogram.astro";
+import { routeHref, routes } from "../config/routes";
+
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout
+  title="Page not found — Emily & Lawrence"
+  description="This page could not be found on Emily and Lawrence's wedding website."
+  noindex
+  canonical={false}
+  themeColor="#f6f2ea"
+  className="lost-page"
+>
+  <main class="lost">
+    <Monogram />
+    <p class="lost__eyebrow">Emily &amp; Lawrence</p>
+    <h1 class="lost__title">This page isn’t here</h1>
+    <p class="lost__lead">
+      The link may be old or mistyped. Everything for the wedding is one tap away.
+    </p>
+    <div class="lost__actions">
+      <a class="lost__button lost__button--primary" href={routeHref(base, routes.home)}>
+        Go to the wedding website
+      </a>
+      <a class="lost__button" href={routeHref(base, routes.saveTheDate)}>
+        Open the Save the Date
+      </a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  @font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url("../assets/fonts/manrope-400-600-latin.woff2") format("woff2");
+  }
+
+  :global(.lost-page) {
+    margin: 0;
+    color: #0e2421;
+    background: #f6f2ea;
+    font-family: "Manrope", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .lost {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 14px;
+    box-sizing: border-box;
+    min-height: 100dvh;
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: 32px 20px calc(32px + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+
+  /* The Wedding website's pavilion mark (its rules live in app.css). */
+  .lost :global(.monogram) {
+    display: inline-grid;
+    place-items: center;
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(155deg, #956846 0%, #674127 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 4px 12px -4px rgba(49, 25, 9, 0.42);
+  }
+
+  .lost :global(.monogram)::before {
+    position: absolute;
+    border: 1px solid rgba(255, 255, 255, 0.88);
+    border-radius: 50%;
+    content: "";
+    inset: 3px;
+  }
+
+  .lost :global(.monogram__pavilion) {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    stroke: rgba(255, 255, 255, 0.96);
+    stroke-width: 1.65;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .lost__eyebrow {
+    margin: 10px 0 0;
+    color: #5c6c66;
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .lost__title {
+    margin: 0;
+    font-size: clamp(1.75rem, 6vw, 2.25rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .lost__lead {
+    margin: 0;
+    color: #3a4d48;
+    line-height: 1.55;
+  }
+
+  .lost__actions {
+    display: grid;
+    gap: 10px;
+    width: min(100%, 20rem);
+    margin-top: 12px;
+  }
+
+  .lost__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    color: #0e2421;
+    background: #fffdf8;
+    box-shadow: inset 0 0 0 1px rgba(14, 36, 33, 0.18);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  .lost__button--primary {
+    color: #fff;
+    background: #0b7a74;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 8px 18px -8px rgba(7, 94, 89, 0.6);
+  }
+
+  .lost__button:focus-visible {
+    outline: 3px solid #0b7a74;
+    outline-offset: 3px;
+  }
+</style>

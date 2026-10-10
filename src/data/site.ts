@@ -3,6 +3,7 @@
  * will add, and the shared imagery. Travel facts live in ./travel.ts.
  */
 import type { GuideImage } from "./travel";
+import { routes } from "../config/routes";
 
 export type IconName =
   | "home"
@@ -64,7 +65,7 @@ export const destinations: Destination[] = [
     id: "home",
     label: "Home",
     title: "Emily & Lawrence",
-    path: "welcome/",
+    path: routes.home,
     icon: "home",
     blurb: "Cebu, Sunday 24 October 2027",
   },

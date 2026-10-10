@@ -7,10 +7,19 @@ interface Props {
   noindex?: boolean;
   className?: string;
   themeColor?: string;
+  /** Off for pages with no address of their own, such as the 404. */
+  canonical?: boolean;
 }
 
-const { title, description, noindex = false, className = "", themeColor } = Astro.props;
-const canonical = canonicalPageUrl(Astro.url.pathname);
+const {
+  title,
+  description,
+  noindex = false,
+  className = "",
+  themeColor,
+  canonical: hasCanonical = true,
+} = Astro.props;
+const canonical = hasCanonical ? canonicalPageUrl(Astro.url.pathname) : undefined;
 ---
 
 <!doctype html>
@@ -24,9 +33,9 @@ const canonical = canonicalPageUrl(Astro.url.pathname);
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {canonical && <meta property="og:url" content={canonical} />}
     <meta name="twitter:card" content="summary" />
-    <link rel="canonical" href={canonical} />
+    {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
     <title>{title}</title>
     <slot name="head" />
