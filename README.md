@@ -2,8 +2,8 @@
 
 The repository holds three things:
 
-1. **The public Save the Date** at `/` (also served at `/save-the-date/`, its address after the custom-domain cutover) — the production page guests see. See [docs/SAVE_THE_DATE_V1_2.md](docs/SAVE_THE_DATE_V1_2.md).
-2. **The guest companion** at `/welcome/`, `/travel/`, `/stay/`, `/trip/` and `/wedding/` — the Wedding website as a small app (in review, not yet linked from the Save the Date). See [docs/TRAVEL_AND_STAY.md](docs/TRAVEL_AND_STAY.md).
+1. **The public Save the Date** at `/save-the-date/` — the invitation and calendar experience. The legacy GitHub Pages build also keeps it at that host's root. See [docs/SAVE_THE_DATE_V1_2.md](docs/SAVE_THE_DATE_V1_2.md).
+2. **The guest companion** at `/`, `/travel/`, `/stay/`, `/trip/` and `/wedding/` — the Wedding website as a small app. The legacy GitHub Pages build keeps its home at `/welcome/`. See [docs/TRAVEL_AND_STAY.md](docs/TRAVEL_AND_STAY.md).
 3. **The Design Lab** at `/design-lab/` — an internal creative-direction environment for shaping, comparing, documenting, and exporting a visual and motion system. It is not the wedding site and is intentionally absent from public navigation.
 
 The Save the Date is now the reference for the production system. The Design Lab's own preview deliberately still shows the earlier exploration; realigning it to the production system is a later task.
@@ -32,7 +32,7 @@ The page is fully readable without JavaScript: the markup ships open and an inli
 - small browser-native TypeScript modules; no animation framework
 - localStorage for device-local design decisions
 - an iframe for complete preview style isolation
-- GitHub Actions and GitHub Pages today; Cloudflare Pages being prepared (see [Deployment](#deployment))
+- GitHub Actions, GitHub Pages and Cloudflare Pages (see [Deployment](#deployment))
 
 ## Local development
 
@@ -54,7 +54,7 @@ The site builds and serves at the root by default:
 - Design Lab: `http://localhost:4321/design-lab/`
 - Isolated preview: `http://localhost:4321/design-lab/preview/`
 
-To reproduce the GitHub Pages layout locally, set the base path: `BASE_PATH=/WedSite2027 pnpm dev` (or `pnpm build`), then use `http://localhost:4321/WedSite2027/`.
+To reproduce the legacy GitHub Pages layout locally, set both build variables: `BASE_PATH=/WedSite2027 LEGACY_GITHUB_PAGES=true pnpm dev` (or `pnpm build`), then use `http://localhost:4321/WedSite2027/`.
 
 Build and preview production output:
 
@@ -77,24 +77,24 @@ or `pnpm validate`.
 
 ## Deployment
 
-The same commit builds for two hosts. Only the hosting base path differs; the public URL does not.
+The same commit builds for two hosts. The GitHub Pages workflow sets an explicit legacy-routing flag as well as its hosting base path; the public canonical URL does not vary by build.
 
-|                  | Base path       | Where it comes from                                              | Status                   |
-| ---------------- | --------------- | ---------------------------------------------------------------- | ------------------------ |
-| GitHub Pages     | `/WedSite2027/` | `BASE_PATH=/WedSite2027` in `.github/workflows/deploy-pages.yml` | **Current production**   |
-| Cloudflare Pages | `/`             | the default when `BASE_PATH` is unset                            | Prepared, not yet set up |
+|                  | Base path       | Route mode                                                                    | Status                  |
+| ---------------- | --------------- | ----------------------------------------------------------------------------- | ----------------------- |
+| GitHub Pages     | `/WedSite2027/` | `BASE_PATH=/WedSite2027` and `LEGACY_GITHUB_PAGES=true` in the Pages workflow | Legacy production       |
+| Cloudflare Pages | `/`             | Default build, with neither variable set                                      | Primary pre-domain host |
 
 - **Hosting base path.** `astro.config.mjs` reads the `BASE_PATH` build variable through `normalizeBasePath()` in `src/config/site.ts` (default `/`, always a leading and trailing slash). Components use `import.meta.env.BASE_URL`, and links between the two experiences go through `routeHref()` in `src/config/routes.ts`, so nothing hardcodes a host prefix. A test fails if the GitHub Pages path appears anywhere else in `src/`.
 - **Public canonical URL.** `siteUrl` in `src/config/site.ts` is the single guest-facing address: canonical and `og:url` links, the calendar description, the Google Calendar details and the ICS `URL` all derive from it. It is deliberately not an environment variable, so every build (including Cloudflare preview builds) points guests at the same place. It remains `https://renzo-mcg.github.io/WedSite2027/` until the controlled cutover, when it becomes `https://emilyandlawrence.com/`.
-- **Not found.** `src/pages/404.astro` emits `dist/404.html`. Cloudflare Pages serves it with a 404 status for unknown paths (without it, Pages would treat the site as a single-page app and answer every unknown URL with the Save the Date). GitHub Pages serves it for unknown paths under `/WedSite2027/`.
+- **Not found.** `src/pages/404.astro` emits `dist/404.html`. Cloudflare Pages serves it with a 404 status for unknown paths (without it, Pages would treat the site as a single-page app and answer every unknown URL with the home page). GitHub Pages serves it for unknown paths under `/WedSite2027/`.
 - **Headers.** `public/_headers` is read by Cloudflare Pages only: long-lived immutable caching for the hashed `/_astro/` files and an explicit `text/calendar; charset=utf-8` for the ICS. GitHub Pages ignores it.
 - **Films (Cloudflare only).** Cloudflare Pages answers byte-range requests for static files with the whole file, and Safari / iOS will not play video served that way. A Pages Function (`functions/assets/**/[file].ts`, logic in `src/lib/video-range.ts`) serves the three MP4s with proper `206` ranges; `public/_routes.json` limits it to exactly those files, so every other request stays static. The asset binding does not report a file's length, so exact sizes live in `src/config/films.ts`; a test fails if a film changes without updating that table and `_routes.json`. GitHub Pages ignores `functions/` and `_routes.json`.
 
-**GitHub Pages (current).** In **Settings → Pages** the source is **GitHub Actions**. `deploy-pages.yml` uses the official Astro Pages action to install, build (with `BASE_PATH=/WedSite2027`) and upload the static artifact, then the official Pages action deploys it. It runs after pushes to `main` and can be started manually. `.github/workflows/ci.yml` validates pull requests and all branch pushes with a root build.
+**GitHub Pages (legacy).** In **Settings → Pages** the source is **GitHub Actions**. `deploy-pages.yml` uses the official Astro Pages action to install, build (with `BASE_PATH=/WedSite2027` and `LEGACY_GITHUB_PAGES=true`) and upload the static artifact, then the official Pages action deploys it. It runs after pushes to `main` and can be started manually. `.github/workflows/ci.yml` validates pull requests and all branch pushes with a default root build.
 
-**Cloudflare Pages (prepared, not live).** Expected settings when the project is created: framework preset Astro, build command `pnpm build`, output directory `dist`, no `BASE_PATH`, Node 24 (declared in `.node-version`) and pnpm 11.9.0 (declared in `package.json` `packageManager`). No secrets or other variables are needed.
+**Cloudflare Pages.** The Git integration uses framework preset Astro, build command `pnpm build`, output directory `dist`, no `BASE_PATH` and no legacy-routing flag. Node 24 is declared in `.node-version` and pnpm 11.9.0 in `package.json` `packageManager`.
 
-**Routes at the cutover.** `src/config/routes.ts` holds where the Save the Date and the Wedding website home live. Today the Save the Date is `/` (and `/save-the-date/`) and the Wedding website starts at `/welcome/`. At the cutover the Wedding website home becomes `/`, the Save the Date lives only at `/save-the-date/`, and `/welcome/` redirects to `/`.
+**Dual-host routes.** `src/config/routes.ts` holds where the Save the Date and the Wedding website home live. A default Cloudflare build serves the Wedding website at `/`, serves the Save the Date at `/save-the-date/`, and redirects both `/welcome` forms to `/` through `public/_redirects`. The explicit legacy GitHub Pages build keeps the Save the Date at `/WedSite2027/` and the Wedding website at `/WedSite2027/welcome/`; GitHub Pages ignores `_redirects`.
 
 The Design Lab is a public static route when deployed. `noindex, nofollow` discourages search indexing, but obscurity is not access control. Do not store secrets, guest records, or private wedding data in it.
 

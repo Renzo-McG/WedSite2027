@@ -1,7 +1,7 @@
 # Guest companion: asset register
 
-Every photograph and map source used by the guest companion (`/welcome/`, `/travel/`,
-`/stay/`, `/trip/`, `/wedding/`). The image metadata the site renders lives in
+Every photograph and map source used by the guest companion (`/`, or legacy `/welcome/`,
+`/travel/`, `/stay/`, `/trip/`, `/wedding/`). The image metadata the site renders lives in
 `src/data/travel.ts` and `src/data/site.ts`; this file is the human record and the
 **deployment gate**.
 

@@ -1,5 +1,9 @@
 ---
-import SaveTheDatePage from "../components/save-the-date/SaveTheDatePage.astro";
+import { isLegacyGitHubPagesBuild } from "../config/routes";
+
+const { default: RootPage } = isLegacyGitHubPagesBuild
+  ? await import("../components/save-the-date/SaveTheDatePage.astro")
+  : await import("../components/app/WeddingWebsiteHome.astro");
 ---
 
-<SaveTheDatePage />
+<RootPage />

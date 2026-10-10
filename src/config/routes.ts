@@ -1,17 +1,17 @@
 /**
- * Where the two experiences live, relative to the deployment base. Every link
- * between them reads from here, so the custom-domain cutover is a swap of
- * these values rather than a hunt through templates.
- *
- * Today the Save the Date is the site root and the Wedding website starts at
- * welcome/. At cutover the Wedding website home becomes the root, the Save the
- * Date moves to save-the-date/ (already served there as well), and welcome/
- * redirects to the root.
+ * GitHub Pages remains the legacy host until its old links can be retired.
+ * All other builds use the final route architecture intended for Cloudflare.
  */
-export const routes = {
-  home: "welcome/",
-  saveTheDate: "",
-} as const;
+export const isLegacyGitHubPagesBuild = import.meta.env.LEGACY_GITHUB_PAGES === "true";
+
+export function routesFor(legacyGitHubPages: boolean) {
+  return {
+    home: legacyGitHubPages ? "welcome/" : "",
+    saveTheDate: "save-the-date/",
+  } as const;
+}
+
+export const routes = routesFor(isLegacyGitHubPagesBuild);
 
 /** Joins a base URL and a route without doubling or dropping the slash. */
 export function routeHref(base: string, route: string): string {

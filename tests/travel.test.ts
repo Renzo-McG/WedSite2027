@@ -26,7 +26,7 @@ import flightPlannerSource from "../src/components/travel/FlightPlanner.astro?ra
 import holidaySource from "../src/components/trip/HolidayExplorer.astro?raw";
 import travelPageSource from "../src/pages/travel/index.astro?raw";
 import stayPageSource from "../src/pages/stay/index.astro?raw";
-import homePageSource from "../src/pages/welcome/index.astro?raw";
+import homePageSource from "../src/components/app/WeddingWebsiteHome.astro?raw";
 import weddingPageSource from "../src/pages/wedding/index.astro?raw";
 import motionSource from "../src/scripts/app/motion.ts?raw";
 import journeySource from "../src/scripts/app/journey.ts?raw";
@@ -40,7 +40,9 @@ import assetRegister from "../docs/TRAVEL_AND_STAY_ASSETS.md?raw";
 const guideFiles = new Set(
   Object.keys(import.meta.glob("../public/assets/guide/*.webp")).map((f) => f.split("/").pop()),
 );
-const pages = new Set(Object.keys(import.meta.glob("../src/pages/*/index.astro")));
+const pages = new Set(
+  Object.keys(import.meta.glob(["../src/pages/index.astro", "../src/pages/*/index.astro"])),
+);
 
 const allLinks = [
   ...flightRoutes.map((route) => route.link.href),
@@ -266,7 +268,8 @@ describe("time", () => {
 describe("product shell", () => {
   it("gives every destination a real page", () => {
     for (const d of destinations) {
-      expect(pages.has(`../src/pages/${d.path}index.astro`), d.path).toBe(true);
+      const page = d.path ? `../src/pages/${d.path}index.astro` : "../src/pages/index.astro";
+      expect(pages.has(page), d.path || "/").toBe(true);
     }
   });
 
