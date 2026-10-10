@@ -4,13 +4,13 @@ The Wedding website as a product: **Emily & Lawrence's Cebu wedding companion**,
 guests move into after the Save the Date at `/` (which will link out to it). Built for review on
 branch `feat/travel-and-stay`; not linked from the invitation yet; `noindex`.
 
-| Screen      | Route       | Signature interaction                                                                |
-| ----------- | ----------- | ------------------------------------------------------------------------------------ |
-| Home        | `/welcome/` | The arrival: Mactan's coastline draws, a pin lands, the Pavilion photo opens from it |
-| Travel      | `/travel/`  | The London → Cebu journey: three routes on one timeline, flown on a map              |
-| Stay        | `/stay/`    | Hotel ↔ map explorer: camera, drive, re-ranking pins, a sheet grown from the photo   |
-| Your trip   | `/trip/`    | The wedding window, then "Making a holiday of it?": 7 / 10 / 14 days reshape the map |
-| The wedding | `/wedding/` | The Pavilion arrives from Home, the roof line draws, the light turns to golden hour  |
+| Screen      | Route                                  | Signature interaction                                                                |
+| ----------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
+| Home        | `/` (legacy GitHub Pages: `/welcome/`) | The arrival: Mactan's coastline draws, a pin lands, the Pavilion photo opens from it |
+| Travel      | `/travel/`                             | The London → Cebu journey: three routes on one timeline, flown on a map              |
+| Stay        | `/stay/`                               | Hotel ↔ map explorer: camera, drive, re-ranking pins, a sheet grown from the photo   |
+| Your trip   | `/trip/`                               | The wedding window, then "Making a holiday of it?": 7 / 10 / 14 days reshape the map |
+| The wedding | `/wedding/`                            | The Pavilion arrives from Home, the roof line draws, the light turns to golden hour  |
 
 Governing briefs, in the vault: `Wed-Site/Review/Travel & Stay/Feedback — Round 3.md` (this
 round), on top of `Build Briefs/Wedding Website — Intention Brief (Round 2).md`. Facts and
@@ -90,7 +90,8 @@ checklist memory and the phone rail sync need JavaScript.
 
 - Shell: `src/layouts/AppShell.astro` (with the morph and arrival hand-off script),
   `src/scripts/app/shell.ts`, `src/styles/app.css`, `src/styles/view-transitions.css` (inlined)
-- Screens: `src/pages/{welcome,travel,stay,trip,wedding}/index.astro`, with
+- Screens: `src/pages/index.astro`, `src/pages/{welcome,travel,stay,trip,wedding}/index.astro`,
+  the shared `src/components/app/WeddingWebsiteHome.astro`, and
   `src/styles/screen-{home,travel,stay,trip,wedding}.css`, `map.css` and `window.css`
 - Components: `src/components/app/` (icons, monogram, pictures, coastline, Mactan map),
   `src/components/travel/` (FlightPlanner, FareScale, ArrivalPanel, PrepChecklist),
