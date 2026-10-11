@@ -79,13 +79,13 @@ or `pnpm validate`.
 
 The same commit builds for two hosts. The GitHub Pages workflow sets an explicit legacy-routing flag as well as its hosting base path; the public canonical URL does not vary by build.
 
-|                  | Base path       | Route mode                                                                    | Status                  |
-| ---------------- | --------------- | ----------------------------------------------------------------------------- | ----------------------- |
-| GitHub Pages     | `/WedSite2027/` | `BASE_PATH=/WedSite2027` and `LEGACY_GITHUB_PAGES=true` in the Pages workflow | Legacy production       |
-| Cloudflare Pages | `/`             | Default build, with neither variable set                                      | Primary pre-domain host |
+|                  | Base path       | Route mode                                                                    | Status                     |
+| ---------------- | --------------- | ----------------------------------------------------------------------------- | -------------------------- |
+| GitHub Pages     | `/WedSite2027/` | `BASE_PATH=/WedSite2027` and `LEGACY_GITHUB_PAGES=true` in the Pages workflow | Legacy production          |
+| Cloudflare Pages | `/`             | Default build, with neither variable set                                      | Primary custom-domain host |
 
 - **Hosting base path.** `astro.config.mjs` reads the `BASE_PATH` build variable through `normalizeBasePath()` in `src/config/site.ts` (default `/`, always a leading and trailing slash). Components use `import.meta.env.BASE_URL`, and links between the two experiences go through `routeHref()` in `src/config/routes.ts`, so nothing hardcodes a host prefix. A test fails if the GitHub Pages path appears anywhere else in `src/`.
-- **Public canonical URL.** `siteUrl` in `src/config/site.ts` is the single guest-facing address: canonical and `og:url` links, the calendar description, the Google Calendar details and the ICS `URL` all derive from it. It is deliberately not an environment variable, so every build (including Cloudflare preview builds) points guests at the same place. It remains `https://renzo-mcg.github.io/WedSite2027/` until the controlled cutover, when it becomes `https://emilyandlawrence.com/`.
+- **Public canonical URL.** `siteUrl` in `src/config/site.ts` is `https://emilyandlawrence.com/`. Canonical and `og:url` links, the calendar description, Google Calendar details and the ICS `URL` derive from it in every build. The legacy GitHub Pages root renders the Save the Date and therefore canonicalizes to the final `/save-the-date/`; its `/welcome/` page canonicalizes to the final `/`. Internal navigation still uses the GitHub Pages base path.
 - **Not found.** `src/pages/404.astro` emits `dist/404.html`. Cloudflare Pages serves it with a 404 status for unknown paths (without it, Pages would treat the site as a single-page app and answer every unknown URL with the home page). GitHub Pages serves it for unknown paths under `/WedSite2027/`.
 - **Headers.** `public/_headers` is read by Cloudflare Pages only: long-lived immutable caching for the hashed `/_astro/` files and an explicit `text/calendar; charset=utf-8` for the ICS. GitHub Pages ignores it.
 - **Films (Cloudflare only).** Cloudflare Pages answers byte-range requests for static files with the whole file, and Safari / iOS will not play video served that way. A Pages Function (`functions/assets/**/[file].ts`, logic in `src/lib/video-range.ts`) serves the three MP4s with proper `206` ranges; `public/_routes.json` limits it to exactly those files, so every other request stays static. The asset binding does not report a file's length, so exact sizes live in `src/config/films.ts`; a test fails if a film changes without updating that table and `_routes.json`. GitHub Pages ignores `functions/` and `_routes.json`.
@@ -98,7 +98,7 @@ The same commit builds for two hosts. The GitHub Pages workflow sets an explicit
 
 The Design Lab is a public static route when deployed. `noindex, nofollow` discourages search indexing, but obscurity is not access control. Do not store secrets, guest records, or private wedding data in it.
 
-**Final acceptance gate after the custom domain is attached:** update `siteUrl` in `src/config/site.ts`; check canonical and OG URLs, calendar descriptions and ICS `URL`, absolute/share links, redirects (including the old GitHub Pages address, which guests' calendars may already hold), and sitemap/robots if present. Then test the new live domain from a fresh visit on mobile and desktop. The GitHub Pages URL remains canonical until that gate is complete.
+The GitHub Pages deployment remains available for existing links, while its metadata names the matching custom-domain experience as authoritative. The custom domain is live; `www` and a possible Pages.dev redirect are separate later decisions.
 
 ## Canonical token flow
 

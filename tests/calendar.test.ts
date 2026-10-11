@@ -56,7 +56,8 @@ describe("calendar enclosure export", () => {
   it("carries a stable identity and required properties", () => {
     expect(ics).toContain("UID:20271024-wedding@emilyandlawrence.com");
     expect(ics).toContain("PRODID:-//Emily and Lawrence//Wedding 2027//EN");
-    expect(ics).toContain("DTSTAMP:20260802T120000Z");
+    expect(ics).toContain("SEQUENCE:1\r\n");
+    expect(ics).toContain("DTSTAMP:20261011T100711Z\r\n");
   });
 
   it("uses CRLF line endings throughout", () => {

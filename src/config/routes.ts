@@ -13,6 +13,13 @@ export function routesFor(legacyGitHubPages: boolean) {
 
 export const routes = routesFor(isLegacyGitHubPagesBuild);
 
+/** Match each physical route to the experience's final public address. */
+export function canonicalRouteFor(route: string, legacyGitHubPages: boolean): string {
+  if (route === "welcome" || route === "welcome/") return "";
+  if (route === "" && legacyGitHubPages) return "save-the-date/";
+  return route;
+}
+
 /** Joins a base URL and a route without doubling or dropping the slash. */
 export function routeHref(base: string, route: string): string {
   return `${base.replace(/\/?$/, "/")}${route.replace(/^\//, "")}`;
