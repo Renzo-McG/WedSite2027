@@ -36,7 +36,7 @@ describe("legacy GitHub Pages redirects", () => {
     expect(html).toContain(`<meta http-equiv="refresh" content="0; url=${target}">`);
     expect(html).toContain(`<link rel="canonical" href="${target}">`);
     expect(html).toContain(`<a href="${target}">`);
-    expect(html).toContain('<meta name="robots" content="noindex, nofollow">');
+    expect(html).toContain('<meta name="robots" content="noindex, follow">');
     expect(html).not.toMatch(
       /renzo-mcg\.github\.io|WedSite2027|<link rel="stylesheet"|<script src/,
     );
