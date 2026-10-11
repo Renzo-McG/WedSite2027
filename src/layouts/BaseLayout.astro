@@ -36,7 +36,7 @@ const canonical = hasCanonical ? canonicalPageUrl(Astro.url.pathname) : undefine
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {noindex && <meta name="robots" content="noindex, follow" />}
     {themeColor && <meta name="theme-color" content={themeColor} />}
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
