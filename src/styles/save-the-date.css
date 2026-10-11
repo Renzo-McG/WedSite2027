@@ -5,15 +5,29 @@
  * invitation language becomes a portrait object presented on a destination
  * stage. The invitation is a warm frosted material, so the stage stays
  * perceptible through it at every size.
+ *
+ * Every rule is scoped to the Save the Date's page (body.std-page) through
+ * :where(), which adds no specificity. The root page bundles this stylesheet
+ * alongside the Wedding website's whichever of the two it renders
+ * (src/pages/index.astro), so nothing here may match outside the Save the
+ * Date. The website's stylesheets are scoped to .app-page the same way;
+ * tests/style-isolation.test.ts holds both to it.
  */
 
-*,
-*::before,
-*::after {
+:where(.std-page),
+:where(.std-page) *,
+:where(.std-page) *::before,
+:where(.std-page) *::after {
   box-sizing: border-box;
 }
 
-html[data-sheet-open] {
+/* <html> too, as the reset reached it before it was scoped. Its own rule, so a
+   browser without :has() still keeps the reset above. */
+html:where(:has(> .std-page)) {
+  box-sizing: border-box;
+}
+
+html[data-sheet-open]:where(:has(> .std-page)) {
   overflow: hidden;
 }
 
@@ -35,7 +49,7 @@ html[data-sheet-open] {
   outline-offset: 3px;
 }
 
-.std {
+:where(.std-page) .std {
   position: relative;
   display: grid;
   place-items: center;
@@ -58,16 +72,16 @@ html[data-sheet-open] {
     overflow-x: hidden;
   }
 
-  .std {
+  :where(.std-page) .std {
     width: 100%;
     max-width: 100%;
   }
 
-  .std > .stage {
+  :where(.std-page) .std > .stage {
     right: -1px;
   }
 
-  .std > .invitation {
+  :where(.std-page) .std > .invitation {
     justify-self: start;
     width: calc(100% + 1px);
     max-width: none;
@@ -76,31 +90,31 @@ html[data-sheet-open] {
 
 /* ---------------------------------------------------------------- stage */
 
-.stage {
+:where(.std-page) .stage {
   position: absolute;
   inset: 0;
   background: radial-gradient(70% 60% at 50% 34%, var(--stage-soft) 0%, var(--stage-deep) 78%);
   pointer-events: none;
 }
 
-.stage__image,
-.stage__noscript,
-.stage__video {
+:where(.std-page) .stage__image,
+:where(.std-page) .stage__noscript,
+:where(.std-page) .stage__video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.stage__image,
-.stage__noscript {
+:where(.std-page) .stage__image,
+:where(.std-page) .stage__noscript {
   background-repeat: no-repeat;
   background-position: var(--stage-position-mobile);
   background-size: cover;
   filter: saturate(var(--stage-image-saturation)) contrast(var(--stage-image-contrast));
 }
 
-.stage__video {
+:where(.std-page) .stage__video {
   border: 0;
   object-fit: cover;
   object-position: var(--video-position-mobile, var(--stage-position-mobile));
@@ -108,14 +122,14 @@ html[data-sheet-open] {
   background: transparent;
 }
 
-.stage__video[hidden] {
+:where(.std-page) .stage__video[hidden] {
   display: none;
 }
 
 /* Directional wash: darker at the edges, open through the middle, so the
    location stays legible instead of sitting under a flat black veil. */
 
-.stage__wash {
+:where(.std-page) .stage__wash {
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -127,7 +141,7 @@ html[data-sheet-open] {
   opacity: var(--video-overlay-strength, 0.48);
 }
 
-.stage__glow {
+:where(.std-page) .stage__glow {
   position: absolute;
   inset: 0;
   background:
@@ -141,7 +155,7 @@ html[data-sheet-open] {
    or focusing the sheet would shift the whole composition inside it.
    No `isolation` here — the frosted surface needs the stage in its backdrop. */
 
-.invitation {
+:where(.std-page) .invitation {
   position: relative;
   z-index: 1;
   display: grid;
@@ -151,7 +165,7 @@ html[data-sheet-open] {
   overflow: clip;
 }
 
-.invitation__surface {
+:where(.std-page) .invitation__surface {
   position: relative;
   display: grid;
   grid-template-rows: 1fr;
@@ -172,7 +186,7 @@ html[data-sheet-open] {
     clip-path var(--dur-material) var(--ease-material);
 }
 
-.invitation__grain {
+:where(.std-page) .invitation__grain {
   position: absolute;
   inset: 0;
   background-image: url("../assets/materials/grain.svg");
@@ -194,7 +208,7 @@ html[data-sheet-open] {
    left over after that is shared evenly above and below the whole block rather
    than collecting in one accidental void. */
 
-.invitation__content {
+:where(.std-page) .invitation__content {
   position: relative;
   z-index: 2;
   display: grid;
@@ -213,7 +227,7 @@ html[data-sheet-open] {
    predictable without hiding the destination behind a full-screen veil. */
 
 @media (max-width: 47.99rem) and (orientation: portrait) {
-  .std {
+  :where(.std-page) .std {
     --invitation-alpha-mobile: 0.14;
     --mobile-feather-faint: 4%;
     --mobile-feather-mid: 8%;
@@ -225,7 +239,7 @@ html[data-sheet-open] {
     --breath-max: 3.75rem;
   }
 
-  .invitation__surface {
+  :where(.std-page) .invitation__surface {
     background-image: linear-gradient(
       214deg,
       rgba(255, 253, 247, 0.07) 0%,
@@ -236,7 +250,7 @@ html[data-sheet-open] {
     -webkit-backdrop-filter: none;
   }
 
-  .invitation__surface::before {
+  :where(.std-page) .invitation__surface::before {
     position: absolute;
     z-index: 1;
     background: rgba(var(--invitation-tint), 0.83);
@@ -275,26 +289,26 @@ html[data-sheet-open] {
     -webkit-mask-repeat: no-repeat;
   }
 
-  .invitation__grain {
+  :where(.std-page) .invitation__grain {
     z-index: 1;
     opacity: 0.22;
   }
 
-  .invitation__content {
+  :where(.std-page) .invitation__content {
     padding-bottom: max(4.5rem, calc(env(safe-area-inset-bottom) + 3.5rem));
   }
 }
 
-.invitation__header,
-.invitation__main,
-.invitation__footer {
+:where(.std-page) .invitation__header,
+:where(.std-page) .invitation__main,
+:where(.std-page) .invitation__footer {
   transition:
     opacity var(--dur-content) var(--ease-material),
     transform var(--dur-content) var(--ease-material),
     filter var(--dur-content) var(--ease-material);
 }
 
-.label {
+:where(.std-page) .label {
   margin: 0;
   color: var(--ink-soft);
   font-size: var(--label-size);
@@ -303,14 +317,14 @@ html[data-sheet-open] {
   text-transform: uppercase;
 }
 
-.invitation__main {
+:where(.std-page) .invitation__main {
   display: grid;
   align-content: start;
   gap: var(--gap-names-details);
   margin-top: var(--gap-header-names);
 }
 
-.names {
+:where(.std-page) .names {
   position: relative;
   left: var(--names-offset-x);
   top: var(--names-offset-y);
@@ -325,11 +339,11 @@ html[data-sheet-open] {
   overflow: visible;
 }
 
-.names__line {
+:where(.std-page) .names__line {
   display: block;
 }
 
-.names__amp {
+:where(.std-page) .names__amp {
   display: block;
   position: relative;
   left: var(--amp-offset-x);
@@ -341,12 +355,12 @@ html[data-sheet-open] {
   line-height: 1;
 }
 
-.details {
+:where(.std-page) .details {
   display: grid;
   gap: var(--gap-date-place);
 }
 
-.details__date {
+:where(.std-page) .details__date {
   margin: 0;
   font-family: var(--font-ui);
   font-size: var(--date-size);
@@ -354,30 +368,30 @@ html[data-sheet-open] {
   line-height: 1.25;
 }
 
-.details__date-day {
+:where(.std-page) .details__date-day {
   white-space: nowrap;
 }
 
-.details__place {
+:where(.std-page) .details__place {
   margin: 0;
   color: var(--ink-soft);
   font-size: var(--place-size);
   line-height: 1.5;
 }
 
-.invitation__footer {
+:where(.std-page) .invitation__footer {
   display: grid;
   justify-items: start;
   gap: var(--gap-countdown-cta);
 }
 
-.invitation__actions {
+:where(.std-page) .invitation__actions {
   display: grid;
   justify-items: start;
   gap: 0.25rem;
 }
 
-.countdown {
+:where(.std-page) .countdown {
   margin: 0;
   color: var(--ink-soft);
   font-size: var(--countdown-size);
@@ -385,11 +399,11 @@ html[data-sheet-open] {
   letter-spacing: var(--countdown-tracking);
 }
 
-.countdown__unit {
+:where(.std-page) .countdown__unit {
   white-space: nowrap;
 }
 
-.countdown__sep {
+:where(.std-page) .countdown__sep {
   padding-inline: 0.4em;
   color: var(--ink-faint);
 }
@@ -399,7 +413,7 @@ html[data-sheet-open] {
 /* A material control rather than a pill: softly inset, frosted, and clearly
    part of the invitation surface. */
 
-.cta {
+:where(.std-page) .cta {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -451,21 +465,25 @@ html[data-sheet-open] {
   }
 }
 
-.invitation[data-phase="composed"] .cta:not(:hover, :focus-visible, :active) .cta__icon {
+:where(.std-page)
+  .invitation[data-phase="composed"]
+  .cta:not(:hover, :focus-visible, :active)
+  .cta__icon {
   animation: calendar-icon-invite 10s ease-in-out 2s infinite;
 }
 
-.invitation[data-phase="composed"]
+:where(.std-page)
+  .invitation[data-phase="composed"]
   .website-link:not(:hover, :focus-visible, :active)
   .website-link__arrow {
   animation: website-arrow-invite 10s ease-in-out 2s infinite;
 }
 
-.invitation[data-phase="calendar-opening"] .cta {
+:where(.std-page) .invitation[data-phase="calendar-opening"] .cta {
   transform: scale(0.99);
 }
 
-.cta__icon {
+:where(.std-page) .cta__icon {
   display: inline-grid;
   place-items: center;
   width: 1.125rem;
@@ -476,7 +494,7 @@ html[data-sheet-open] {
     opacity var(--dur-local) var(--ease-local);
 }
 
-.cta__icon svg {
+:where(.std-page) .cta__icon svg {
   width: 100%;
   height: 100%;
   stroke: currentColor;
@@ -485,27 +503,27 @@ html[data-sheet-open] {
   stroke-linejoin: round;
 }
 
-.cta:hover .cta__icon,
-.cta:focus-visible .cta__icon {
+:where(.std-page) .cta:hover .cta__icon,
+:where(.std-page) .cta:focus-visible .cta__icon {
   transform: translateY(-2px);
 }
 
-.cta:active .cta__icon {
+:where(.std-page) .cta:active .cta__icon {
   transform: translateY(1px);
 }
 
-.cta:hover {
+:where(.std-page) .cta:hover {
   background: rgba(35, 54, 43, 0.94);
 }
 
-.cta:active {
+:where(.std-page) .cta:active {
   transform: scale(0.985);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0.25rem 0.75rem rgba(19, 31, 24, 0.16);
 }
 
-.website-link {
+:where(.std-page) .website-link {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -522,31 +540,31 @@ html[data-sheet-open] {
     text-decoration-color var(--dur-local) var(--ease-local);
 }
 
-.website-link:hover,
-.website-link:focus-visible {
+:where(.std-page) .website-link:hover,
+:where(.std-page) .website-link:focus-visible {
   color: var(--ink);
   text-decoration-color: currentColor;
 }
 
-.website-link:focus-visible {
+:where(.std-page) .website-link:focus-visible {
   outline-color: var(--sage-deep);
 }
 
-.website-link__arrow {
+:where(.std-page) .website-link__arrow {
   display: inline-block;
   transition: transform var(--dur-local) var(--ease-local);
 }
 
-.website-link:hover .website-link__arrow,
-.website-link:focus-visible .website-link__arrow {
+:where(.std-page) .website-link:hover .website-link__arrow,
+:where(.std-page) .website-link:focus-visible .website-link__arrow {
   transform: translateX(0.2rem);
 }
 
-.website-link:active .website-link__arrow {
+:where(.std-page) .website-link:active .website-link__arrow {
   transform: translateX(0.1rem);
 }
 
-.note {
+:where(.std-page) .note {
   margin: calc(var(--gap-cta-note) - var(--gap-countdown-cta)) 0 0;
   color: var(--ink-faint);
   font-size: var(--note-size, var(--label-size));
@@ -559,7 +577,7 @@ html[data-sheet-open] {
 /* State control only: it closes the invitation. Quiet, off to the upper left,
    and deliberately not part of the wedding copy. */
 
-.back {
+:where(.std-page) .back {
   position: absolute;
   top: max(0.875rem, env(safe-area-inset-top));
   left: max(0.625rem, env(safe-area-inset-left));
@@ -586,12 +604,12 @@ html[data-sheet-open] {
     border-color var(--dur-local) var(--ease-local);
 }
 
-.back svg {
+:where(.std-page) .back svg {
   width: 1.1rem;
   height: 1.1rem;
 }
 
-.back__label {
+:where(.std-page) .back__label {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -599,19 +617,19 @@ html[data-sheet-open] {
   text-transform: uppercase;
 }
 
-.back:hover {
+:where(.std-page) .back:hover {
   color: #fff;
   border-color: rgba(247, 248, 243, 0.34);
   background: rgba(10, 18, 14, 0.66);
 }
 
-.back[hidden] {
+:where(.std-page) .back[hidden] {
   display: none;
 }
 
 /* --------------------------------------------------------------- cover */
 
-.cover {
+:where(.std-page) .cover {
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -622,7 +640,7 @@ html[data-sheet-open] {
    background anchored to its own outer edge, so the gradients meet exactly at
    the seam and separate with the material. */
 
-.cover__half {
+:where(.std-page) .cover__half {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -635,17 +653,17 @@ html[data-sheet-open] {
   transition: transform var(--dur-cover) var(--ease-aperture);
 }
 
-.cover__half--left {
+:where(.std-page) .cover__half--left {
   left: 0;
   background-position: 0 0;
 }
 
-.cover__half--right {
+:where(.std-page) .cover__half--right {
   right: 0;
   background-position: 100% 0;
 }
 
-.cover__lock-line {
+:where(.std-page) .cover__lock-line {
   position: absolute;
   width: 28%;
   height: 1px;
@@ -656,24 +674,24 @@ html[data-sheet-open] {
     opacity var(--dur-local) var(--ease-local);
 }
 
-.cover__lock-line--upper-left,
-.cover__lock-line--upper-right {
+:where(.std-page) .cover__lock-line--upper-left,
+:where(.std-page) .cover__lock-line--upper-right {
   top: 38%;
 }
 
-.cover__lock-line--lower-left,
-.cover__lock-line--lower-right {
+:where(.std-page) .cover__lock-line--lower-left,
+:where(.std-page) .cover__lock-line--lower-right {
   top: 62%;
 }
 
-.cover__lock-line--upper-left,
-.cover__lock-line--lower-left {
+:where(.std-page) .cover__lock-line--upper-left,
+:where(.std-page) .cover__lock-line--lower-left {
   left: 14%;
   transform-origin: left center;
 }
 
-.cover__lock-line--upper-right,
-.cover__lock-line--lower-right {
+:where(.std-page) .cover__lock-line--upper-right,
+:where(.std-page) .cover__lock-line--lower-right {
   right: 14%;
   background: linear-gradient(90deg, rgba(230, 237, 228, 0.42), transparent);
   transform-origin: right center;
@@ -682,7 +700,7 @@ html[data-sheet-open] {
 /* Two segments with a geometric gap around the control. Nothing overlaps or
    masks the line — it simply stops, so no fragment can survive at any DPR. */
 
-.cover__seam {
+:where(.std-page) .cover__seam {
   position: absolute;
   left: 50%;
   width: var(--seam-width);
@@ -700,13 +718,13 @@ html[data-sheet-open] {
     opacity var(--dur-seam) var(--ease-material);
 }
 
-.cover__seam--top {
+:where(.std-page) .cover__seam--top {
   top: 11%;
   bottom: calc(50% + var(--seam-control-size) / 2 + var(--seam-control-gap));
   transform-origin: bottom center;
 }
 
-.cover__seam--bottom {
+:where(.std-page) .cover__seam--bottom {
   top: calc(50% + var(--seam-control-size) / 2 + var(--seam-control-gap));
   bottom: 11%;
   transform-origin: top center;
@@ -716,7 +734,7 @@ html[data-sheet-open] {
 
 /* The seal and the seam share the container's exact midpoint. */
 
-.opener {
+:where(.std-page) .opener {
   position: absolute;
   inset: 0;
   z-index: 4;
@@ -731,7 +749,7 @@ html[data-sheet-open] {
     transform var(--dur-control) var(--ease-material);
 }
 
-.opener__assembly {
+:where(.std-page) .opener__assembly {
   position: relative;
   display: grid;
   place-items: center;
@@ -748,7 +766,7 @@ html[data-sheet-open] {
 /* A narrow feather hides the join between the cover halves without drawing a
    separate dark disc around the seal. */
 
-.opener__assembly::before {
+:where(.std-page) .opener__assembly::before {
   position: absolute;
   border-radius: 50%;
   background: radial-gradient(
@@ -763,7 +781,7 @@ html[data-sheet-open] {
 }
 
 /* A single outward trace invites touch without making the seal throb. */
-.opener__assembly::after {
+:where(.std-page) .opener__assembly::after {
   position: absolute;
   border: 1px solid rgba(238, 244, 236, 0.68);
   border-radius: 50%;
@@ -773,7 +791,7 @@ html[data-sheet-open] {
   pointer-events: none;
 }
 
-.opener__ring {
+:where(.std-page) .opener__ring {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -785,7 +803,7 @@ html[data-sheet-open] {
     opacity var(--dur-local) var(--ease-local);
 }
 
-.opener__ring--outer {
+:where(.std-page) .opener__ring--outer {
   width: 100%;
   height: 100%;
   background: conic-gradient(
@@ -801,7 +819,7 @@ html[data-sheet-open] {
   mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0);
 }
 
-.opener__mark {
+:where(.std-page) .opener__mark {
   position: relative;
   color: rgba(246, 248, 244, 0.92);
   font-family: "Manrope", var(--font-ui);
@@ -813,22 +831,22 @@ html[data-sheet-open] {
   transition: color var(--dur-local) var(--ease-local);
 }
 
-.opener:hover .opener__assembly,
-.opener:focus-visible .opener__assembly {
+:where(.std-page) .opener:hover .opener__assembly,
+:where(.std-page) .opener:focus-visible .opener__assembly {
   background: rgba(29, 43, 34, 0.82);
 }
 
-.opener:hover .opener__ring--outer,
-.opener:focus-visible .opener__ring--outer {
+:where(.std-page) .opener:hover .opener__ring--outer,
+:where(.std-page) .opener:focus-visible .opener__ring--outer {
   opacity: 0.82;
 }
 
-.opener:hover .opener__mark,
-.opener:focus-visible .opener__mark {
+:where(.std-page) .opener:hover .opener__mark,
+:where(.std-page) .opener:focus-visible .opener__mark {
   color: #fff;
 }
 
-.opener:active .opener__assembly {
+:where(.std-page) .opener:active .opener__assembly {
   transform: scale(0.985);
 }
 
@@ -856,7 +874,8 @@ html[data-sheet-open] {
 /* Default markup state is `composed`, so the invitation is fully readable
    with no JavaScript. The inline boot script moves it to `sealed`. */
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="sealed"],
     [data-phase="engaging"],
     [data-phase="aligning"],
@@ -878,7 +897,8 @@ html[data-sheet-open] {
 
 /* Hold the film with no paper; then expand a narrow central band into the
    full material. The existing composition stays laid out underneath. */
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="sealed"],
     [data-phase="engaging"],
     [data-phase="aligning"],
@@ -891,14 +911,16 @@ html[data-sheet-open] {
   clip-path: inset(50% 0 50% 0);
 }
 
-.invitation[data-phase="reseal-softening"]
+:where(.std-page)
+  .invitation[data-phase="reseal-softening"]
   :is(.invitation__header, .invitation__main, .invitation__footer) {
   opacity: 0.58;
   filter: blur(1.5px);
   transition-duration: 300ms;
 }
 
-.invitation[data-phase="content-revealing"]
+:where(.std-page)
+  .invitation[data-phase="content-revealing"]
   :is(.invitation__header, .invitation__main, .invitation__footer) {
   opacity: 1;
   filter: none;
@@ -908,24 +930,25 @@ html[data-sheet-open] {
 
 /* Four information beats. Related lines resolve together; the next idea
    arrives only after the previous one has nearly settled. */
-.invitation[data-phase="content-revealing"]
+:where(.std-page)
+  .invitation[data-phase="content-revealing"]
   :is(.invitation__header, .names, .details, .countdown, .invitation__actions, .note) {
   animation: copy-arrive 660ms cubic-bezier(0.25, 0.65, 0.3, 1) both;
 }
 
-.invitation[data-phase="content-revealing"] :is(.invitation__header, .names) {
+:where(.std-page) .invitation[data-phase="content-revealing"] :is(.invitation__header, .names) {
   animation-delay: 0ms;
 }
 
-.invitation[data-phase="content-revealing"] .details {
+:where(.std-page) .invitation[data-phase="content-revealing"] .details {
   animation-delay: 570ms;
 }
 
-.invitation[data-phase="content-revealing"] .countdown {
+:where(.std-page) .invitation[data-phase="content-revealing"] .countdown {
   animation-delay: 1170ms;
 }
 
-.invitation[data-phase="content-revealing"] :is(.invitation__actions, .note) {
+:where(.std-page) .invitation[data-phase="content-revealing"] :is(.invitation__actions, .note) {
   animation-delay: 1740ms;
 }
 
@@ -944,7 +967,8 @@ html[data-sheet-open] {
 /* The paper is barely present while the cover is closed, so the destination
    reads through the material, then resolves into being as the cover parts. */
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="sealed"],
     [data-phase="engaging"],
     [data-phase="aligning"],
@@ -958,7 +982,8 @@ html[data-sheet-open] {
   --invitation-alpha: var(--invitation-alpha-closed);
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="composed"],
     [data-phase="calendar-cue"],
     [data-phase="calendar-opening"],
@@ -970,7 +995,8 @@ html[data-sheet-open] {
   visibility: hidden;
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="aperture-opening"],
     [data-phase="venue-hold"],
     [data-phase="material-revealing"],
@@ -987,7 +1013,8 @@ html[data-sheet-open] {
   transform: translateX(-102%);
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="aperture-opening"],
     [data-phase="venue-hold"],
     [data-phase="material-revealing"],
@@ -1004,7 +1031,8 @@ html[data-sheet-open] {
   transform: translateX(102%);
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="reseal-panels"],
     [data-phase="reseal-seam"],
     [data-phase="reseal-locking"]
@@ -1014,7 +1042,8 @@ html[data-sheet-open] {
   transition-timing-function: var(--ease-reseal);
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="seam-release"],
     [data-phase="aperture-opening"],
     [data-phase="reseal-seam"]
@@ -1025,7 +1054,8 @@ html[data-sheet-open] {
   box-shadow: 0 0 0.75rem rgba(244, 236, 209, 0.5);
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="aperture-opening"],
     [data-phase="venue-hold"],
     [data-phase="material-revealing"],
@@ -1037,25 +1067,29 @@ html[data-sheet-open] {
   transition-delay: 120ms;
 }
 
-.invitation[data-phase="sealed"] .opener__assembly::after {
+:where(.std-page) .invitation[data-phase="sealed"] .opener__assembly::after {
   animation: open-pulse 3.4s ease-out infinite;
 }
 
-.invitation[data-phase="engaging"] .opener__assembly {
+:where(.std-page) .invitation[data-phase="engaging"] .opener__assembly {
   transform: scale(0.985);
   filter: brightness(1.12);
 }
 
-.invitation:is([data-phase="aligning"], [data-phase="unlocking"], [data-phase="seam-release"])
+:where(.std-page)
+  .invitation:is([data-phase="aligning"], [data-phase="unlocking"], [data-phase="seam-release"])
   .opener__ring--outer {
   transform: translate(-50%, -50%) rotate(88deg);
 }
 
-.invitation:is([data-phase="aligning"], [data-phase="unlocking"]) .cover__lock-line {
+:where(.std-page)
+  .invitation:is([data-phase="aligning"], [data-phase="unlocking"])
+  .cover__lock-line {
   opacity: 0.78;
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="unlocking"],
     [data-phase="seam-release"],
     [data-phase="aperture-opening"]
@@ -1065,7 +1099,8 @@ html[data-sheet-open] {
   opacity: 0;
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="aperture-opening"],
     [data-phase="venue-hold"],
     [data-phase="material-revealing"],
@@ -1085,16 +1120,19 @@ html[data-sheet-open] {
   opacity: 0;
 }
 
-.invitation:is([data-phase="reseal-softening"], [data-phase="reseal-panels"]) .cover__seam {
+:where(.std-page)
+  .invitation:is([data-phase="reseal-softening"], [data-phase="reseal-panels"])
+  .cover__seam {
   opacity: 0;
 }
 
-.invitation[data-phase="reseal-locking"] .cover__lock-line {
+:where(.std-page) .invitation[data-phase="reseal-locking"] .cover__lock-line {
   transform: scaleX(1);
   opacity: 0.62;
 }
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="aperture-opening"],
     [data-phase="venue-hold"],
     [data-phase="material-revealing"],
@@ -1113,14 +1151,14 @@ html[data-sheet-open] {
 
 /* --------------------------------------------------------------- sheet */
 
-.sheet-layer {
+:where(.std-page) .sheet-layer {
   position: absolute;
   inset: 0;
   z-index: 5;
   visibility: hidden;
 }
 
-.sheet-scrim {
+:where(.std-page) .sheet-scrim {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1136,7 +1174,7 @@ html[data-sheet-open] {
 /* A material insert from the same system as the invitation, not an operating
    system sheet: no drag handle, restrained radius, warm frosted paper. */
 
-.sheet {
+:where(.std-page) .sheet {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -1152,7 +1190,7 @@ html[data-sheet-open] {
 
 /* The same paper grain as the invitation, at the same restraint. */
 
-.sheet::before {
+:where(.std-page) .sheet::before {
   position: absolute;
   z-index: -1;
   border-radius: inherit;
@@ -1165,7 +1203,7 @@ html[data-sheet-open] {
   pointer-events: none;
 }
 
-.sheet__header {
+:where(.std-page) .sheet__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1173,14 +1211,14 @@ html[data-sheet-open] {
   margin-bottom: 1rem;
 }
 
-.sheet__title {
+:where(.std-page) .sheet__title {
   margin: 0;
   font-family: var(--font-ui);
   font-size: 1.125rem;
   font-weight: 500;
 }
 
-.sheet__close {
+:where(.std-page) .sheet__close {
   display: grid;
   place-items: center;
   width: 2.75rem;
@@ -1196,19 +1234,19 @@ html[data-sheet-open] {
   transition: background-color var(--dur-local) var(--ease-local);
 }
 
-.sheet__close:hover {
+:where(.std-page) .sheet__close:hover {
   background: rgba(23, 28, 24, 0.06);
 }
 
-.sheet__providers {
+:where(.std-page) .sheet__providers {
   display: grid;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sheet__header,
-.sheet__providers {
+:where(.std-page) .sheet__header,
+:where(.std-page) .sheet__providers {
   opacity: 0;
   transform: translateY(0.35rem);
   transition:
@@ -1216,11 +1254,11 @@ html[data-sheet-open] {
     transform 360ms var(--ease-material);
 }
 
-.sheet__providers li + li {
+:where(.std-page) .sheet__providers li + li {
   border-top: 1px solid rgba(23, 28, 24, 0.08);
 }
 
-.provider {
+:where(.std-page) .provider {
   display: flex;
   align-items: center;
   gap: 0.875rem;
@@ -1232,52 +1270,61 @@ html[data-sheet-open] {
   transition: background-color var(--dur-local) var(--ease-local);
 }
 
-.provider:hover {
+:where(.std-page) .provider:hover {
   background: rgba(23, 28, 24, 0.05);
 }
 
-.provider__icon {
+:where(.std-page) .provider__icon {
   flex: none;
   width: 1.625rem;
   height: 1.625rem;
   object-fit: contain;
 }
 
-.provider__name {
+:where(.std-page) .provider__name {
   flex: 1;
   font-size: 0.9375rem;
 }
 
-.provider__cue {
+:where(.std-page) .provider__cue {
   color: var(--ink-faint);
   font-size: 0.875rem;
 }
 
 /* ---------------------------------------------------------- sheet open */
 
-.invitation:is(
+:where(.std-page)
+  .invitation:is(
     [data-phase="calendar-opening"],
     [data-phase="calendar-open"],
     [data-phase="calendar-closing"]
   )
   .sheet-layer,
-.std:not([data-enhanced]) .sheet-layer:target {
+:where(.std-page) .std:not([data-enhanced]) .sheet-layer:target {
   visibility: visible;
 }
 
-.invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"]) .sheet-scrim,
-.std:not([data-enhanced]) .sheet-layer:target .sheet-scrim {
+:where(.std-page)
+  .invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"])
+  .sheet-scrim,
+:where(.std-page) .std:not([data-enhanced]) .sheet-layer:target .sheet-scrim {
   opacity: 1;
 }
 
-.invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"]) .sheet,
-.std:not([data-enhanced]) .sheet-layer:target .sheet {
+:where(.std-page)
+  .invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"])
+  .sheet,
+:where(.std-page) .std:not([data-enhanced]) .sheet-layer:target .sheet {
   transform: translateY(0);
 }
 
-.invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"])
+:where(.std-page)
+  .invitation:is([data-phase="calendar-opening"], [data-phase="calendar-open"])
   :is(.sheet__header, .sheet__providers),
-.std:not([data-enhanced]) .sheet-layer:target :is(.sheet__header, .sheet__providers) {
+:where(.std-page)
+  .std:not([data-enhanced])
+  .sheet-layer:target
+  :is(.sheet__header, .sheet__providers) {
   opacity: 1;
   transform: none;
   transition-delay: 150ms;
@@ -1286,16 +1333,16 @@ html[data-sheet-open] {
 /* ------------------------------------------------------------- desktop */
 
 @media (min-width: 48rem) and (min-height: 40rem) {
-  .std {
+  :where(.std-page) .std {
     padding: clamp(1.5rem, 4vh, 3rem);
   }
 
-  .stage__image,
-  .stage__noscript {
+  :where(.std-page) .stage__image,
+  :where(.std-page) .stage__noscript {
     background-position: var(--stage-position-desktop);
   }
 
-  .stage__video {
+  :where(.std-page) .stage__video {
     object-position: var(--video-position-desktop, var(--stage-position-desktop));
   }
 
@@ -1304,7 +1351,7 @@ html[data-sheet-open] {
      identically from a short laptop to a large display, instead of the content
      overflowing a card that cannot grow. */
 
-  .invitation {
+  :where(.std-page) .invitation {
     --invitation-alpha: var(--invitation-alpha-desktop);
     --label-size: 1.6cqh;
     --names-size: 12.1cqh;
@@ -1338,11 +1385,12 @@ html[data-sheet-open] {
       box-shadow var(--dur-material) var(--ease-material);
   }
 
-  .invitation:is(
-    [data-phase="aperture-opening"],
-    [data-phase="venue-hold"],
-    [data-phase="material-revealing"]
-  ) {
+  :where(.std-page)
+    .invitation:is(
+      [data-phase="aperture-opening"],
+      [data-phase="venue-hold"],
+      [data-phase="material-revealing"]
+    ) {
     border-color: transparent;
     box-shadow: none;
   }
@@ -1350,7 +1398,7 @@ html[data-sheet-open] {
   /* A brighter halo immediately behind the object, so it sits in the scene
      rather than on top of it. */
 
-  .invitation::before {
+  :where(.std-page) .invitation::before {
     position: absolute;
     z-index: -1;
     border-radius: inherit;
@@ -1360,7 +1408,7 @@ html[data-sheet-open] {
     pointer-events: none;
   }
 
-  .invitation::after {
+  :where(.std-page) .invitation::after {
     position: absolute;
     z-index: 6;
     border-radius: inherit;
@@ -1371,7 +1419,8 @@ html[data-sheet-open] {
     transition: opacity var(--dur-material) var(--ease-material);
   }
 
-  .invitation:is(
+  :where(.std-page)
+    .invitation:is(
       [data-phase="aperture-opening"],
       [data-phase="venue-hold"],
       [data-phase="material-revealing"]
@@ -1379,11 +1428,11 @@ html[data-sheet-open] {
     opacity: 0;
   }
 
-  .invitation__content {
+  :where(.std-page) .invitation__content {
     padding: var(--invitation-pad-y) var(--invitation-pad-x);
   }
 
-  .cta {
+  :where(.std-page) .cta {
     min-height: 6.2cqh;
     padding: 1.6cqh 2.9cqh;
     font-size: 1.92cqh;
@@ -1391,7 +1440,7 @@ html[data-sheet-open] {
 
   /* On the stage rather than the paper, so it takes the stage's light. */
 
-  .back {
+  :where(.std-page) .back {
     top: 1.25rem;
     left: 1.25rem;
     display: grid;
@@ -1407,46 +1456,46 @@ html[data-sheet-open] {
     -webkit-backdrop-filter: none;
   }
 
-  .back:hover {
+  :where(.std-page) .back:hover {
     color: rgba(245, 248, 243, 0.95);
     background: rgba(245, 248, 243, 0.12);
   }
 
-  .back__label {
+  :where(.std-page) .back__label {
     display: none;
   }
 
-  .cover__half {
+  :where(.std-page) .cover__half {
     backdrop-filter: blur(12px) saturate(0.88);
     -webkit-backdrop-filter: blur(12px) saturate(0.88);
   }
 
-  .sheet {
+  :where(.std-page) .sheet {
     border-radius: 0.75rem 0.75rem 0 0;
   }
 
-  html[data-display-type="sirivennela"] .std .invitation {
+  html[data-display-type="sirivennela"] :where(.std-page) .std .invitation {
     --names-size: 15.1cqh;
     --names-leading: 0.75;
     --names-gap: 0.08em;
     --names-offset-y: 0.04em;
   }
 
-  html[data-display-type="montecarlo"] .std .invitation {
+  html[data-display-type="montecarlo"] :where(.std-page) .std .invitation {
     --names-size: 14.1cqh;
     --names-leading: 0.82;
     --names-gap: 0.05em;
     --names-offset-y: 0;
   }
 
-  html[data-display-type="corinthia"] .std .invitation {
+  html[data-display-type="corinthia"] :where(.std-page) .std .invitation {
     --names-size: 16.2cqh;
     --names-leading: 0.7;
     --names-gap: 0.1em;
     --names-offset-y: 0.08em;
   }
 
-  html[data-display-type="parisienne"] .std .invitation {
+  html[data-display-type="parisienne"] :where(.std-page) .std .invitation {
     --names-size: 13.2cqh;
     --names-leading: 0.86;
     --names-gap: 0.05em;
@@ -1455,14 +1504,14 @@ html[data-sheet-open] {
 }
 
 @media (max-width: 47.99rem) and (max-height: 38rem) {
-  .std {
+  :where(.std-page) .std {
     --mobile-feather-faint: 2%;
     --mobile-feather-mid: 4%;
     --mobile-feather-near: 7%;
     --mobile-feather-solid: 10%;
   }
 
-  .invitation__content {
+  :where(.std-page) .invitation__content {
     --gap-header-names: 1.35rem;
     --gap-names-details: 1rem;
     --breath-min: 1.25rem;
@@ -1471,25 +1520,25 @@ html[data-sheet-open] {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
-  html[data-display-type="sirivennela"] .std {
+  html[data-display-type="sirivennela"] :where(.std-page) .std {
     --names-size: 4.35rem;
   }
 
-  html[data-display-type="montecarlo"] .std {
+  html[data-display-type="montecarlo"] :where(.std-page) .std {
     --names-size: 4rem;
   }
 
-  html[data-display-type="corinthia"] .std {
+  html[data-display-type="corinthia"] :where(.std-page) .std {
     --names-size: 4.8rem;
   }
 
-  html[data-display-type="parisienne"] .std {
+  html[data-display-type="parisienne"] :where(.std-page) .std {
     --names-size: 3.9rem;
   }
 }
 
 @media (max-width: 21.25rem) and (max-height: 36rem) {
-  .invitation__content {
+  :where(.std-page) .invitation__content {
     padding-top: 3.75rem;
   }
 }
@@ -1499,7 +1548,7 @@ html[data-sheet-open] {
    viewport. */
 
 @media (max-height: 40rem) and (min-width: 34rem) {
-  .invitation {
+  :where(.std-page) .invitation {
     --label-size: 0.65rem;
     --names-size: clamp(3.35rem, 8vw, 4.5rem);
     --names-leading: 0.74;
@@ -1511,7 +1560,7 @@ html[data-sheet-open] {
     min-height: 100svh;
   }
 
-  .invitation__content {
+  :where(.std-page) .invitation__content {
     grid-template-rows: auto auto;
     grid-template-columns: minmax(0, 1.12fr) minmax(12.5rem, 0.88fr);
     align-content: center;
@@ -1519,42 +1568,42 @@ html[data-sheet-open] {
     padding: 1.25rem clamp(2rem, 6vw, 4rem);
   }
 
-  .invitation__header {
+  :where(.std-page) .invitation__header {
     grid-column: 1;
     grid-row: 1;
   }
 
-  .invitation__main {
+  :where(.std-page) .invitation__main {
     grid-column: 1;
     grid-row: 2;
     gap: 0.75rem;
     margin-top: 0.875rem;
   }
 
-  .invitation__breath {
+  :where(.std-page) .invitation__breath {
     display: none;
   }
 
-  .invitation__footer {
+  :where(.std-page) .invitation__footer {
     grid-column: 2;
     grid-row: 1 / 3;
     align-self: center;
     gap: 0.875rem;
   }
 
-  .note {
+  :where(.std-page) .note {
     margin-top: 0;
   }
 
-  html[data-display-type="montecarlo"] .std {
+  html[data-display-type="montecarlo"] :where(.std-page) .std {
     --names-size: clamp(3.15rem, 7.5vw, 4.15rem);
   }
 
-  html[data-display-type="corinthia"] .std {
+  html[data-display-type="corinthia"] :where(.std-page) .std {
     --names-size: clamp(3.7rem, 9vw, 5rem);
   }
 
-  html[data-display-type="parisienne"] .std {
+  html[data-display-type="parisienne"] :where(.std-page) .std {
     --names-size: clamp(3rem, 7.2vw, 4rem);
   }
 }
@@ -1565,7 +1614,7 @@ html[data-sheet-open] {
    surface becomes considerably more opaque and keeps its own depth. */
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .std {
+  :where(.std-page) .std {
     --invitation-alpha-desktop: 0.95;
     --invitation-alpha-mobile: 0.96;
     --invitation-alpha-closed: 0.4;
@@ -1576,51 +1625,53 @@ html[data-sheet-open] {
 /* ------------------------------------------------------ reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
-  .invitation[data-phase="content-revealing"]
+  :where(.std-page)
+    .invitation[data-phase="content-revealing"]
     :is(.invitation__header, .invitation__main, .invitation__footer) {
     transition: opacity 100ms linear;
   }
 
-  .invitation[data-phase="content-revealing"]
+  :where(.std-page)
+    .invitation[data-phase="content-revealing"]
     :is(.invitation__header, .names, .details, .countdown, .invitation__actions, .note) {
     animation: none;
   }
 
-  .invitation__header,
-  .invitation__main,
-  .invitation__footer,
-  .invitation__surface,
-  .cover__half,
-  .cover__seam,
-  .cover__lock-line,
-  .opener,
-  .opener__assembly,
-  .opener__ring,
-  .cta,
-  .sheet,
-  .sheet-scrim {
+  :where(.std-page) .invitation__header,
+  :where(.std-page) .invitation__main,
+  :where(.std-page) .invitation__footer,
+  :where(.std-page) .invitation__surface,
+  :where(.std-page) .cover__half,
+  :where(.std-page) .cover__seam,
+  :where(.std-page) .cover__lock-line,
+  :where(.std-page) .opener,
+  :where(.std-page) .opener__assembly,
+  :where(.std-page) .opener__ring,
+  :where(.std-page) .cta,
+  :where(.std-page) .sheet,
+  :where(.std-page) .sheet-scrim {
     transition-duration: 120ms;
     transition-delay: 0ms;
   }
 
-  .invitation[data-phase="sealed"] .invitation__header,
-  .invitation[data-phase="sealed"] .invitation__main,
-  .invitation[data-phase="sealed"] .invitation__footer {
+  :where(.std-page) .invitation[data-phase="sealed"] .invitation__header,
+  :where(.std-page) .invitation[data-phase="sealed"] .invitation__main,
+  :where(.std-page) .invitation[data-phase="sealed"] .invitation__footer {
     transform: none;
   }
 
-  .invitation[data-phase="sealed"] .opener__assembly::after,
-  .invitation[data-phase="composed"] .cta__icon,
-  .invitation[data-phase="composed"] .website-link__arrow {
+  :where(.std-page) .invitation[data-phase="sealed"] .opener__assembly::after,
+  :where(.std-page) .invitation[data-phase="composed"] .cta__icon,
+  :where(.std-page) .invitation[data-phase="composed"] .website-link__arrow {
     animation: none !important;
   }
 
-  .cover__half--left,
-  .cover__half--right {
+  :where(.std-page) .cover__half--left,
+  :where(.std-page) .cover__half--right {
     transition-property: opacity;
   }
 
-  .sheet {
+  :where(.std-page) .sheet {
     transition-property: opacity;
   }
 }
@@ -1628,7 +1679,7 @@ html[data-sheet-open] {
 /* Deterministic accessibility QA mirror for `?motion=reduced`. The visitor's
    operating-system preference remains the primary production path. */
 
-html[data-reduced-motion] {
+html[data-reduced-motion] :where(.std-page) {
   .invitation[data-phase="content-revealing"]
     :is(.invitation__header, .invitation__main, .invitation__footer) {
     transition: opacity 100ms linear;

@@ -1,9 +1,10 @@
 /*
  * Production tokens for the public Save the Date.
- * Scoped to the page so nothing leaks into the Design Lab, which keeps its own system.
+ * Scoped to the page so nothing leaks into the Design Lab, which keeps its own system,
+ * or into the Wedding website (see save-the-date.css).
  */
 
-.std {
+:where(.std-page) .std {
   --stage-deep: #0d1512;
   --stage-mid: #16221c;
   --stage-soft: #27362c;
@@ -121,7 +122,7 @@
   --dur-close: 1180ms;
 }
 
-html[data-display-type="sirivennela"] .std {
+html[data-display-type="sirivennela"] :where(.std-page) .std {
   --font-display: "Sirivennela", "Segoe Script", cursive;
   --names-size: clamp(5.25rem, 24vw, 6.75rem);
   --names-leading: 0.76;
@@ -132,7 +133,7 @@ html[data-display-type="sirivennela"] .std {
   --amp-offset-y: 0.2em;
 }
 
-html[data-display-type="montecarlo"] .std {
+html[data-display-type="montecarlo"] :where(.std-page) .std {
   --font-display: "MonteCarlo", "Segoe Script", cursive;
   --names-size: clamp(4.9rem, 22vw, 6.4rem);
   --names-leading: 0.82;
@@ -143,7 +144,7 @@ html[data-display-type="montecarlo"] .std {
   --amp-offset-y: 0.16em;
 }
 
-html[data-display-type="corinthia"] .std {
+html[data-display-type="corinthia"] :where(.std-page) .std {
   --font-display: "Corinthia", "Segoe Script", cursive;
   --names-size: clamp(5.8rem, 27vw, 7.4rem);
   --names-leading: 0.7;
@@ -154,7 +155,7 @@ html[data-display-type="corinthia"] .std {
   --amp-offset-y: 0.28em;
 }
 
-html[data-display-type="parisienne"] .std {
+html[data-display-type="parisienne"] :where(.std-page) .std {
   --font-display: "Parisienne", "Segoe Script", cursive;
   --names-size: clamp(4.65rem, 21vw, 6.05rem);
   --names-leading: 0.86;

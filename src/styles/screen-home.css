@@ -10,9 +10,12 @@
  * The resting state is the default (no animation), so the page is complete
  * without JavaScript, with reduced motion, and when leaving the hero resolves
  * the arrival.
+ *
+ * Scoped to .app-page like app.css, because the root page also bundles the
+ * Save the Date.
  */
 
-.welcome {
+:where(.app-page) .welcome {
   --px: 58%; /* where the Pavilion sits in the photograph */
   --py: 41%;
   position: relative;
@@ -26,7 +29,7 @@
   isolation: isolate;
 }
 
-.welcome__stage {
+:where(.app-page) .welcome__stage {
   position: absolute;
   z-index: -1;
   inset: 0;
@@ -35,7 +38,7 @@
     radial-gradient(80% 60% at var(--px) var(--py), #0c4a45 0%, transparent 70%), var(--deep);
 }
 
-.welcome__photo {
+:where(.app-page) .welcome__photo {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -44,7 +47,7 @@
   object-position: var(--px) var(--py);
 }
 
-.welcome__shade {
+:where(.app-page) .welcome__shade {
   position: absolute;
   inset: 0;
   background:
@@ -58,7 +61,7 @@
 }
 
 /* The map is centred on the Pavilion, so the Pavilion is the pin. */
-.welcome__map {
+:where(.app-page) .welcome__map {
   position: absolute;
   top: var(--py);
   left: var(--px);
@@ -69,12 +72,12 @@
 }
 
 @media (min-aspect-ratio: 1/1) {
-  .welcome__map {
+  :where(.app-page) .welcome__map {
     width: 110%;
   }
 }
 
-.welcome__coast {
+:where(.app-page) .welcome__coast {
   display: block;
   width: 100%;
   height: 100%;
@@ -83,27 +86,27 @@
   stroke-linecap: round;
 }
 
-.welcome__coast path {
+:where(.app-page) .welcome__coast path {
   vector-effect: non-scaling-stroke;
 }
 
-.welcome__coast .coast__main {
+:where(.app-page) .welcome__coast .coast__main {
   stroke: var(--shallows);
   stroke-width: 2;
   fill: rgba(125, 220, 207, 0.06);
 }
 
-.welcome__coast .coast__rest {
+:where(.app-page) .welcome__coast .coast__rest {
   stroke: rgba(125, 220, 207, 0.45);
   stroke-width: 1.2;
 }
 
-.welcome__coast .coast__runway {
+:where(.app-page) .welcome__coast .coast__runway {
   stroke: rgba(255, 255, 255, 0.35);
   stroke-width: 4;
 }
 
-.welcome__pin {
+:where(.app-page) .welcome__pin {
   position: absolute;
   top: var(--py);
   left: var(--px);
@@ -113,7 +116,7 @@
   translate: -19px -19px;
 }
 
-.welcome__pin-dot {
+:where(.app-page) .welcome__pin-dot {
   display: grid;
   place-items: center;
   width: 38px;
@@ -125,7 +128,7 @@
   box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.5);
 }
 
-.welcome__pin-label {
+:where(.app-page) .welcome__pin-label {
   padding: 4px 10px;
   border-radius: var(--pill);
   color: var(--ink);
@@ -136,7 +139,7 @@
   white-space: nowrap;
 }
 
-.welcome__ripple {
+:where(.app-page) .welcome__ripple {
   position: absolute;
   top: 0;
   left: 0;
@@ -147,13 +150,13 @@
   opacity: 0;
 }
 
-.welcome__body {
+:where(.app-page) .welcome__body {
   display: grid;
   gap: 10px;
   padding: 24px var(--gutter) 30px;
 }
 
-.welcome__date {
+:where(.app-page) .welcome__date {
   font-size: var(--t-sm);
   font-weight: 650;
   letter-spacing: 0.01em;
@@ -161,7 +164,7 @@
 }
 
 /* Both names carry the emphasis; only the ampersand (.names__amp) steps back. */
-.welcome__names {
+:where(.app-page) .welcome__names {
   display: grid;
   font-size: var(--t-display);
   font-weight: 600;
@@ -170,17 +173,17 @@
 }
 
 /* Each line is a window the words rise through. */
-.welcome__line {
+:where(.app-page) .welcome__line {
   display: block;
   padding-bottom: 0.08em;
   overflow: hidden;
 }
 
-.welcome__line > span {
+:where(.app-page) .welcome__line > span {
   display: inline-block;
 }
 
-.welcome__place {
+:where(.app-page) .welcome__place {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -188,14 +191,14 @@
   font-weight: 550;
 }
 
-.welcome__now {
+:where(.app-page) .welcome__now {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 10px;
   margin-top: 6px;
 }
 
-.welcome__now > span {
+:where(.app-page) .welcome__now > span {
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
@@ -209,15 +212,15 @@
   font-weight: 550;
 }
 
-.welcome__now[hidden] {
+:where(.app-page) .welcome__now[hidden] {
   display: none;
 }
 
-.welcome__now b {
+:where(.app-page) .welcome__now b {
   font-weight: 750;
 }
 
-.welcome__days b {
+:where(.app-page) .welcome__days b {
   font-size: var(--t-md);
 }
 
@@ -226,167 +229,167 @@
  * then how far ahead of London it is right now. The gap is filled in by the
  * shell script from the two IANA zones, so it follows the UK clock change.
  */
-.welcome__time {
+:where(.app-page) .welcome__time {
   flex-wrap: wrap;
   gap: 0;
   column-gap: 6px;
 }
 
-.welcome__flag {
+:where(.app-page) .welcome__flag {
   font-size: 1.05em;
   line-height: 1;
 }
 
 /* Separators sit on the two figures, so they never dangle on an empty value. */
-.welcome__time b::before,
-.welcome__gap::before {
+:where(.app-page) .welcome__time b::before,
+:where(.app-page) .welcome__gap::before {
   content: "·";
   margin-right: 6px;
   opacity: 0.55;
 }
 
-.welcome__gap:empty::before {
+:where(.app-page) .welcome__gap:empty::before {
   content: none;
 }
 
 /* At the narrowest widths the offset drops to its own line rather than squash. */
 @media (max-width: 359px) {
-  .welcome__gap {
+  :where(.app-page) .welcome__gap {
     flex-basis: 100%;
   }
 
-  .welcome__gap::before {
+  :where(.app-page) .welcome__gap::before {
     content: none;
   }
 }
 
-.welcome__credit {
+:where(.app-page) .welcome__credit {
   top: calc(var(--appbar-h) + env(safe-area-inset-top) + 6px);
   bottom: auto;
 }
 
 @media (min-width: 1024px) {
-  .welcome__shade {
+  :where(.app-page) .welcome__shade {
     background:
       linear-gradient(90deg, rgba(3, 26, 24, 0.55) 0%, rgba(3, 26, 24, 0) 55%),
       linear-gradient(0deg, rgba(3, 26, 24, 0.75) 0%, rgba(3, 26, 24, 0) 50%);
   }
 
-  .welcome {
+  :where(.app-page) .welcome {
     min-height: min(78vh, 760px);
     margin: 0;
     border-radius: var(--r-xl);
     box-shadow: var(--shadow-2);
   }
 
-  .welcome__body {
+  :where(.app-page) .welcome__body {
     padding: 48px 52px 52px;
   }
 
-  .welcome__credit {
+  :where(.app-page) .welcome__credit {
     top: 14px;
   }
 }
 
 /* ------------------------------------------------------------ first arrival */
 
-html[data-arrival="first"] .welcome__map {
+html[data-arrival="first"] :where(.app-page) .welcome__map {
   animation:
     welcome-show 200ms linear both,
     welcome-dive 1100ms var(--ease-in-out) 1850ms forwards;
 }
 
-html[data-arrival="first"] .welcome__coast path {
+html[data-arrival="first"] :where(.app-page) .welcome__coast path {
   stroke-dasharray: 1;
 }
 
-html[data-arrival="first"] .welcome__coast .coast__main {
+html[data-arrival="first"] :where(.app-page) .welcome__coast .coast__main {
   animation:
     welcome-draw 1300ms var(--ease-in-out) 150ms both,
     welcome-fill 600ms var(--ease-out) 1300ms both;
 }
 
-html[data-arrival="first"] .welcome__coast .coast__rest {
+html[data-arrival="first"] :where(.app-page) .welcome__coast .coast__rest {
   animation: welcome-draw 1500ms var(--ease-in-out) 350ms both;
 }
 
-html[data-arrival="first"] .welcome__coast .coast__runway {
+html[data-arrival="first"] :where(.app-page) .welcome__coast .coast__runway {
   animation: welcome-draw 500ms var(--ease-out) 1000ms both;
 }
 
-html[data-arrival="first"] .welcome__pin-dot {
+html[data-arrival="first"] :where(.app-page) .welcome__pin-dot {
   animation: welcome-pin 520ms var(--ease-pop) 1150ms both;
 }
 
-html[data-arrival="first"] .welcome__ripple {
+html[data-arrival="first"] :where(.app-page) .welcome__ripple {
   animation: welcome-ripple 1100ms var(--ease-out) 1350ms both;
 }
 
-html[data-arrival="first"] .welcome__pin-label {
+html[data-arrival="first"] :where(.app-page) .welcome__pin-label {
   animation: welcome-label 420ms var(--ease-out) 1450ms both;
 }
 
-html[data-arrival="first"] .welcome__photo {
+html[data-arrival="first"] :where(.app-page) .welcome__photo {
   animation:
     welcome-open 1250ms var(--ease-in-out) 1850ms both,
     welcome-settle 2000ms var(--ease-out) 1850ms both;
 }
 
-html[data-arrival="first"] .welcome__shade {
+html[data-arrival="first"] :where(.app-page) .welcome__shade {
   animation: welcome-fade 700ms var(--ease-out) 2400ms both;
 }
 
-html[data-arrival="first"] .welcome__date {
+html[data-arrival="first"] :where(.app-page) .welcome__date {
   animation: welcome-rise 700ms var(--ease-out) 2650ms both;
 }
 
-html[data-arrival="first"] .welcome__line > span {
+html[data-arrival="first"] :where(.app-page) .welcome__line > span {
   animation: welcome-line 1000ms var(--ease-out) both;
   animation-delay: 2750ms;
 }
 
-html[data-arrival="first"] .welcome__line + .welcome__line > span {
+html[data-arrival="first"] :where(.app-page) .welcome__line + .welcome__line > span {
   animation-delay: 2880ms;
 }
 
-html[data-arrival="first"] .welcome__place {
+html[data-arrival="first"] :where(.app-page) .welcome__place {
   animation: welcome-rise 700ms var(--ease-out) 3100ms both;
 }
 
-html[data-arrival="first"] .welcome__now {
+html[data-arrival="first"] :where(.app-page) .welcome__now {
   animation: welcome-rise 700ms var(--ease-out) 3250ms both;
 }
 
-html[data-arrival="first"] .welcome__credit {
+html[data-arrival="first"] :where(.app-page) .welcome__credit {
   animation: welcome-fade 600ms var(--ease-out) 3000ms both;
 }
 
 /* ------------------------------------------------------------ later visits */
 
-html[data-arrival="return"] .welcome__photo {
+html[data-arrival="return"] :where(.app-page) .welcome__photo {
   animation: welcome-settle 1100ms var(--ease-out) both;
 }
 
-html[data-arrival="return"] .welcome__pin-dot {
+html[data-arrival="return"] :where(.app-page) .welcome__pin-dot {
   animation: welcome-pin 480ms var(--ease-pop) 250ms both;
 }
 
-html[data-arrival="return"] .welcome__line > span {
+html[data-arrival="return"] :where(.app-page) .welcome__line > span {
   animation: welcome-line 800ms var(--ease-out) 80ms both;
 }
 
-html[data-arrival="return"] .welcome__line + .welcome__line > span {
+html[data-arrival="return"] :where(.app-page) .welcome__line + .welcome__line > span {
   animation-delay: 160ms;
 }
 
 /* Temporary chrome pauses the story; only leaving the hero resolves it. */
-.welcome[data-paused] *,
-.welcome[data-paused] *::before {
+:where(.app-page) .welcome[data-paused] *,
+:where(.app-page) .welcome[data-paused] *::before {
   animation-play-state: paused !important;
 }
 
-.welcome[data-resolved] *,
-.welcome[data-resolved] *::before {
+:where(.app-page) .welcome[data-resolved] *,
+:where(.app-page) .welcome[data-resolved] *::before {
   animation: none !important;
 }
 
@@ -486,47 +489,47 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
 
 /* ================================================================== doors */
 
-.doors {
+:where(.app-page) .doors {
   display: grid;
   gap: 16px;
 }
 
-.doors__title {
+:where(.app-page) .doors__title {
   font-size: var(--t-xl);
   font-weight: 750;
   letter-spacing: -0.035em;
   line-height: 1.1;
 }
 
-.doors__grid {
+:where(.app-page) .doors__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-.door--travel,
-.door--wedding {
+:where(.app-page) .door--travel,
+:where(.app-page) .door--wedding {
   grid-column: 1 / -1;
 }
 
 @media (min-width: 900px) {
-  .doors__grid {
+  :where(.app-page) .doors__grid {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 16px;
   }
 
-  .door--travel,
-  .door--wedding {
+  :where(.app-page) .door--travel,
+  :where(.app-page) .door--wedding {
     grid-column: span 7;
   }
 
-  .door--stay,
-  .door--trip {
+  :where(.app-page) .door--stay,
+  :where(.app-page) .door--trip {
     grid-column: span 5;
   }
 }
 
-.door__link {
+:where(.app-page) .door__link {
   position: relative;
   display: grid;
   align-content: end;
@@ -543,21 +546,21 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
     box-shadow var(--d-base) var(--ease-out);
 }
 
-.door__link:active {
+:where(.app-page) .door__link:active {
   transform: scale(0.98);
 }
 
 @media (min-width: 900px) {
-  .door__link {
+  :where(.app-page) .door__link {
     min-height: 300px;
   }
 }
 
-.door--wedding .door__link {
+:where(.app-page) .door--wedding .door__link {
   min-height: 250px;
 }
 
-.door__img {
+:where(.app-page) .door__img {
   position: absolute;
   z-index: -2;
   inset: 0;
@@ -567,11 +570,11 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   transition: scale 900ms var(--ease-out);
 }
 
-.door--wedding .door__img {
+:where(.app-page) .door--wedding .door__img {
   object-position: 60% 40%;
 }
 
-.door--photo .door__link::before {
+:where(.app-page) .door--photo .door__link::before {
   content: "";
   position: absolute;
   z-index: -1;
@@ -579,33 +582,33 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   background: linear-gradient(0deg, rgba(3, 26, 24, 0.82) 0%, rgba(3, 26, 24, 0) 62%);
 }
 
-.door--wedding .door__link::before {
+:where(.app-page) .door--wedding .door__link::before {
   background:
     linear-gradient(0deg, rgba(40, 18, 8, 0.78) 0%, rgba(40, 18, 8, 0) 62%),
     linear-gradient(200deg, rgba(232, 135, 90, 0.28), transparent 50%);
 }
 
-.door__text {
+:where(.app-page) .door__text {
   display: grid;
   gap: 3px;
   padding: 18px 64px 18px 18px;
 }
 
-.door__label {
+:where(.app-page) .door__label {
   color: var(--foam);
   font-size: var(--t-xs);
   font-weight: 650;
 }
 
-.door--travel .door__label {
+:where(.app-page) .door--travel .door__label {
   color: var(--shallows);
 }
 
-.door--wedding .door__label {
+:where(.app-page) .door--wedding .door__label {
   color: var(--sun);
 }
 
-.door__title {
+:where(.app-page) .door__title {
   font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -613,13 +616,13 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   text-wrap: balance;
 }
 
-.door__sub {
+:where(.app-page) .door__sub {
   margin-top: 2px;
   color: rgba(255, 255, 255, 0.72);
   font-size: var(--t-sm);
 }
 
-.door__go {
+:where(.app-page) .door__go {
   position: absolute;
   right: 14px;
   bottom: 16px;
@@ -634,22 +637,22 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .door__link:hover {
+  :where(.app-page) .door__link:hover {
     box-shadow: var(--shadow-lift);
     transform: translateY(-3px);
   }
 
-  .door__link:hover .door__img {
+  :where(.app-page) .door__link:hover .door__img {
     scale: 1.05;
   }
 
-  .door__link:hover .door__go {
+  :where(.app-page) .door__link:hover .door__go {
     transform: translateX(3px);
   }
 }
 
 /* The Travel door draws its own journey when it comes into view. */
-.door--travel .door__link {
+:where(.app-page) .door--travel .door__link {
   align-content: space-between;
   background:
     radial-gradient(90% 90% at 100% 0%, rgba(125, 220, 207, 0.16), transparent 60%),
@@ -660,7 +663,7 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
  * The Travel door's map: the same land, projection and framing as the Travel
  * screen's journey, so the geography carries straight through from Home.
  */
-.door-geo {
+:where(.app-page) .door-geo {
   position: relative;
   display: block;
   width: 100%;
@@ -669,7 +672,7 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   margin: 10px 0 0 4px;
 }
 
-.door-route {
+:where(.app-page) .door-route {
   position: absolute;
   inset: 0;
   display: block;
@@ -677,19 +680,19 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   height: 100%;
 }
 
-.door-route__land {
+:where(.app-page) .door-route__land {
   fill: rgba(125, 220, 207, 0.07);
 }
 
-.door-route__dots {
+:where(.app-page) .door-route__dots {
   fill: url(#door-dots);
 }
 
-#door-dots circle {
+:where(.app-page) #door-dots circle {
   fill: rgba(125, 220, 207, 0.3);
 }
 
-.door-route__arc {
+:where(.app-page) .door-route__arc {
   fill: none;
   stroke: var(--shallows);
   stroke-width: 2.5;
@@ -699,18 +702,18 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   filter: drop-shadow(0 0 3px rgba(125, 220, 207, 0.55));
 }
 
-.js .door-route__arc {
+.js :where(.app-page) .door-route__arc {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
 
-.js .door--travel[data-seen] .door-route__arc {
+.js :where(.app-page) .door--travel[data-seen] .door-route__arc {
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 2600ms cubic-bezier(0.37, 0, 0.63, 1);
 }
 
 /* Cities sit in HTML above the map, so their type never scales with it. */
-.door-city {
+:where(.app-page) .door-city {
   position: absolute;
   display: flex;
   align-items: center;
@@ -719,7 +722,7 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   pointer-events: none;
 }
 
-.door-city__dot {
+:where(.app-page) .door-city__dot {
   position: relative;
   flex: none;
   width: 8px;
@@ -729,12 +732,12 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
 }
 
-.door-city--cebu .door-city__dot {
+:where(.app-page) .door-city--cebu .door-city__dot {
   background: var(--shallows);
   box-shadow: 0 0 0 3px rgba(125, 220, 207, 0.2);
 }
 
-.door-city__halo {
+:where(.app-page) .door-city__halo {
   position: absolute;
   inset: 0;
   border: 2px solid var(--shallows);
@@ -742,11 +745,11 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
   opacity: 0;
 }
 
-.door--travel[data-seen] .door-city__halo {
+:where(.app-page) .door--travel[data-seen] .door-city__halo {
   animation: welcome-ripple 1000ms var(--ease-out) 2500ms both;
 }
 
-.door-city__name {
+:where(.app-page) .door-city__name {
   color: rgba(255, 255, 255, 0.78);
   font-size: var(--t-xs);
   font-weight: 650;
@@ -755,26 +758,26 @@ html[data-arrival="return"] .welcome__line + .welcome__line > span {
 }
 
 /* Cebu is at the right edge, so its label reads back towards the map. */
-.door-city--cebu {
+:where(.app-page) .door-city--cebu {
   flex-direction: row-reverse;
   translate: calc(-100% + 4px) -50%;
 }
 
-.door-route__plane {
+:where(.app-page) .door-route__plane {
   fill: #fff;
   opacity: 0;
 }
 
-.door--travel[data-flying] .door-route__plane {
+:where(.app-page) .door--travel[data-flying] .door-route__plane {
   opacity: 1;
 }
 
-.door--travel[data-landed] .door-route__plane {
+:where(.app-page) .door--travel[data-landed] .door-route__plane {
   opacity: 0;
   transition: opacity 400ms var(--ease-out);
 }
 
-.doors__credits {
+:where(.app-page) .doors__credits {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 14px;
