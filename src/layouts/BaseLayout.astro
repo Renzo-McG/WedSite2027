@@ -9,6 +9,13 @@ interface Props {
   themeColor?: string;
   /** Off for pages with no address of their own, such as the 404. */
   canonical?: boolean;
+  socialImage?: {
+    url: string;
+    width: number;
+    height: number;
+    type: string;
+    alt: string;
+  };
 }
 
 const {
@@ -18,6 +25,7 @@ const {
   className = "",
   themeColor,
   canonical: hasCanonical = true,
+  socialImage,
 } = Astro.props;
 const canonical = hasCanonical ? canonicalPageUrl(Astro.url.pathname) : undefined;
 ---
@@ -34,7 +42,16 @@ const canonical = hasCanonical ? canonicalPageUrl(Astro.url.pathname) : undefine
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {canonical && <meta property="og:url" content={canonical} />}
-    <meta name="twitter:card" content="summary" />
+    {socialImage && <meta property="og:image" content={socialImage.url} />}
+    {socialImage && <meta property="og:image:width" content={socialImage.width.toString()} />}
+    {socialImage && <meta property="og:image:height" content={socialImage.height.toString()} />}
+    {socialImage && <meta property="og:image:type" content={socialImage.type} />}
+    {socialImage && <meta property="og:image:alt" content={socialImage.alt} />}
+    <meta name="twitter:card" content={socialImage ? "summary_large_image" : "summary"} />
+    {socialImage && <meta name="twitter:title" content={title} />}
+    {socialImage && <meta name="twitter:description" content={description} />}
+    {socialImage && <meta name="twitter:image" content={socialImage.url} />}
+    {socialImage && <meta name="twitter:image:alt" content={socialImage.alt} />}
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
     <link
