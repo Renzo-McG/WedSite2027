@@ -51,32 +51,53 @@ describe("deployment base path", () => {
 });
 
 describe("public wedding URL", () => {
-  it("stays on the GitHub Pages address until the custom-domain cutover", () => {
-    expect(siteUrl).toBe("https://renzo-mcg.github.io/WedSite2027/");
+  it("uses the custom domain as the single public URL", () => {
+    expect(siteUrl).toBe("https://emilyandlawrence.com/");
   });
 
-  it("gives the same canonical links from a root build and a GitHub Pages build", () => {
-    expect(canonicalPageUrl("/", siteUrl, "/").href).toBe(siteUrl);
-    expect(canonicalPageUrl("/wedding/", siteUrl, "/").href).toBe(`${siteUrl}wedding/`);
-    expect(canonicalPageUrl("/WedSite2027/", siteUrl, "/WedSite2027/").href).toBe(siteUrl);
-    expect(canonicalPageUrl("/WedSite2027/wedding/", siteUrl, "/WedSite2027/").href).toBe(
-      `${siteUrl}wedding/`,
-    );
+  it("maps every default route to the matching final-domain canonical and og:url", () => {
+    const expected = {
+      "/": siteUrl,
+      "/save-the-date/": `${siteUrl}save-the-date/`,
+      "/welcome/": siteUrl,
+      "/travel/": `${siteUrl}travel/`,
+      "/stay/": `${siteUrl}stay/`,
+      "/trip/": `${siteUrl}trip/`,
+      "/wedding/": `${siteUrl}wedding/`,
+    };
+    for (const [path, canonical] of Object.entries(expected)) {
+      expect(canonicalPageUrl(path, siteUrl, "/", false).href, path).toBe(canonical);
+    }
   });
 
-  it("keeps the public URL independent from the hosting base for domain migration", () => {
-    const domain = "https://emilyandlawrence.com/";
-    expect(canonicalPageUrl("/wedding/", domain, "/").href).toBe(`${domain}wedding/`);
-    expect(canonicalPageUrl("/WedSite2027/wedding/", domain, "/WedSite2027/").href).toBe(
-      `${domain}wedding/`,
+  it("maps the legacy root to Save the Date and excludes its hosting base from metadata", () => {
+    const expected = {
+      "/WedSite2027/": `${siteUrl}save-the-date/`,
+      "/WedSite2027/save-the-date/": `${siteUrl}save-the-date/`,
+      "/WedSite2027/welcome/": siteUrl,
+      "/WedSite2027/travel/": `${siteUrl}travel/`,
+      "/WedSite2027/stay/": `${siteUrl}stay/`,
+      "/WedSite2027/trip/": `${siteUrl}trip/`,
+      "/WedSite2027/wedding/": `${siteUrl}wedding/`,
+    };
+    for (const [path, canonical] of Object.entries(expected)) {
+      const result = canonicalPageUrl(path, siteUrl, "/WedSite2027/", true).href;
+      expect(result, path).toBe(canonical);
+      expect(result, path).not.toContain("WedSite2027");
+    }
+    expect(canonicalPageUrl("/WedSite2027/", siteUrl, "/WedSite2027", true).href).toBe(
+      `${siteUrl}save-the-date/`,
     );
-    expect(canonicalPageUrl("/WedSite2027/", domain, "/WedSite2027").href).toBe(domain);
   });
 
   it("points every calendar website reference at the site root from siteUrl", () => {
     const ics = buildIcs().replace(/\r\n /g, "");
     expect(ics).toContain(`URL:${siteUrl}\r\n`);
     expect(new URL(googleCalendarUrl()).searchParams.get("details")).toContain(siteUrl);
+    expect(ics).not.toContain("https://renzo-mcg.github.io/WedSite2027/");
+    expect(new URL(googleCalendarUrl()).searchParams.get("details")).not.toContain(
+      "https://renzo-mcg.github.io/WedSite2027/",
+    );
     expect(ics).not.toContain("save-the-date");
   });
 

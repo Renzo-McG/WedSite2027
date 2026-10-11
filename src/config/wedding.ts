@@ -43,7 +43,8 @@ export const wedding = {
     fileName: "emily-lawrence-wedding.ics",
     /** Stable across builds so re-importing updates the event instead of duplicating it. */
     uid: "20271024-wedding@emilyandlawrence.com",
-    stamp: "20260802T120000Z",
+    sequence: 1,
+    stamp: "20261011T100711Z",
   },
   stage: {
     /**

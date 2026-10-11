@@ -54,6 +54,7 @@ export function buildIcs(): string {
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     `UID:${wedding.calendar.uid}`,
+    `SEQUENCE:${wedding.calendar.sequence}`,
     `DTSTAMP:${wedding.calendar.stamp}`,
     `DTSTART;VALUE=DATE:${eventStart}`,
     `DTEND;VALUE=DATE:${eventEnd}`,

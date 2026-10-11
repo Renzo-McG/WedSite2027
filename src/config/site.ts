@@ -1,5 +1,7 @@
-/** Guest-facing URL. Update this when the custom domain becomes canonical. */
-export const siteUrl = "https://renzo-mcg.github.io/WedSite2027/";
+import { canonicalRouteFor, isLegacyGitHubPagesBuild } from "./routes";
+
+/** The authoritative guest-facing URL, independent of the hosting base path. */
+export const siteUrl = "https://emilyandlawrence.com/";
 
 /**
  * Hosting prefix for a build, from the `BASE_PATH` build variable. The default
@@ -14,15 +16,16 @@ export function normalizeBasePath(value: string | undefined): string {
   return trimmed ? `/${trimmed}/` : "/";
 }
 
-/** Canonical links follow the public URL, not the hosting base path. */
+/** Canonicals follow the experience at a route, not the host's physical path. */
 export function canonicalPageUrl(
   pathname: string,
   publicUrl = siteUrl,
   basePath: string = import.meta.env.BASE_URL,
+  legacyGitHubPages = isLegacyGitHubPagesBuild,
 ): URL {
   const base = `${basePath.replace(/\/$/, "")}/`;
   const route = pathname.startsWith(base)
     ? pathname.slice(base.length)
     : pathname.replace(/^\//, "");
-  return new URL(route, publicUrl);
+  return new URL(canonicalRouteFor(route, legacyGitHubPages), publicUrl);
 }
